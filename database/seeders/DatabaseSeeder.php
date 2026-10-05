@@ -3,23 +3,39 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Services\TelephoneNormalizer;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RolesSeeder::class);
+        $this->creerAdministrateur();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        if (app()->environment('local')) {
+            $this->call(DemoSeeder::class);
+        }
+    }
+
+    private function creerAdministrateur(): void
+    {
+        $config = config('dahira.admin');
+        $telephone = TelephoneNormalizer::normaliser($config['telephone'] ?? null);
+
+        if ($telephone === null || empty($config['password'])) {
+            $this->command->warn('ADMIN_TELEPHONE ou ADMIN_PASSWORD manquant dans .env : aucun administrateur créé.');
+
+            return;
+        }
+
+        $admin = User::updateOrCreate(['telephone' => $telephone], [
+            'name' => $config['nom'],
+            'email' => $config['email'],
+            'password' => $config['password'],
+            'actif' => true,
         ]);
+
+        $admin->assignRole('administrateur');
     }
 }
