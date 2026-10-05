@@ -15,7 +15,7 @@ it('attribue un matricule uniquement à la validation', function () {
     app(StatutMembreService::class)->changer($membre, StatutMembre::Valide, User::factory()->create());
 
     $membre->refresh();
-    expect($membre->matricule)->toBe('NDD-'.now()->year.'-0001')
+    expect($membre->matricule)->toBe('NDK-'.now()->year.'-0001')
         ->and($membre->statut)->toBe(StatutMembre::Valide)
         ->and($membre->valide_le)->not->toBeNull()
         ->and($membre->date_adhesion)->not->toBeNull();

@@ -27,8 +27,8 @@ class MembreImporter extends Importer
         return [
             ImportColumn::make('matricule')
                 ->label('Matricule')
-                ->rules(['nullable', 'regex:/^NDD-\d{4}-\d{4}$/', 'unique:membres,matricule'])
-                ->example('NDD-2019-0001'),
+                ->rules(['nullable', 'regex:/^NDK-\d{4}-\d{4}$/', 'unique:membres,matricule'])
+                ->example('NDK-2019-0001'),
             ImportColumn::make('prenom')
                 ->label('Prénom')
                 ->requiredMapping()
@@ -86,7 +86,7 @@ class MembreImporter extends Importer
             'telephone.required' => 'Téléphone absent ou invalide.',
             'telephone.unique' => 'Ce téléphone est déjà enregistré.',
             'matricule.unique' => 'Ce matricule existe déjà.',
-            'matricule.regex' => 'Le matricule doit avoir la forme NDD-AAAA-NNNN.',
+            'matricule.regex' => 'Le matricule doit avoir la forme NDK-AAAA-NNNN.',
             'sexe.in' => 'Le sexe doit être H ou F.',
         ];
     }

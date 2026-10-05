@@ -4,4 +4,24 @@
 
 @theme {
     --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Vert du logo : remplace la palette « emerald » utilisée dans toutes les pages */
+    --color-emerald-50: #f0f8f0;
+    --color-emerald-100: #dcefdc;
+    --color-emerald-200: #b9dfba;
+    --color-emerald-300: #8bc98e;
+    --color-emerald-400: #58ad5e;
+    --color-emerald-500: #36923d;
+    --color-emerald-600: #2a7a30;
+    --color-emerald-700: #236428;
+    --color-emerald-800: #1e5223;
+    --color-emerald-900: #19441e;
+    --color-emerald-950: #0b260e;
+
+    /* Or du logo, pour les touches d'accent */
+    --color-or-100: #fbf1d0;
+    --color-or-200: #f5e0a0;
+    --color-or-400: #e2b93b;
+    --color-or-500: #d4a017;
+    --color-or-600: #b3850f;
 }

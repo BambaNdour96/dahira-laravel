@@ -7,7 +7,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Règle 4.2 : matricule NDD-AAAA-NNNN, attribué une seule fois.
+ * Règle 4.2 : matricule NDK-AAAA-NNNN, attribué une seule fois.
  * AAAA est l'année de validation, ou l'année d'adhésion pour un import.
  */
 final class MatriculeService
@@ -20,7 +20,7 @@ final class MatriculeService
             return $membre->matricule;
         }
 
-        $prefixe = 'NDD-'.($annee ?? now()->year).'-';
+        $prefixe = 'NDK-'.($annee ?? now()->year).'-';
 
         for ($essai = 1; ; $essai++) {
             try {
