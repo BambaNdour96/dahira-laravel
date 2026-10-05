@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->navigationGroups(['Registre', 'Paramètres'])
             ->brandLogo(asset('images/logo-ndk.png'))
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo-ndk.png'))
