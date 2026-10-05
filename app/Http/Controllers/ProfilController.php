@@ -48,7 +48,7 @@ class ProfilController extends Controller
                 'prenom' => ['required', 'string', 'max:100'],
                 'nom' => ['required', 'string', 'max:100'],
                 'sexe' => ['required', Rule::enum(Sexe::class)],
-                'date_naissance' => ['nullable', 'date', 'before:today'],
+                'date_naissance' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
                 'section_id' => ['required', 'integer', 'exists:sections,id'],
             ];
         }

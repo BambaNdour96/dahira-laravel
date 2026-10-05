@@ -117,3 +117,8 @@ it('protège les photos des membres', function () {
     $this->actingAs($proprietaire)->get(route('photos.show', $membre))->assertOk();
     $this->actingAs($autre)->get(route('photos.show', $membre))->assertForbidden();
 });
+
+it('refuse une année de naissance invalide', function (string $date) {
+    $this->post('/inscription', donneesInscription(['date_naissance' => $date]))
+        ->assertSessionHasErrors('date_naissance');
+})->with(['19955-04-12', '1850-01-01', '2999-01-01']);

@@ -30,7 +30,7 @@
             @enderror
         </div>
 
-        <x-champ nom="date_naissance" libelle="Date de naissance" type="date" />
+        <x-champ nom="date_naissance" libelle="Date de naissance" type="date" min="1900-01-01" :max="now()->subDay()->format('Y-m-d')" />
         <x-champ nom="telephone" libelle="Téléphone" type="tel" requis inputmode="tel" autocomplete="tel"
                  placeholder="77 123 45 67" aide="Il vous servira à vous connecter." />
         <x-champ nom="email" libelle="Email" type="email" autocomplete="email" aide="Facultatif." />

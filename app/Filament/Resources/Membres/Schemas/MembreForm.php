@@ -43,7 +43,7 @@ class MembreForm
                         ->required(),
                     DatePicker::make('date_naissance')
                         ->label('Date de naissance')
-                        ->maxDate(now()->subDay()),
+                        ->minDate('1900-01-01')->maxDate(now()->subDay()),
                     FileUpload::make('photo_path')
                         ->label('Photo')
                         ->image()

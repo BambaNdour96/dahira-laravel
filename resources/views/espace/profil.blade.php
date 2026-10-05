@@ -35,7 +35,7 @@
                 @enderror
             </div>
 
-            <x-champ nom="date_naissance" libelle="Date de naissance" type="date" :value="$membre->date_naissance?->format('Y-m-d')" />
+            <x-champ nom="date_naissance" libelle="Date de naissance" type="date" min="1900-01-01" :max="now()->subDay()->format('Y-m-d')" :value="$membre->date_naissance?->format('Y-m-d')" />
 
             <div>
                 <label for="section_id" class="block text-sm font-medium">Section <span class="text-red-700">*</span></label>
