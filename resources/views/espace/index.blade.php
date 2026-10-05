@@ -18,6 +18,7 @@
                 \App\Enums\StatutMembre::Suspendu => 'bg-stone-200 text-stone-800',
                 default => 'bg-red-100 text-red-900',
             };
+            $groupeCellule = $membre->cellule->whatsapp_lien;
         @endphp
 
         {{-- En-tête --}}
@@ -70,6 +71,27 @@
         </div>
 
         @if ($estValide)
+            {{-- Groupes WhatsApp --}}
+            @if ($groupeCellule || $whatsappNational)
+                <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+                    <h2 class="font-semibold text-emerald-900">Groupes WhatsApp</h2>
+                    <div class="mt-3 flex flex-col gap-3 sm:flex-row">
+                        @if ($groupeCellule)
+                            <a href="{{ $groupeCellule }}" target="_blank" rel="noopener"
+                               class="flex-1 rounded-lg bg-[#25D366] px-4 py-3 text-center font-semibold text-white hover:opacity-90">
+                                Groupe de la cellule {{ $membre->cellule->nom }}
+                            </a>
+                        @endif
+                        @if ($whatsappNational)
+                            <a href="{{ $whatsappNational }}" target="_blank" rel="noopener"
+                               class="flex-1 rounded-lg bg-[#25D366] px-4 py-3 text-center font-semibold text-white hover:opacity-90">
+                                Groupe national
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             {{-- Mes affectations --}}
             <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 <h2 class="font-semibold text-emerald-900">Mes affectations</h2>

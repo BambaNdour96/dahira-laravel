@@ -9,12 +9,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $nom
+ * @property string $ville
+ * @property string $pays
+ * @property int|null $responsable_id
+ * @property string|null $whatsapp_lien
+ */
 class Cellule extends Model
 {
     /** @use HasFactory<CelluleFactory> */
     use HasFactory, Journalise;
 
-    protected $fillable = ['nom', 'ville', 'pays', 'responsable_id'];
+    protected $fillable = ['nom', 'ville', 'pays', 'responsable_id', 'whatsapp_lien'];
 
     /** @return BelongsTo<User, $this> */
     public function responsable(): BelongsTo

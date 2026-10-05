@@ -10,8 +10,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RolesSeeder::class);
-        $this->call(PostesSeeder::class);
+        // Données officielles, créées aussi en production.
+        $this->call([
+            RolesSeeder::class,
+            PostesSeeder::class,
+            CellulesSeeder::class,
+            ParametresSeeder::class,
+        ]);
+
         $this->creerAdministrateur();
 
         if (app()->environment('local')) {

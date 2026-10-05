@@ -20,23 +20,19 @@ class DemoSeeder extends Seeder
 {
     public function run(StatutMembreService $statuts): void
     {
-        $cellules = collect([
-            ['nom' => 'Kaolack Centre', 'ville' => 'Kaolack', 'pays' => 'Sénégal'],
-            ['nom' => 'Médina Baye', 'ville' => 'Kaolack', 'pays' => 'Sénégal'],
-            ['nom' => 'Dakar', 'ville' => 'Dakar', 'pays' => 'Sénégal'],
-        ])->map(fn (array $c) => Cellule::firstOrCreate(['nom' => $c['nom']], $c));
+        $cellules = Cellule::query()->get();
 
         foreach (['Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
             Commission::firstOrCreate(['nom' => $nom]);
         }
 
-        $responsable = User::updateOrCreate(['telephone' => '+221770000001'], [
-            'name' => 'Jewrine Kaolack Centre (démo)',
+        $jewrine = User::updateOrCreate(['telephone' => '+221770000001'], [
+            'name' => 'Jewrine Kaolack (démo)',
             'password' => 'password',
             'actif' => true,
         ]);
-        $responsable->syncRoles(['responsable_section']);
-        $cellules->first()?->update(['responsable_id' => $responsable->id]);
+        $jewrine->syncRoles(['responsable_section']);
+        Cellule::query()->where('nom', 'Kaolack')->update(['responsable_id' => $jewrine->id]);
 
         $tresorier = User::updateOrCreate(['telephone' => '+221770000002'], [
             'name' => 'Trésorier (démo)',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Parametre;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,6 +17,7 @@ class EspaceController extends Controller
             'membre' => $user instanceof User
                 ? $user->membre()->with(['cellule', 'poste', 'commissions'])->first()
                 : null,
+            'whatsappNational' => Parametre::valeur('whatsapp_national'),
         ]);
     }
 }

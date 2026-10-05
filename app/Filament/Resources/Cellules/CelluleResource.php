@@ -12,6 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -35,25 +36,23 @@ class CelluleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('nom')
-                ->label('Nom')
-                ->required()
-                ->maxLength(100)
-                ->unique(ignoreRecord: true),
-            TextInput::make('ville')
-                ->label('Ville')
-                ->required()
-                ->maxLength(100),
-            TextInput::make('pays')
-                ->label('Pays')
-                ->required()
-                ->default('Sénégal')
-                ->maxLength(100),
+            TextInput::make('nom')->label('Nom')->required()->maxLength(100)->unique(ignoreRecord: true),
+            TextInput::make('ville')->label('Ville')->required()->maxLength(100),
+            TextInput::make('pays')->label('Pays')->required()->default('Sénégal')->maxLength(100),
             Select::make('responsable_id')
                 ->label('Jewrine')
                 ->relationship('responsable', 'name')
                 ->searchable()
                 ->preload(),
+            TextInput::make('whatsapp_lien')
+                ->label('Lien du groupe WhatsApp')
+                ->url()
+                ->maxLength(255)
+                ->placeholder('https://chat.whatsapp.com/...')
+                ->rules(['nullable', 'starts_with:https://chat.whatsapp.com/'])
+                ->validationMessages(['starts_with' => 'Le lien doit commencer par https://chat.whatsapp.com/'])
+                ->helperText('Visible uniquement par les membres validés de la cellule.')
+                ->columnSpanFull(),
         ]);
     }
 
@@ -63,9 +62,12 @@ class CelluleResource extends Resource
             ->columns([
                 TextColumn::make('nom')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('ville')->label('Ville')->searchable(),
-                TextColumn::make('pays')->label('Pays')->sortable(),
                 TextColumn::make('responsable.name')->label('Jewrine')->placeholder('—'),
                 TextColumn::make('membres_count')->label('Membres')->counts('membres')->sortable(),
+                IconColumn::make('whatsapp_lien')
+                    ->label('WhatsApp')
+                    ->boolean()
+                    ->state(fn (Cellule $record): bool => filled($record->whatsapp_lien)),
             ])
             ->recordActions([
                 EditAction::make(),
