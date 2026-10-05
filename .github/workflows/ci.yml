@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dahira_test
+          POSTGRES_USER: dahira
+          POSTGRES_PASSWORD: dahira_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: dahira_test
+      DB_USERNAME: dahira
+      DB_PASSWORD: dahira_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, gd, bcmath, pdo_pgsql, zip
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dépendances PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Configuration
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Fichiers front
+        run: npm ci && npm run build
+
+      - name: Style du code (Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Analyse statique (Larastan)
+        run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Failles connues
+        run: composer audit
+
+      - name: Tests (Pest)
+        run: ./vendor/bin/pest
