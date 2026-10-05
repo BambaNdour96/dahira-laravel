@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Membres\Schemas;
 
 use App\Enums\Sexe;
+use App\Filament\Resources\Membres\MembreResource;
 use App\Models\Membre;
 use App\Services\TelephoneNormalizer;
 use Closure;
@@ -77,7 +78,7 @@ class MembreForm
 
                                 $dejaPris = Membre::query()
                                     ->where('telephone', $telephone)
-                                    ->when($record, fn ($requete) => $requete->whereKeyNot($record?->getKey()))
+                                    ->when($record, fn ($query) => $query->whereKeyNot($record?->getKey()))
                                     ->exists();
 
                                 if ($dejaPris) {
@@ -97,7 +98,7 @@ class MembreForm
                 ->schema([
                     Select::make('section_id')
                         ->label('Section')
-                        ->relationship('section', 'nom')
+                        ->relationship('section', 'nom', modifyQueryUsing: fn ($query) => MembreResource::limiterSections($query))
                         ->searchable()
                         ->preload()
                         ->required(),

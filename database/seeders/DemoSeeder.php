@@ -8,6 +8,7 @@ use App\Models\Exercice;
 use App\Models\Membre;
 use App\Models\Section;
 use App\Models\Tarif;
+use App\Models\User;
 use App\Services\StatutMembreService;
 use Illuminate\Database\Seeder;
 
@@ -23,6 +24,21 @@ class DemoSeeder extends Seeder
             ['nom' => 'Touba', 'ville' => 'Touba', 'pays' => 'Sénégal'],
             ['nom' => 'Diaspora France', 'ville' => 'Paris', 'pays' => 'France'],
         ])->map(fn (array $s) => Section::firstOrCreate(['nom' => $s['nom']], $s));
+
+        $responsable = User::updateOrCreate(['telephone' => '+221770000001'], [
+            'name' => 'Responsable Yoff (démo)',
+            'password' => 'password',
+            'actif' => true,
+        ]);
+        $responsable->syncRoles(['responsable_section']);
+        $sections->first()?->update(['responsable_id' => $responsable->id]);
+
+        $tresorier = User::updateOrCreate(['telephone' => '+221770000002'], [
+            'name' => 'Trésorier (démo)',
+            'password' => 'password',
+            'actif' => true,
+        ]);
+        $tresorier->syncRoles(['tresorier']);
 
         $annee = now()->year;
         $exercice = Exercice::firstOrCreate(

@@ -8,11 +8,16 @@ use App\Filament\Resources\Membres\Pages\ListMembres;
 use App\Filament\Resources\Membres\Schemas\MembreForm;
 use App\Filament\Resources\Membres\Tables\MembresTable;
 use App\Models\Membre;
+use App\Models\Section;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class MembreResource extends Resource
@@ -39,6 +44,41 @@ class MembreResource extends Resource
     public static function table(Table $table): Table
     {
         return MembresTable::configure($table);
+    }
+
+    /**
+     * Un responsable de section ne voit que les membres de ses sections.
+     * L'administrateur et le trésorier voient tout le monde.
+     *
+     * @return Builder<Model>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $requete = parent::getEloquentQuery();
+        $utilisateur = Auth::user();
+
+        if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['administrateur', 'tresorier'])) {
+            $requete->whereHas('section', fn ($section) => $section->where('responsable_id', $utilisateur->id));
+        }
+
+        return $requete;
+    }
+
+    /**
+     * Limite la liste des sections proposées dans le formulaire.
+     *
+     * @param  Builder<Section>  $requete
+     * @return Builder<Section>
+     */
+    public static function limiterSections(Builder $requete): Builder
+    {
+        $utilisateur = Auth::user();
+
+        if ($utilisateur instanceof User && ! $utilisateur->hasRole('administrateur')) {
+            $requete->where('responsable_id', $utilisateur->id);
+        }
+
+        return $requete;
     }
 
     /** @return array<string, PageRegistration> */

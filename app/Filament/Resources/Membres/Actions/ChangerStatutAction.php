@@ -11,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 final class ChangerStatutAction
 {
@@ -43,7 +44,8 @@ final class ChangerStatutAction
                 : $libelle)
             ->icon($icone)
             ->color($couleur)
-            ->visible(fn (Membre $record): bool => $record->statut->peutPasserA($cible))
+            ->visible(fn (Membre $record): bool => $record->statut->peutPasserA($cible)
+                && Gate::allows('changerStatut', [$record, $cible]))
             ->requiresConfirmation()
             ->modalDescription($cible === StatutMembre::Radie ? 'Attention : la radiation est définitive.' : null)
             ->schema($cible->exigeMotif() ? [
@@ -53,6 +55,12 @@ final class ChangerStatutAction
                     ->maxLength(1000),
             ] : [])
             ->action(function (Membre $record, array $data) use ($cible): void {
+                if (! Gate::allows('changerStatut', [$record, $cible])) {
+                    Notification::make()->title('Action non autorisée.')->danger()->send();
+
+                    return;
+                }
+
                 $auteur = Auth::user();
 
                 try {
