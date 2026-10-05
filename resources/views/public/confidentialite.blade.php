@@ -9,7 +9,7 @@
     <div class="mt-6 space-y-5 text-sm leading-relaxed text-stone-700">
         <section>
             <h2 class="font-semibold text-stone-900">Responsable du traitement</h2>
-            <p>Le bureau du Daara Nouroud Daareyni Kaolack.</p>
+            <p>Le bureau de la Daara Nouroud Daareyni Kaolack.</p>
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Données collectées</h2>

@@ -12,7 +12,7 @@
     <header class="border-b-4 border-or-500 bg-emerald-800 text-white">
         <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
             <a href="{{ route('accueil') }}" class="flex items-center gap-3">
-                <img src="{{ asset('images/logo-ndk.png') }}" alt="Logo du Daara Nouroud Daareyni Kaolack"
+                <img src="{{ asset('images/logo-ndk.png') }}" alt="Logo de la Daara Nouroud Daareyni Kaolack"
                      class="h-12 w-12 rounded-full bg-white object-cover p-0.5 ring-2 ring-or-400">
                 <span class="leading-tight">
                     <span class="block text-sm font-semibold sm:text-base">Daara Nouroud Daareyni</span>

@@ -10,7 +10,7 @@
             <h1 class="mt-5 text-2xl leading-tight font-bold sm:text-3xl">Daara Nouroud Daareyni Kaolack</h1>
             <p class="mt-2 text-sm font-medium text-or-200">Bienvenue dans la plateforme des membres</p>
             <p class="mt-4 max-w-sm text-emerald-50">
-                Inscrivez-vous en ligne pour rejoindre le daara et obtenir votre carte de membre.
+                Inscrivez-vous en ligne pour rejoindre la daara et obtenir votre carte de membre.
             </p>
 
             <div class="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">

@@ -94,7 +94,7 @@
             <label class="flex items-start gap-3 text-sm">
                 <input type="checkbox" name="consentement" value="1" @checked(old('consentement')) required class="mt-0.5 accent-emerald-800">
                 <span>
-                    J'accepte que le Daara Nouroud Daareyni Kaolack enregistre mes informations pour gérer mon adhésion,
+                    J'accepte que la Daara Nouroud Daareyni Kaolack enregistre mes informations pour gérer mon adhésion,
                     comme expliqué dans la page <a href="{{ route('confidentialite') }}" target="_blank" class="underline">Données personnelles</a>.
                 </span>
             </label>

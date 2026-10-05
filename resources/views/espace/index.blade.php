@@ -49,7 +49,7 @@
                 <p class="mt-4 text-sm text-stone-700">Votre matricule : <span class="font-mono font-semibold">{{ $membre->matricule }}</span></p>
                 <p class="mt-2 text-sm text-stone-500">Votre carte de membre et le paiement de la cotisation seront bientôt disponibles ici.</p>
             @else
-                <p class="mt-4 text-sm text-stone-700">Pour toute question, contactez le bureau du daara.</p>
+                <p class="mt-4 text-sm text-stone-700">Pour toute question, contactez le bureau de la daara.</p>
             @endif
         </div>
 
