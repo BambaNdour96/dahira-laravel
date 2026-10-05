@@ -37,9 +37,9 @@
             </p>
 
             @if ($membre->statut === \App\Enums\StatutMembre::EnAttente)
-                <p class="mt-4 text-sm text-stone-700">Votre demande est en cours de vérification par votre responsable de cellule.</p>
+                <p class="mt-4 text-sm text-stone-700">Votre demande est en cours de vérification par votre Jewrine de cellule.</p>
             @elseif ($membre->statut === \App\Enums\StatutMembre::ACorriger)
-                <p class="mt-4 text-sm text-stone-700">Votre responsable de cellule vous demande de corriger votre fiche :</p>
+                <p class="mt-4 text-sm text-stone-700">Votre Jewrine de cellule vous demande de corriger votre fiche :</p>
                 <p class="mt-2 rounded-lg bg-sky-50 p-3 text-sm italic text-sky-900">{{ $membre->motif_statut }}</p>
                 <a href="{{ route('espace.profil') }}" class="mt-4 inline-block rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Corriger ma fiche</a>
             @elseif ($membre->statut === \App\Enums\StatutMembre::Rejete)

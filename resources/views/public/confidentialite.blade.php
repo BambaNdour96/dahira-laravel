@@ -21,7 +21,7 @@
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Qui y a accès</h2>
-            <p>Les membres du bureau habilités et votre responsable de cellule, chacun selon son rôle. Vos données ne sont jamais vendues ni cédées.</p>
+            <p>Les membres du bureau habilités et votre Jewrine de cellule, chacun selon son rôle. Vos données ne sont jamais vendues ni cédées.</p>
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Vos droits</h2>

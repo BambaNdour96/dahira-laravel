@@ -5,7 +5,7 @@
 @section('contenu')
     <h1 class="text-2xl font-semibold">Devenir membre</h1>
     <p class="mt-2 text-sm text-stone-600">
-        Remplissez ce formulaire. Votre responsable de cellule vérifiera votre demande, puis vous recevrez votre matricule.
+        Remplissez ce formulaire. Votre Jewrine de cellule vérifiera votre demande, puis vous recevrez votre matricule.
     </p>
 
     <form method="POST" action="{{ route('inscription.store') }}" enctype="multipart/form-data"

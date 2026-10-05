@@ -50,7 +50,7 @@ class CelluleResource extends Resource
                 ->default('Sénégal')
                 ->maxLength(100),
             Select::make('responsable_id')
-                ->label('Responsable')
+                ->label('Jewrine')
                 ->relationship('responsable', 'name')
                 ->searchable()
                 ->preload(),
@@ -64,7 +64,7 @@ class CelluleResource extends Resource
                 TextColumn::make('nom')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('ville')->label('Ville')->searchable(),
                 TextColumn::make('pays')->label('Pays')->sortable(),
-                TextColumn::make('responsable.name')->label('Responsable')->placeholder('—'),
+                TextColumn::make('responsable.name')->label('Jewrine')->placeholder('—'),
                 TextColumn::make('membres_count')->label('Membres')->counts('membres')->sortable(),
             ])
             ->recordActions([

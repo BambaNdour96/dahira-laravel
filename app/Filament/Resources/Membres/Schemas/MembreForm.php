@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\Membres\Schemas;
 
+use App\Enums\NiveauArabe;
+use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
+use App\Enums\SituationProfessionnelle;
 use App\Filament\Resources\Membres\MembreResource;
 use App\Models\Commission;
 use App\Models\Membre;
 use App\Services\TelephoneNormalizer;
+use App\Support\Langues;
 use Closure;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -30,25 +35,14 @@ class MembreForm
                         ->dehydrated(false)
                         ->placeholder('Attribué à la validation')
                         ->visibleOn('edit'),
-                    TextInput::make('prenom')
-                        ->label('Prénom')
-                        ->required()
-                        ->maxLength(100),
-                    TextInput::make('nom')
-                        ->label('Nom')
-                        ->required()
-                        ->maxLength(100),
-                    Select::make('sexe')
-                        ->label('Sexe')
-                        ->options(Sexe::class)
-                        ->required(),
+                    TextInput::make('prenom')->label('Prénom')->required()->maxLength(100),
+                    TextInput::make('nom')->label('Nom')->required()->maxLength(100),
+                    Select::make('sexe')->label('Sexe')->options(Sexe::class)->required(),
                     DatePicker::make('date_naissance')
                         ->label('Date de naissance')
                         ->minDate('1900-01-01')
                         ->maxDate(now()->subDay()),
-                    TextInput::make('lieu_naissance')
-                        ->label('Lieu de naissance')
-                        ->maxLength(100),
+                    TextInput::make('lieu_naissance')->label('Lieu de naissance')->maxLength(100),
                     FileUpload::make('photo_path')
                         ->label('Photo')
                         ->image()
@@ -62,7 +56,7 @@ class MembreForm
                         ->columnSpanFull(),
                 ]),
 
-            Section::make('Contact')
+            Section::make('Contact et résidence')
                 ->columns(2)
                 ->columnSpanFull()
                 ->schema([
@@ -91,13 +85,35 @@ class MembreForm
                                 }
                             },
                         ]),
-                    TextInput::make('email')
-                        ->label('Email')
-                        ->email()
-                        ->maxLength(255),
+                    TextInput::make('email')->label('Email')->email()->maxLength(255),
+                    TextInput::make('adresse')->label('Adresse ou quartier')->maxLength(255),
+                    TextInput::make('ville')->label('Ville')->maxLength(100),
+                    TextInput::make('pays_residence')->label('Pays de résidence')->required()->default('Sénégal')->maxLength(100),
                 ]),
 
-            Section::make('Daara')
+            Section::make('Formation')
+                ->columns(2)
+                ->columnSpanFull()
+                ->collapsible()
+                ->schema([
+                    Select::make('niveau_etudes')->label('Niveau d\'études')->options(NiveauEtudes::class),
+                    TextInput::make('diplome')->label('Diplôme le plus élevé')->maxLength(150),
+                    TextInput::make('domaine_etudes')->label('Domaine d\'études')->maxLength(150),
+                    Select::make('niveau_arabe')->label('Niveau en arabe')->options(NiveauArabe::class),
+                    CheckboxList::make('langues')->label('Langues parlées')->options(Langues::liste())->columns(3)->columnSpanFull(),
+                ]),
+
+            Section::make('Situation professionnelle')
+                ->columns(2)
+                ->columnSpanFull()
+                ->collapsible()
+                ->schema([
+                    Select::make('situation_professionnelle')->label('Situation')->options(SituationProfessionnelle::class),
+                    TextInput::make('profession')->label('Profession')->maxLength(150),
+                    TextInput::make('secteur_activite')->label('Secteur d\'activité')->maxLength(150),
+                ]),
+
+            Section::make('Affectations dans la Daara')
                 ->columns(2)
                 ->columnSpanFull()
                 ->schema([
@@ -114,10 +130,10 @@ class MembreForm
                         ->preload()
                         ->maxItems(Commission::MAX_PAR_MEMBRE)
                         ->helperText('2 au maximum.'),
-                    TextInput::make('fonction')
-                        ->label('Fonction')
-                        ->maxLength(100)
-                        ->placeholder('Exemple : trésorier, commissaire'),
+                    Select::make('poste_id')
+                        ->label('Poste dans la Daara')
+                        ->relationship('poste', 'nom', modifyQueryUsing: fn ($query) => $query->orderBy('ordre'))
+                        ->preload(),
                     DatePicker::make('date_adhesion')
                         ->label('Date d\'adhésion')
                         ->helperText('Remplie automatiquement à la validation si elle est vide.'),

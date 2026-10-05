@@ -70,7 +70,7 @@ class ProfilController extends Controller
             $statuts->changer($membre, StatutMembre::EnAttente, $auteur instanceof User ? $auteur : null);
 
             return redirect()->route('espace')
-                ->with('succes', 'Votre fiche corrigée a été renvoyée à votre responsable de cellule.');
+                ->with('succes', 'Votre fiche corrigée a été renvoyée à votre Jewrine de cellule.');
         }
 
         return redirect()->route('espace')->with('succes', 'Vos informations ont été mises à jour.');

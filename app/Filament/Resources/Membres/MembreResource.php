@@ -47,7 +47,7 @@ class MembreResource extends Resource
     }
 
     /**
-     * Un responsable de cellule ne voit que les membres de ses cellules.
+     * Un Jewrine de cellule ne voit que les membres de ses cellules.
      * L'administrateur et le trésorier voient tout le monde.
      *
      * @return Builder<Model>

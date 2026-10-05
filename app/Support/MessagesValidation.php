@@ -29,7 +29,7 @@ final class MessagesValidation
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'accepted' => 'Votre accord est nécessaire pour vous inscrire.',
             'telephone.regex' => 'Numéro invalide. Exemple : 77 123 45 67, ou +33 6 12 34 56 78 depuis l\'étranger.',
-            'telephone.unique' => 'Ce numéro est déjà inscrit. Contactez votre responsable de cellule.',
+            'telephone.unique' => 'Ce numéro est déjà inscrit. Contactez votre Jewrine de cellule.',
             'email.unique' => 'Cette adresse email est déjà utilisée.',
         ];
     }

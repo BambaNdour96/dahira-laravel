@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\NiveauArabe;
+use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
+use App\Enums\SituationProfessionnelle;
 use App\Enums\StatutMembre;
 use App\Models\Concerns\Journalise;
 use App\Services\PhotoService;
@@ -25,9 +28,20 @@ use Illuminate\Support\Carbon;
  * @property string|null $lieu_naissance
  * @property string $telephone
  * @property string|null $email
+ * @property string|null $adresse
+ * @property string|null $ville
+ * @property string $pays_residence
  * @property int $cellule_id
+ * @property int|null $poste_id
  * @property string|null $photo_path
- * @property string|null $fonction
+ * @property NiveauEtudes|null $niveau_etudes
+ * @property string|null $diplome
+ * @property string|null $domaine_etudes
+ * @property list<string>|null $langues
+ * @property NiveauArabe|null $niveau_arabe
+ * @property SituationProfessionnelle|null $situation_professionnelle
+ * @property string|null $profession
+ * @property string|null $secteur_activite
  * @property StatutMembre $statut
  * @property string|null $motif_statut
  * @property Carbon|null $date_adhesion
@@ -41,6 +55,12 @@ class Membre extends Model
     /** @use HasFactory<MembreFactory> */
     use HasFactory, Journalise;
 
+    /** Champs pris en compte dans la barre « Profil complété ». */
+    public const CHAMPS_PROFIL = [
+        'email', 'adresse', 'ville', 'niveau_etudes', 'diplome', 'domaine_etudes',
+        'langues', 'niveau_arabe', 'situation_professionnelle', 'profession', 'secteur_activite',
+    ];
+
     /**
      * Valeurs par défaut connues dès la création de l'objet.
      *
@@ -48,12 +68,15 @@ class Membre extends Model
      */
     protected $attributes = [
         'statut' => 'en_attente',
+        'pays_residence' => 'Sénégal',
     ];
 
     protected $fillable = [
         'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
-        'cellule_id', 'photo_path', 'fonction', 'date_adhesion',
-        'consentement_le', 'consentement_version',
+        'adresse', 'ville', 'pays_residence', 'cellule_id', 'poste_id', 'photo_path',
+        'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
+        'situation_professionnelle', 'profession', 'secteur_activite',
+        'date_adhesion', 'consentement_le', 'consentement_version',
     ];
 
     protected static function booted(): void
@@ -83,6 +106,10 @@ class Membre extends Model
         return [
             'sexe' => Sexe::class,
             'statut' => StatutMembre::class,
+            'niveau_etudes' => NiveauEtudes::class,
+            'niveau_arabe' => NiveauArabe::class,
+            'situation_professionnelle' => SituationProfessionnelle::class,
+            'langues' => 'array',
             'date_naissance' => 'date',
             'date_adhesion' => 'date',
             'valide_le' => 'datetime',
@@ -90,10 +117,26 @@ class Membre extends Model
         ];
     }
 
+    /** Pourcentage du profil renseigné, pour la barre de progression. */
+    public function completude(): int
+    {
+        $remplis = collect(self::CHAMPS_PROFIL)
+            ->filter(fn (string $champ): bool => filled($this->getAttribute($champ)))
+            ->count();
+
+        return (int) round($remplis / count(self::CHAMPS_PROFIL) * 100);
+    }
+
     /** @return BelongsTo<Cellule, $this> */
     public function cellule(): BelongsTo
     {
         return $this->belongsTo(Cellule::class);
+    }
+
+    /** @return BelongsTo<Poste, $this> */
+    public function poste(): BelongsTo
+    {
+        return $this->belongsTo(Poste::class);
     }
 
     /** @return BelongsToMany<Commission, $this> */

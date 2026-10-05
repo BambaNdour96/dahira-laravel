@@ -31,7 +31,7 @@ class DemoSeeder extends Seeder
         }
 
         $responsable = User::updateOrCreate(['telephone' => '+221770000001'], [
-            'name' => 'Responsable Kaolack Centre (démo)',
+            'name' => 'Jewrine Kaolack Centre (démo)',
             'password' => 'password',
             'actif' => true,
         ]);

@@ -28,7 +28,7 @@
     <ol class="mt-4 space-y-3">
         @foreach ([
             ['Inscription', 'Remplissez le formulaire avec votre photo, depuis votre téléphone.'],
-            ['Validation', 'Votre responsable de cellule vérifie votre demande et vous attribue un matricule.'],
+            ['Validation', 'Votre Jewrine de cellule vérifie votre demande et vous attribue un matricule.'],
             ['Carte de membre', 'Votre carte avec QR code sera disponible dans votre espace.'],
         ] as $i => [$titre, $texte])
             <li class="flex gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
