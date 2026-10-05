@@ -129,3 +129,15 @@ it('enregistre le lieu de naissance, facultatif', function () {
 
     expect(Membre::query()->firstOrFail()->lieu_naissance)->toBe('Diourbel');
 });
+
+it('ne garde ni compte ni mot de passe quand l\'inscription est refusée', function () {
+    $this->post('/inscription', donneesInscription(['consentement' => '', 'password' => 'secretJamaisGarde']))
+        ->assertSessionHasErrors('consentement')
+        ->assertSessionMissing('_old_input.password')
+        ->assertSessionMissing('_old_input.password_confirmation');
+
+    expect(User::query()->count())->toBe(0)
+        ->and(Membre::query()->count())->toBe(0);
+
+    $this->assertGuest();
+});
