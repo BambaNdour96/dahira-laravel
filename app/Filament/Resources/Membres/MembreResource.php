@@ -7,8 +7,8 @@ use App\Filament\Resources\Membres\Pages\EditMembre;
 use App\Filament\Resources\Membres\Pages\ListMembres;
 use App\Filament\Resources\Membres\Schemas\MembreForm;
 use App\Filament\Resources\Membres\Tables\MembresTable;
+use App\Models\Cellule;
 use App\Models\Membre;
-use App\Models\Section;
 use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Pages\PageRegistration;
@@ -47,7 +47,7 @@ class MembreResource extends Resource
     }
 
     /**
-     * Un responsable de section ne voit que les membres de ses sections.
+     * Un responsable de cellule ne voit que les membres de ses cellules.
      * L'administrateur et le trésorier voient tout le monde.
      *
      * @return Builder<Model>
@@ -58,19 +58,19 @@ class MembreResource extends Resource
         $utilisateur = Auth::user();
 
         if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['administrateur', 'tresorier'])) {
-            $requete->whereHas('section', fn ($section) => $section->where('responsable_id', $utilisateur->id));
+            $requete->whereHas('cellule', fn ($cellule) => $cellule->where('responsable_id', $utilisateur->id));
         }
 
         return $requete;
     }
 
     /**
-     * Limite la liste des sections proposées dans le formulaire.
+     * Limite la liste des cellules proposées dans le formulaire.
      *
-     * @param  Builder<Section>  $requete
-     * @return Builder<Section>
+     * @param  Builder<Cellule>  $requete
+     * @return Builder<Cellule>
      */
-    public static function limiterSections(Builder $requete): Builder
+    public static function limiterCellules(Builder $requete): Builder
     {
         $utilisateur = Auth::user();
 

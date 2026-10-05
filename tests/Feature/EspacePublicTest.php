@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\StatutMembre;
+use App\Models\Cellule;
 use App\Models\Membre;
-use App\Models\Section;
 use App\Models\User;
 use App\Services\StatutMembreService;
 use Database\Seeders\RolesSeeder;
@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
     Storage::fake('local');
-    $this->section = Section::factory()->create();
+    $this->cellule = Cellule::factory()->create();
 });
 
 function donneesInscription(array $surcharge = []): array
@@ -27,7 +27,7 @@ function donneesInscription(array $surcharge = []): array
         'date_naissance' => '1995-04-12',
         'telephone' => '77 123 45 67',
         'email' => '',
-        'section_id' => test()->section->id,
+        'cellule_id' => test()->cellule->id,
         'photo' => UploadedFile::fake()->image('photo.jpg', 1000, 1200),
         'password' => 'motdepasse',
         'password_confirmation' => 'motdepasse',
@@ -90,7 +90,7 @@ it('refuse la connexion d\'un compte désactivé', function () {
 it('permet de corriger une fiche et la renvoie en attente', function () {
     $user = User::factory()->create();
     $user->assignRole('membre');
-    $membre = Membre::factory()->for($user)->for($this->section)->create();
+    $membre = Membre::factory()->for($user)->for($this->cellule)->create();
     app(StatutMembreService::class)->changer($membre, StatutMembre::ACorriger, null, 'Photo floue');
 
     $this->actingAs($user)->get('/mon-espace')->assertSee('Photo floue');
@@ -99,7 +99,7 @@ it('permet de corriger une fiche et la renvoie en attente', function () {
         'prenom' => 'Awa',
         'nom' => 'Fall',
         'sexe' => 'F',
-        'section_id' => $this->section->id,
+        'cellule_id' => $this->cellule->id,
         'photo' => UploadedFile::fake()->image('nette.jpg', 900, 900),
     ])->assertRedirect(route('espace'));
 

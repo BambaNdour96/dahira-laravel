@@ -5,7 +5,7 @@
 @section('contenu')
     <h1 class="text-3xl font-semibold leading-tight">Bienvenue dans la plateforme des membres</h1>
     <p class="mt-3 text-stone-600">
-        Inscrivez-vous en ligne pour rejoindre la Dahira Nouroud Dareyni et obtenir votre carte de membre.
+        Inscrivez-vous en ligne pour rejoindre le Daara Nouroud Daareyni Kaolack et obtenir votre carte de membre.
     </p>
 
     <div class="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -24,7 +24,7 @@
         </li>
         <li class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
             <p class="font-semibold">2. Validation</p>
-            <p class="text-sm text-stone-600">Votre responsable de section vérifie votre demande et vous attribue un matricule.</p>
+            <p class="text-sm text-stone-600">Votre responsable de cellule vérifie votre demande et vous attribue un matricule.</p>
         </li>
         <li class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
             <p class="font-semibold">3. Carte de membre</p>

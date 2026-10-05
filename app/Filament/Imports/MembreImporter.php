@@ -14,7 +14,7 @@ use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 
 /**
- * Import des membres existants de la dahira (section 9.4 du cahier des charges).
+ * Import des membres existants du daara (cellule 9.4 du cahier des charges).
  * Les membres importés sont créés au statut « validé ».
  */
 class MembreImporter extends Importer
@@ -55,8 +55,8 @@ class MembreImporter extends Importer
                 ->label('Email')
                 ->rules(['nullable', 'email'])
                 ->example(''),
-            ImportColumn::make('section')
-                ->label('Section')
+            ImportColumn::make('cellule')
+                ->label('Cellule')
                 ->requiredMapping()
                 ->relationship(resolveUsing: 'nom')
                 ->rules(['required'])
@@ -104,8 +104,8 @@ class MembreImporter extends Importer
             return;
         }
 
-        if ($membre->getAttribute('section_id') === null) {
-            throw new RowImportFailedException('Section inconnue : vérifiez que son nom est identique à celui du panneau.');
+        if ($membre->getAttribute('cellule_id') === null) {
+            throw new RowImportFailedException('Cellule inconnue : vérifiez que son nom est identique à celui du panneau.');
         }
 
         $membre->statut = StatutMembre::Valide;

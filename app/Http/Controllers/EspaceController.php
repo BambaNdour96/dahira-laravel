@@ -13,7 +13,7 @@ class EspaceController extends Controller
         $user = $request->user();
 
         return view('espace.index', [
-            'membre' => $user instanceof User ? $user->membre()->with('section')->first() : null,
+            'membre' => $user instanceof User ? $user->membre()->with('cellule')->first() : null,
         ]);
     }
 }

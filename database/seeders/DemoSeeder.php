@@ -4,9 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\StatutMembre;
 use App\Enums\TypeTarif;
+use App\Models\Cellule;
+use App\Models\Commission;
 use App\Models\Exercice;
 use App\Models\Membre;
-use App\Models\Section;
 use App\Models\Tarif;
 use App\Models\User;
 use App\Services\StatutMembreService;
@@ -19,19 +20,23 @@ class DemoSeeder extends Seeder
 {
     public function run(StatutMembreService $statuts): void
     {
-        $sections = collect([
-            ['nom' => 'Yoff', 'ville' => 'Dakar', 'pays' => 'Sénégal'],
-            ['nom' => 'Touba', 'ville' => 'Touba', 'pays' => 'Sénégal'],
-            ['nom' => 'Diaspora France', 'ville' => 'Paris', 'pays' => 'France'],
-        ])->map(fn (array $s) => Section::firstOrCreate(['nom' => $s['nom']], $s));
+        $cellules = collect([
+            ['nom' => 'Kaolack Centre', 'ville' => 'Kaolack', 'pays' => 'Sénégal'],
+            ['nom' => 'Médina Baye', 'ville' => 'Kaolack', 'pays' => 'Sénégal'],
+            ['nom' => 'Dakar', 'ville' => 'Dakar', 'pays' => 'Sénégal'],
+        ])->map(fn (array $c) => Cellule::firstOrCreate(['nom' => $c['nom']], $c));
+
+        foreach (['Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
+            Commission::firstOrCreate(['nom' => $nom]);
+        }
 
         $responsable = User::updateOrCreate(['telephone' => '+221770000001'], [
-            'name' => 'Responsable Yoff (démo)',
+            'name' => 'Responsable Kaolack Centre (démo)',
             'password' => 'password',
             'actif' => true,
         ]);
         $responsable->syncRoles(['responsable_section']);
-        $sections->first()?->update(['responsable_id' => $responsable->id]);
+        $cellules->first()?->update(['responsable_id' => $responsable->id]);
 
         $tresorier = User::updateOrCreate(['telephone' => '+221770000002'], [
             'name' => 'Trésorier (démo)',
@@ -63,7 +68,12 @@ class DemoSeeder extends Seeder
             return;
         }
 
-        $membres = Membre::factory()->count(20)->recycle($sections)->create();
+        $membres = Membre::factory()->count(20)->recycle($cellules)->create();
+        $commissions = Commission::all();
+
+        $membres->each(fn (Membre $membre) => $membre->commissions()->sync(
+            $commissions->random(random_int(0, Commission::MAX_PAR_MEMBRE))->pluck('id'),
+        ));
 
         $membres->take(8)->each(
             fn (Membre $membre) => $statuts->changer($membre, StatutMembre::Valide, null),

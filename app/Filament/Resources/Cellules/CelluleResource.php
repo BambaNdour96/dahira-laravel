@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\Sections;
+namespace App\Filament\Resources\Cellules;
 
-use App\Filament\Resources\Sections\Pages\ManageSections;
-use App\Models\Section;
+use App\Filament\Resources\Cellules\Pages\ManageCellules;
+use App\Models\Cellule;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -16,9 +16,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use UnitEnum;
 
-class SectionResource extends Resource
+class CelluleResource extends Resource
 {
-    protected static ?string $model = Section::class;
+    protected static ?string $model = Cellule::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
 
@@ -26,9 +26,9 @@ class SectionResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $modelLabel = 'section';
+    protected static ?string $modelLabel = 'cellule';
 
-    protected static ?string $pluralModelLabel = 'sections';
+    protected static ?string $pluralModelLabel = 'cellules';
 
     protected static ?string $recordTitleAttribute = 'nom';
 
@@ -70,7 +70,7 @@ class SectionResource extends Resource
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make()
-                    ->hidden(fn (Section $record): bool => $record->membres()->exists()),
+                    ->hidden(fn (Cellule $record): bool => $record->membres()->exists()),
             ])
             ->defaultSort('nom');
     }
@@ -79,7 +79,7 @@ class SectionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageSections::route('/'),
+            'index' => ManageCellules::route('/'),
         ];
     }
 }

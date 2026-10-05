@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('titre', 'Accueil') – Dahira Nouroud Dareyni</title>
+    <title>@yield('titre', 'Accueil') – Daara Nouroud Daareyni Kaolack</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-stone-50 text-stone-800 antialiased">
     <header class="bg-emerald-900 text-white">
         <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-4">
-            <a href="{{ route('accueil') }}" class="font-semibold">Dahira Nouroud Dareyni</a>
+            <a href="{{ route('accueil') }}" class="font-semibold">Daara Nouroud Daareyni Kaolack</a>
             <nav class="flex items-center gap-4 text-sm">
                 @auth
                     <a href="{{ route('espace') }}" class="hover:underline">Mon espace</a>

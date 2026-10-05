@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InscriptionRequest;
-use App\Models\Section;
+use App\Models\Cellule;
+use App\Models\Commission;
 use App\Services\InscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -15,7 +16,8 @@ class InscriptionController extends Controller
     public function create(): View
     {
         return view('public.inscription', [
-            'sections' => Section::query()->orderBy('nom')->get(['id', 'nom']),
+            'cellules' => Cellule::query()->orderBy('nom')->get(['id', 'nom']),
+            'commissions' => Commission::query()->where('actif', true)->orderBy('nom')->get(['id', 'nom']),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Membres\Schemas;
 
 use App\Enums\Sexe;
 use App\Filament\Resources\Membres\MembreResource;
+use App\Models\Commission;
 use App\Models\Membre;
 use App\Services\TelephoneNormalizer;
 use Closure;
@@ -43,8 +44,11 @@ class MembreForm
                         ->required(),
                     DatePicker::make('date_naissance')
                         ->label('Date de naissance')
-                        ->minDate('1900-01-01')->maxDate(now()->subDay()),
-                    TextInput::make('lieu_naissance')->label('Lieu de naissance')->maxLength(100),
+                        ->minDate('1900-01-01')
+                        ->maxDate(now()->subDay()),
+                    TextInput::make('lieu_naissance')
+                        ->label('Lieu de naissance')
+                        ->maxLength(100),
                     FileUpload::make('photo_path')
                         ->label('Photo')
                         ->image()
@@ -93,16 +97,23 @@ class MembreForm
                         ->maxLength(255),
                 ]),
 
-            Section::make('Dahira')
+            Section::make('Daara')
                 ->columns(2)
                 ->columnSpanFull()
                 ->schema([
-                    Select::make('section_id')
-                        ->label('Section')
-                        ->relationship('section', 'nom', modifyQueryUsing: fn ($query) => MembreResource::limiterSections($query))
+                    Select::make('cellule_id')
+                        ->label('Cellule')
+                        ->relationship('cellule', 'nom', modifyQueryUsing: fn ($query) => MembreResource::limiterCellules($query))
                         ->searchable()
                         ->preload()
                         ->required(),
+                    Select::make('commissions')
+                        ->label('Commissions')
+                        ->relationship('commissions', 'nom')
+                        ->multiple()
+                        ->preload()
+                        ->maxItems(Commission::MAX_PAR_MEMBRE)
+                        ->helperText('2 au maximum.'),
                     TextInput::make('fonction')
                         ->label('Fonction')
                         ->maxLength(100)

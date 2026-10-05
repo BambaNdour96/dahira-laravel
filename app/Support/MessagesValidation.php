@@ -22,11 +22,14 @@ final class MessagesValidation
             'image' => 'Le fichier doit être une image.',
             'mimes' => 'Formats acceptés : JPEG, PNG ou WebP.',
             'photo.max' => 'La photo dépasse 5 Mo. Choisissez une image plus légère.',
+            'commissions.max' => 'Vous pouvez choisir 2 commissions au maximum.',
+            'commissions.*.exists' => 'Commission invalide.',
+            'commissions.*.distinct' => 'Vous avez choisi deux fois la même commission.',
             'confirmed' => 'Les deux mots de passe ne correspondent pas.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'accepted' => 'Votre accord est nécessaire pour vous inscrire.',
             'telephone.regex' => 'Numéro invalide. Exemple : 77 123 45 67, ou +33 6 12 34 56 78 depuis l\'étranger.',
-            'telephone.unique' => 'Ce numéro est déjà inscrit. Contactez votre responsable de section.',
+            'telephone.unique' => 'Ce numéro est déjà inscrit. Contactez votre responsable de cellule.',
             'email.unique' => 'Cette adresse email est déjà utilisée.',
         ];
     }

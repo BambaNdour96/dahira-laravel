@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('date_naissance')->nullable();
             $table->string('telephone', 20)->unique();
             $table->string('email')->nullable();
-            $table->foreignId('section_id')->constrained('sections')->restrictOnDelete();
+            $table->foreignId('cellule_id')->constrained('cellules')->restrictOnDelete();
             $table->string('photo_path')->nullable();
             $table->string('fonction', 100)->nullable();
             $table->string('statut', 20)->default('en_attente')->index();

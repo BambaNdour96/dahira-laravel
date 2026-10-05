@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\Sections\Pages;
+namespace App\Filament\Resources\Cellules\Pages;
 
-use App\Filament\Resources\Sections\SectionResource;
+use App\Filament\Resources\Cellules\CelluleResource;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
 
-class ManageSections extends ManageRecords
+class ManageCellules extends ManageRecords
 {
-    protected static string $resource = SectionResource::class;
+    protected static string $resource = CelluleResource::class;
 
     /** @return array<int, Action> */
     protected function getHeaderActions(): array

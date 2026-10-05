@@ -2,20 +2,20 @@
 
 namespace App\Policies;
 
-use App\Models\Section;
+use App\Models\Cellule;
 use App\Models\User;
 
 /**
- * Réservé à l'administrateur (matrice des permissions, section 3).
+ * Réservé à l'administrateur (matrice des permissions, cellule 3).
  */
-class SectionPolicy
+class CellulePolicy
 {
     public function viewAny(User $user): bool
     {
         return $user->hasRole('administrateur');
     }
 
-    public function view(User $user, Section $objet): bool
+    public function view(User $user, Cellule $objet): bool
     {
         return $user->hasRole('administrateur');
     }
@@ -25,12 +25,12 @@ class SectionPolicy
         return $user->hasRole('administrateur');
     }
 
-    public function update(User $user, Section $objet): bool
+    public function update(User $user, Cellule $objet): bool
     {
         return $user->hasRole('administrateur');
     }
 
-    public function delete(User $user, Section $objet): bool
+    public function delete(User $user, Cellule $objet): bool
     {
         return $user->hasRole('administrateur');
     }

@@ -11,7 +11,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Crée le compte et la fiche du membre au statut « en attente ».
+ * Crée le compte et la fiche du membre au statut « en attente »,
+ * avec sa cellule et ses commissions.
  */
 final class InscriptionService
 {
@@ -35,7 +36,7 @@ final class InscriptionService
                 ]);
                 $user->assignRole('membre');
 
-                Membre::create([
+                $membre = Membre::create([
                     'user_id' => $user->id,
                     'prenom' => $donnees['prenom'],
                     'nom' => $donnees['nom'],
@@ -44,11 +45,13 @@ final class InscriptionService
                     'lieu_naissance' => $donnees['lieu_naissance'] ?? null,
                     'telephone' => $donnees['telephone'],
                     'email' => $donnees['email'] ?? null,
-                    'section_id' => $donnees['section_id'],
+                    'cellule_id' => $donnees['cellule_id'],
                     'photo_path' => $chemin,
                     'consentement_le' => now(),
                     'consentement_version' => config('dahira.consentement_version'),
                 ]);
+
+                $membre->commissions()->sync($donnees['commissions'] ?? []);
 
                 return $user;
             });

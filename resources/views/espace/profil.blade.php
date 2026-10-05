@@ -39,14 +39,14 @@
             <x-champ nom="lieu_naissance" libelle="Lieu de naissance" :value="$membre->lieu_naissance" />
 
             <div>
-                <label for="section_id" class="block text-sm font-medium">Section <span class="text-red-700">*</span></label>
-                <select id="section_id" name="section_id" required
+                <label for="cellule_id" class="block text-sm font-medium">Cellule <span class="text-red-700">*</span></label>
+                <select id="cellule_id" name="cellule_id" required
                         class="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
-                    @foreach ($sections as $section)
-                        <option value="{{ $section->id }}" @selected((string) old('section_id', $membre->section_id) === (string) $section->id)>{{ $section->nom }}</option>
+                    @foreach ($cellules as $cellule)
+                        <option value="{{ $cellule->id }}" @selected((string) old('cellule_id', $membre->cellule_id) === (string) $cellule->id)>{{ $cellule->nom }}</option>
                     @endforeach
                 </select>
-                @error('section_id')
+                @error('cellule_id')
                     <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
                 @enderror
             </div>

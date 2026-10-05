@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\Sexe;
+use App\Models\Commission;
 use App\Services\TelephoneNormalizer;
 use App\Support\MessagesValidation;
 use Illuminate\Foundation\Http\FormRequest;
@@ -36,7 +37,9 @@ class InscriptionRequest extends FormRequest
             'lieu_naissance' => ['nullable', 'string', 'max:100'],
             'telephone' => ['required', 'string', 'regex:/^\+\d{8,15}$/', 'unique:membres,telephone', 'unique:users,telephone'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'section_id' => ['required', 'integer', 'exists:sections,id'],
+            'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
+            'commissions' => ['nullable', 'array', 'max:'.Commission::MAX_PAR_MEMBRE],
+            'commissions.*' => ['integer', 'distinct', Rule::exists('commissions', 'id')->where('actif', true)],
             'photo' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'consentement' => ['accepted'],

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\Sexe;
 use App\Enums\StatutMembre;
+use App\Models\Cellule;
 use App\Models\Membre;
-use App\Models\Section;
 use App\Models\User;
 use App\Services\StatutMembreService;
 use App\Support\MessagesValidation;
@@ -29,7 +29,7 @@ class ProfilController extends Controller
         return view('espace.profil', [
             'membre' => $membre,
             'correction' => $membre->statut === StatutMembre::ACorriger,
-            'sections' => Section::query()->orderBy('nom')->get(['id', 'nom']),
+            'cellules' => Cellule::query()->orderBy('nom')->get(['id', 'nom']),
         ]);
     }
 
@@ -50,12 +50,12 @@ class ProfilController extends Controller
                 'sexe' => ['required', Rule::enum(Sexe::class)],
                 'date_naissance' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
                 'lieu_naissance' => ['nullable', 'string', 'max:100'],
-                'section_id' => ['required', 'integer', 'exists:sections,id'],
+                'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
             ];
         }
 
         $donnees = $request->validate($regles, MessagesValidation::tous());
-        $champs = Arr::only($donnees, ['email', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'section_id']);
+        $champs = Arr::only($donnees, ['email', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'cellule_id']);
 
         $photo = $request->file('photo');
         if ($photo instanceof UploadedFile) {
@@ -70,7 +70,7 @@ class ProfilController extends Controller
             $statuts->changer($membre, StatutMembre::EnAttente, $auteur instanceof User ? $auteur : null);
 
             return redirect()->route('espace')
-                ->with('succes', 'Votre fiche corrigée a été renvoyée à votre responsable de section.');
+                ->with('succes', 'Votre fiche corrigée a été renvoyée à votre responsable de cellule.');
         }
 
         return redirect()->route('espace')->with('succes', 'Vos informations ont été mises à jour.');

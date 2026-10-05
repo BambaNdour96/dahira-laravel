@@ -15,7 +15,7 @@ it('ouvre les écrans du registre à un administrateur', function (string $adres
     $admin->assignRole('administrateur');
 
     $this->actingAs($admin)->get($adresse)->assertOk();
-})->with(['/admin/membres', '/admin/membres/create', '/admin/sections', '/admin/exercices', '/admin/tarifs']);
+})->with(['/admin/membres', '/admin/membres/create', '/admin/cellules', '/admin/exercices', '/admin/tarifs']);
 
 it('refuse le panneau à un simple membre', function () {
     $utilisateur = User::factory()->create();

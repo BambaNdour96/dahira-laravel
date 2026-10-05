@@ -9,11 +9,11 @@
     <div class="mt-6 space-y-5 text-sm leading-relaxed text-stone-700">
         <section>
             <h2 class="font-semibold text-stone-900">Responsable du traitement</h2>
-            <p>Le bureau de la Dahira Nouroud Dareyni.</p>
+            <p>Le bureau du Daara Nouroud Daareyni Kaolack.</p>
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Données collectées</h2>
-            <p>Prénom, nom, sexe, date de naissance, téléphone, email (facultatif), section et photo d'identité.</p>
+            <p>Prénom, nom, sexe, date de naissance, téléphone, email (facultatif), cellule et photo d'identité.</p>
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">À quoi elles servent</h2>
@@ -21,7 +21,7 @@
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Qui y a accès</h2>
-            <p>Les membres du bureau habilités et votre responsable de section, chacun selon son rôle. Vos données ne sont jamais vendues ni cédées.</p>
+            <p>Les membres du bureau habilités et votre responsable de cellule, chacun selon son rôle. Vos données ne sont jamais vendues ni cédées.</p>
         </section>
         <section>
             <h2 class="font-semibold text-stone-900">Vos droits</h2>

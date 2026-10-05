@@ -26,7 +26,7 @@
             @endif
             <div>
                 <h1 class="text-2xl font-semibold">{{ $membre->prenom }} {{ $membre->nom }}</h1>
-                <p class="text-sm text-stone-600">Section {{ $membre->section->nom }}</p>
+                <p class="text-sm text-stone-600">Cellule {{ $membre->cellule->nom }}</p>
             </div>
         </div>
 
@@ -37,9 +37,9 @@
             </p>
 
             @if ($membre->statut === \App\Enums\StatutMembre::EnAttente)
-                <p class="mt-4 text-sm text-stone-700">Votre demande est en cours de vérification par votre responsable de section.</p>
+                <p class="mt-4 text-sm text-stone-700">Votre demande est en cours de vérification par votre responsable de cellule.</p>
             @elseif ($membre->statut === \App\Enums\StatutMembre::ACorriger)
-                <p class="mt-4 text-sm text-stone-700">Votre responsable de section vous demande de corriger votre fiche :</p>
+                <p class="mt-4 text-sm text-stone-700">Votre responsable de cellule vous demande de corriger votre fiche :</p>
                 <p class="mt-2 rounded-lg bg-sky-50 p-3 text-sm italic text-sky-900">{{ $membre->motif_statut }}</p>
                 <a href="{{ route('espace.profil') }}" class="mt-4 inline-block rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Corriger ma fiche</a>
             @elseif ($membre->statut === \App\Enums\StatutMembre::Rejete)
@@ -49,7 +49,7 @@
                 <p class="mt-4 text-sm text-stone-700">Votre matricule : <span class="font-mono font-semibold">{{ $membre->matricule }}</span></p>
                 <p class="mt-2 text-sm text-stone-500">Votre carte de membre et le paiement de la cotisation seront bientôt disponibles ici.</p>
             @else
-                <p class="mt-4 text-sm text-stone-700">Pour toute question, contactez le bureau de la dahira.</p>
+                <p class="mt-4 text-sm text-stone-700">Pour toute question, contactez le bureau du daara.</p>
             @endif
         </div>
 

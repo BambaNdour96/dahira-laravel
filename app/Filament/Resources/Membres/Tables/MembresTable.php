@@ -39,9 +39,13 @@ class MembresTable
                 TextColumn::make('telephone')
                     ->label('Téléphone')
                     ->searchable(),
-                TextColumn::make('section.nom')
-                    ->label('Section')
+                TextColumn::make('cellule.nom')
+                    ->label('Cellule')
                     ->sortable(),
+                TextColumn::make('commissions.nom')
+                    ->label('Commissions')
+                    ->badge()
+                    ->placeholder('—'),
                 TextColumn::make('statut')
                     ->label('Statut')
                     ->badge()
@@ -51,9 +55,12 @@ class MembresTable
                 SelectFilter::make('statut')
                     ->label('Statut')
                     ->options(StatutMembre::class),
-                SelectFilter::make('section')
-                    ->label('Section')
-                    ->relationship('section', 'nom'),
+                SelectFilter::make('cellule')
+                    ->label('Cellule')
+                    ->relationship('cellule', 'nom'),
+                SelectFilter::make('commissions')
+                    ->label('Commission')
+                    ->relationship('commissions', 'nom'),
                 SelectFilter::make('sexe')
                     ->label('Sexe')
                     ->options(Sexe::class),

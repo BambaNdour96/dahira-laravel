@@ -5,7 +5,7 @@
 @section('contenu')
     <h1 class="text-2xl font-semibold">Devenir membre</h1>
     <p class="mt-2 text-sm text-stone-600">
-        Remplissez ce formulaire. Votre responsable de section vérifiera votre demande, puis vous recevrez votre matricule.
+        Remplissez ce formulaire. Votre responsable de cellule vérifiera votre demande, puis vous recevrez votre matricule.
     </p>
 
     <form method="POST" action="{{ route('inscription.store') }}" enctype="multipart/form-data"
@@ -37,18 +37,42 @@
         <x-champ nom="email" libelle="Email" type="email" autocomplete="email" aide="Facultatif." />
 
         <div>
-            <label for="section_id" class="block text-sm font-medium">Section <span class="text-red-700">*</span></label>
-            <select id="section_id" name="section_id" required
+            <label for="cellule_id" class="block text-sm font-medium">Cellule <span class="text-red-700">*</span></label>
+            <select id="cellule_id" name="cellule_id" required
                     class="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
-                <option value="">Choisissez votre section</option>
-                @foreach ($sections as $section)
-                    <option value="{{ $section->id }}" @selected((string) old('section_id') === (string) $section->id)>{{ $section->nom }}</option>
+                <option value="">Choisissez votre cellule</option>
+                @foreach ($cellules as $cellule)
+                    <option value="{{ $cellule->id }}" @selected((string) old('cellule_id') === (string) $cellule->id)>{{ $cellule->nom }}</option>
                 @endforeach
             </select>
-            @error('section_id')
+            @error('cellule_id')
                 <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
             @enderror
         </div>
+
+        @if ($commissions->isNotEmpty())
+            <fieldset>
+                <legend class="block text-sm font-medium">
+                    Commissions <span class="font-normal text-stone-500">(facultatif, 2 au maximum)</span>
+                </legend>
+                <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                    @foreach ($commissions as $commission)
+                        <label class="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm">
+                            <input type="checkbox" name="commissions[]" value="{{ $commission->id }}"
+                                   @checked(in_array((string) $commission->id, array_map('strval', (array) old('commissions', [])), true))
+                                   class="accent-emerald-800">
+                            {{ $commission->nom }}
+                        </label>
+                    @endforeach
+                </div>
+                @error('commissions')
+                    <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                @enderror
+                @error('commissions.*')
+                    <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                @enderror
+            </fieldset>
+        @endif
 
         <div>
             <label for="photo" class="block text-sm font-medium">Photo d'identité <span class="text-red-700">*</span></label>
@@ -70,7 +94,7 @@
             <label class="flex items-start gap-3 text-sm">
                 <input type="checkbox" name="consentement" value="1" @checked(old('consentement')) required class="mt-0.5 accent-emerald-800">
                 <span>
-                    J'accepte que la Dahira Nouroud Dareyni enregistre mes informations pour gérer mon adhésion,
+                    J'accepte que le Daara Nouroud Daareyni Kaolack enregistre mes informations pour gérer mon adhésion,
                     comme expliqué dans la page <a href="{{ route('confidentialite') }}" target="_blank" class="underline">Données personnelles</a>.
                 </span>
             </label>

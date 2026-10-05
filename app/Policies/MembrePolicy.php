@@ -49,7 +49,7 @@ class MembrePolicy
 
     /**
      * L'administrateur peut tout faire. Le responsable traite seulement
-     * les inscriptions en attente de sa propre section.
+     * les inscriptions en attente de sa propre cellule.
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
     {
@@ -65,6 +65,6 @@ class MembrePolicy
     private function estResponsableDe(User $user, Membre $membre): bool
     {
         return $user->hasRole('responsable_section')
-            && $membre->section()->where('responsable_id', $user->id)->exists();
+            && $membre->cellule()->where('responsable_id', $user->id)->exists();
     }
 }

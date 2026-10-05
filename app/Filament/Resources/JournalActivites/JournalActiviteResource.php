@@ -75,7 +75,7 @@ class JournalActiviteResource extends Resource
                     ->label('Objet')
                     ->options([
                         'App\\Models\\Membre' => 'Membre',
-                        'App\\Models\\Section' => 'Section',
+                        'App\\Models\\Cellule' => 'Cellule',
                         'App\\Models\\Exercice' => 'Exercice',
                         'App\\Models\\Tarif' => 'Tarif',
                     ]),

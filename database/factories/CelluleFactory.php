@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Section;
+use App\Models\Cellule;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Section>
+ * @extends Factory<Cellule>
  */
-class SectionFactory extends Factory
+class CelluleFactory extends Factory
 {
     /** @return array<string, mixed> */
     public function definition(): array

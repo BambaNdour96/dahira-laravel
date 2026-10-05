@@ -6,7 +6,7 @@ use App\Models\Exercice;
 use App\Models\User;
 
 /**
- * Réservé à l'administrateur (matrice des permissions, section 3).
+ * Réservé à l'administrateur (matrice des permissions, cellule 3).
  */
 class ExercicePolicy
 {

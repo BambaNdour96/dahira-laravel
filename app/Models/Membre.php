@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,7 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $lieu_naissance
  * @property string $telephone
  * @property string|null $email
- * @property int $section_id
+ * @property int $cellule_id
  * @property string|null $photo_path
  * @property string|null $fonction
  * @property StatutMembre $statut
@@ -51,7 +52,7 @@ class Membre extends Model
 
     protected $fillable = [
         'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
-        'section_id', 'photo_path', 'fonction', 'date_adhesion',
+        'cellule_id', 'photo_path', 'fonction', 'date_adhesion',
         'consentement_le', 'consentement_version',
     ];
 
@@ -89,10 +90,16 @@ class Membre extends Model
         ];
     }
 
-    /** @return BelongsTo<Section, $this> */
-    public function section(): BelongsTo
+    /** @return BelongsTo<Cellule, $this> */
+    public function cellule(): BelongsTo
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(Cellule::class);
+    }
+
+    /** @return BelongsToMany<Commission, $this> */
+    public function commissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Commission::class)->withTimestamps();
     }
 
     /** @return BelongsTo<User, $this> */
