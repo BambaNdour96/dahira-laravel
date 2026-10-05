@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exercice extends Model
 {
+    use Journalise;
+
     protected $fillable = ['libelle', 'date_debut', 'date_fin'];
 
     /** @return array<string, string> */

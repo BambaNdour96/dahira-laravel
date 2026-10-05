@@ -7,23 +7,24 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Règle 4.2 : matricule NDD-AAAA-NNNN, attribué une seule fois, à la validation.
+ * Règle 4.2 : matricule NDD-AAAA-NNNN, attribué une seule fois.
+ * AAAA est l'année de validation, ou l'année d'adhésion pour un import.
  */
 final class MatriculeService
 {
     private const ESSAIS = 5;
 
-    public function attribuer(Membre $membre): string
+    public function attribuer(Membre $membre, ?int $annee = null): string
     {
         if ($membre->matricule !== null) {
             return $membre->matricule;
         }
 
+        $prefixe = 'NDD-'.($annee ?? now()->year).'-';
+
         for ($essai = 1; ; $essai++) {
             try {
-                return DB::transaction(function () use ($membre): string {
-                    $prefixe = 'NDD-'.now()->year.'-';
-
+                return DB::transaction(function () use ($membre, $prefixe): string {
                     $dernier = Membre::query()
                         ->where('matricule', 'like', $prefixe.'%')
                         ->orderByDesc('matricule')

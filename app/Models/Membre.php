@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\Sexe;
 use App\Enums\StatutMembre;
+use App\Models\Concerns\Journalise;
+use App\Services\PhotoService;
 use App\Services\TelephoneNormalizer;
 use Database\Factories\MembreFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -35,11 +37,10 @@ use Illuminate\Support\Carbon;
 class Membre extends Model
 {
     /** @use HasFactory<MembreFactory> */
-    use HasFactory;
+    use HasFactory, Journalise;
 
     /**
-     * Valeurs par défaut connues dès la création de l'objet,
-     * avant même l'enregistrement en base.
+     * Valeurs par défaut connues dès la création de l'objet.
      *
      * @var array<string, mixed>
      */
@@ -52,6 +53,27 @@ class Membre extends Model
         'section_id', 'photo_path', 'fonction', 'date_adhesion',
         'consentement_le', 'consentement_version',
     ];
+
+    protected static function booted(): void
+    {
+        // Règle 4.6 : toute nouvelle photo est retraitée avant l'enregistrement.
+        static::saving(function (Membre $membre): void {
+            if (! $membre->isDirty('photo_path')) {
+                return;
+            }
+
+            $photos = app(PhotoService::class);
+            $ancienne = $membre->getRawOriginal('photo_path');
+
+            if (is_string($membre->photo_path) && $membre->photo_path !== '') {
+                $membre->photo_path = $photos->traiter($membre->photo_path);
+            }
+
+            if (is_string($ancienne) && $ancienne !== $membre->photo_path) {
+                $photos->supprimer($ancienne);
+            }
+        });
+    }
 
     /** @return array<string, string> */
     protected function casts(): array
