@@ -49,12 +49,13 @@ class ProfilController extends Controller
                 'nom' => ['required', 'string', 'max:100'],
                 'sexe' => ['required', Rule::enum(Sexe::class)],
                 'date_naissance' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
+                'lieu_naissance' => ['nullable', 'string', 'max:100'],
                 'section_id' => ['required', 'integer', 'exists:sections,id'],
             ];
         }
 
         $donnees = $request->validate($regles, MessagesValidation::tous());
-        $champs = Arr::only($donnees, ['email', 'prenom', 'nom', 'sexe', 'date_naissance', 'section_id']);
+        $champs = Arr::only($donnees, ['email', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'section_id']);
 
         $photo = $request->file('photo');
         if ($photo instanceof UploadedFile) {

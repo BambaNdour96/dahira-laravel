@@ -41,6 +41,7 @@ final class InscriptionService
                     'nom' => $donnees['nom'],
                     'sexe' => $donnees['sexe'],
                     'date_naissance' => $donnees['date_naissance'] ?? null,
+                    'lieu_naissance' => $donnees['lieu_naissance'] ?? null,
                     'telephone' => $donnees['telephone'],
                     'email' => $donnees['email'] ?? null,
                     'section_id' => $donnees['section_id'],

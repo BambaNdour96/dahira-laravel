@@ -122,3 +122,10 @@ it('refuse une année de naissance invalide', function (string $date) {
     $this->post('/inscription', donneesInscription(['date_naissance' => $date]))
         ->assertSessionHasErrors('date_naissance');
 })->with(['19955-04-12', '1850-01-01', '2999-01-01']);
+
+it('enregistre le lieu de naissance, facultatif', function () {
+    $this->post('/inscription', donneesInscription(['lieu_naissance' => 'Diourbel']))
+        ->assertRedirect(route('inscription.merci'));
+
+    expect(Membre::query()->firstOrFail()->lieu_naissance)->toBe('Diourbel');
+});

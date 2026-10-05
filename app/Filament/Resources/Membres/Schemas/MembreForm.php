@@ -44,6 +44,7 @@ class MembreForm
                     DatePicker::make('date_naissance')
                         ->label('Date de naissance')
                         ->minDate('1900-01-01')->maxDate(now()->subDay()),
+                    TextInput::make('lieu_naissance')->label('Lieu de naissance')->maxLength(100),
                     FileUpload::make('photo_path')
                         ->label('Photo')
                         ->image()

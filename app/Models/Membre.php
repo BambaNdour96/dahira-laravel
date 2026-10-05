@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $nom
  * @property Sexe $sexe
  * @property Carbon|null $date_naissance
+ * @property string|null $lieu_naissance
  * @property string $telephone
  * @property string|null $email
  * @property int $section_id
@@ -49,7 +50,7 @@ class Membre extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'telephone', 'email',
+        'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
         'section_id', 'photo_path', 'fonction', 'date_adhesion',
         'consentement_le', 'consentement_version',
     ];
