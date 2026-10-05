@@ -30,17 +30,23 @@ class InscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Page 1 : identité
             'prenom' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:100'],
             'sexe' => ['required', Rule::enum(Sexe::class)],
-            'date_naissance' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
+            'date_naissance' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
             'lieu_naissance' => ['nullable', 'string', 'max:100'],
+            'photo' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
+
+            // Page 2 : contact, résidence et Daara
             'telephone' => ['required', 'string', 'regex:/^\+\d{8,15}$/', 'unique:membres,telephone', 'unique:users,telephone'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'adresse' => ['required', 'string', 'max:255'],
+            'ville' => ['required', 'string', 'max:100'],
+            'pays_residence' => ['required', 'string', 'max:100'],
             'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
             'commissions' => ['nullable', 'array', 'max:'.Commission::MAX_PAR_MEMBRE],
             'commissions.*' => ['integer', 'distinct', Rule::exists('commissions', 'id')->where('actif', true)],
-            'photo' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'consentement' => ['accepted'],
         ];

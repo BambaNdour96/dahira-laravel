@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\NiveauEtudes;
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Membre;
@@ -24,6 +25,9 @@ function donneesInscription(array $surcharge = []): array
         'prenom' => 'Awa',
         'nom' => 'Fall',
         'sexe' => 'F',
+        'adresse' => 'Médina Baye',
+        'ville' => 'Kaolack',
+        'pays_residence' => 'Sénégal',
         'date_naissance' => '1995-04-12',
         'telephone' => '77 123 45 67',
         'email' => '',
@@ -99,7 +103,11 @@ it('permet de corriger une fiche et la renvoie en attente', function () {
         'prenom' => 'Awa',
         'nom' => 'Fall',
         'sexe' => 'F',
+        'adresse' => 'Médina Baye',
+        'ville' => 'Kaolack',
+        'pays_residence' => 'Sénégal',
         'cellule_id' => $this->cellule->id,
+        'date_naissance' => '1995-04-12',
         'photo' => UploadedFile::fake()->image('nette.jpg', 900, 900),
     ])->assertRedirect(route('espace'));
 
@@ -140,4 +148,44 @@ it('ne garde ni compte ni mot de passe quand l\'inscription est refusée', funct
         ->and(Membre::query()->count())->toBe(0);
 
     $this->assertGuest();
+});
+
+it('affiche les affectations et la barre de progression du profil', function () {
+    $user = User::factory()->create();
+    $user->assignRole('membre');
+    Membre::factory()->for($user)->for($this->cellule)->create(['email' => null]);
+
+    $this->actingAs($user)->get('/mon-espace')
+        ->assertOk()
+        ->assertSee('Mes affectations')
+        ->assertSee($this->cellule->nom)
+        ->assertSee('Compléter mon profil');
+});
+
+it('permet de compléter la formation et la situation professionnelle', function () {
+    $user = User::factory()->create();
+    $user->assignRole('membre');
+    $membre = Membre::factory()->for($user)->for($this->cellule)->create([
+        'niveau_etudes' => null,
+        'diplome' => null,
+        'situation_professionnelle' => null,
+        'profession' => null,
+    ]);
+
+    $this->actingAs($user)->put('/mon-espace/profil', [
+        'adresse' => 'Médina Baye',
+        'ville' => 'Kaolack',
+        'pays_residence' => 'Sénégal',
+        'niveau_etudes' => 'superieur',
+        'diplome' => 'Master',
+        'langues' => ['wolof', 'arabe'],
+        'situation_professionnelle' => 'salarie',
+        'profession' => 'Comptable',
+    ])->assertRedirect(route('espace'));
+
+    $membre->refresh();
+
+    expect($membre->niveau_etudes)->toBe(NiveauEtudes::Superieur)
+        ->and($membre->langues)->toBe(['wolof', 'arabe'])
+        ->and($membre->profession)->toBe('Comptable');
 });
