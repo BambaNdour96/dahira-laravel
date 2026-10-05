@@ -153,7 +153,7 @@ it('ne garde ni compte ni mot de passe quand l\'inscription est refusée', funct
 it('affiche les affectations et la barre de progression du profil', function () {
     $user = User::factory()->create();
     $user->assignRole('membre');
-    Membre::factory()->for($user)->for($this->cellule)->create(['email' => null]);
+    Membre::factory()->for($user)->for($this->cellule)->valide()->create(['email' => null]);
 
     $this->actingAs($user)->get('/mon-espace')
         ->assertOk()
@@ -165,7 +165,7 @@ it('affiche les affectations et la barre de progression du profil', function () 
 it('permet de compléter la formation et la situation professionnelle', function () {
     $user = User::factory()->create();
     $user->assignRole('membre');
-    $membre = Membre::factory()->for($user)->for($this->cellule)->create([
+    $membre = Membre::factory()->for($user)->for($this->cellule)->valide()->create([
         'niveau_etudes' => null,
         'diplome' => null,
         'situation_professionnelle' => null,
@@ -188,4 +188,18 @@ it('permet de compléter la formation et la situation professionnelle', function
     expect($membre->niveau_etudes)->toBe(NiveauEtudes::Superieur)
         ->and($membre->langues)->toBe(['wolof', 'arabe'])
         ->and($membre->profession)->toBe('Comptable');
+});
+
+it('limite le compte d\'un membre en attente au suivi de sa demande', function () {
+    $user = User::factory()->create();
+    $user->assignRole('membre');
+    Membre::factory()->for($user)->for($this->cellule)->create();
+
+    $this->actingAs($user)->get('/mon-espace')
+        ->assertOk()
+        ->assertSee('en cours de vérification')
+        ->assertDontSee('Compléter mon profil')
+        ->assertDontSee('Mes affectations');
+
+    $this->actingAs($user)->get('/mon-espace/profil')->assertForbidden();
 });

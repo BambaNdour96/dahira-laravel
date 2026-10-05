@@ -105,6 +105,9 @@ class ProfilController extends Controller
 
         abort_if($membre === null, 404);
 
+        // Avant la validation, seule la correction d'une fiche « à corriger » est possible.
+        abort_unless(in_array($membre->statut, [StatutMembre::Valide, StatutMembre::ACorriger], true), 403);
+
         return $membre;
     }
 }

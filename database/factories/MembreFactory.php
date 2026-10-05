@@ -6,6 +6,7 @@ use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
+use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Membre;
 use App\Support\Langues;
@@ -36,5 +37,11 @@ class MembreFactory extends Factory
             'consentement_le' => now(),
             'consentement_version' => '2026-10',
         ];
+    }
+
+    /** Membre déjà validé par le bureau. */
+    public function valide(): static
+    {
+        return $this->state(fn (): array => ['statut' => StatutMembre::Valide]);
     }
 }
