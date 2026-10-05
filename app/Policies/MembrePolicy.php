@@ -41,6 +41,12 @@ class MembrePolicy
         return $user->hasRole('administrateur');
     }
 
+    /** Un membre voit sa propre photo ; le bureau voit celles qu'il a le droit de consulter. */
+    public function voirPhoto(User $user, Membre $membre): bool
+    {
+        return $membre->user_id === $user->id || $this->view($user, $membre);
+    }
+
     /**
      * L'administrateur peut tout faire. Le responsable traite seulement
      * les inscriptions en attente de sa propre section.

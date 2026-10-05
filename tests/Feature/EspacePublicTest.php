@@ -1,0 +1,119 @@
+<?php
+
+use App\Enums\StatutMembre;
+use App\Models\Membre;
+use App\Models\Section;
+use App\Models\User;
+use App\Services\StatutMembreService;
+use Database\Seeders\RolesSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->seed(RolesSeeder::class);
+    Storage::fake('local');
+    $this->section = Section::factory()->create();
+});
+
+function donneesInscription(array $surcharge = []): array
+{
+    return array_merge([
+        'prenom' => 'Awa',
+        'nom' => 'Fall',
+        'sexe' => 'F',
+        'date_naissance' => '1995-04-12',
+        'telephone' => '77 123 45 67',
+        'email' => '',
+        'section_id' => test()->section->id,
+        'photo' => UploadedFile::fake()->image('photo.jpg', 1000, 1200),
+        'password' => 'motdepasse',
+        'password_confirmation' => 'motdepasse',
+        'consentement' => '1',
+    ], $surcharge);
+}
+
+it('affiche l\'accueil et le formulaire d\'inscription', function () {
+    $this->get('/')->assertOk()->assertSee('Bienvenue dans la plateforme');
+    $this->get('/inscription')->assertOk()->assertSee('Devenir membre');
+});
+
+it('inscrit un membre en attente, avec sa photo, et le connecte', function () {
+    $this->post('/inscription', donneesInscription())->assertRedirect(route('inscription.merci'));
+
+    $membre = Membre::query()->firstOrFail();
+
+    expect($membre->statut)->toBe(StatutMembre::EnAttente)
+        ->and($membre->telephone)->toBe('+221771234567')
+        ->and($membre->consentement_le)->not->toBeNull()
+        ->and($membre->photo_path)->toEndWith('.jpg')
+        ->and($membre->user->hasRole('membre'))->toBeTrue();
+
+    $this->assertAuthenticatedAs($membre->user);
+});
+
+it('exige le consentement', function () {
+    $this->post('/inscription', donneesInscription(['consentement' => '']))
+        ->assertSessionHasErrors('consentement');
+
+    expect(Membre::query()->count())->toBe(0);
+});
+
+it('refuse un téléphone déjà inscrit, quel que soit son format', function () {
+    Membre::factory()->create(['telephone' => '+221771234567']);
+
+    $this->post('/inscription', donneesInscription(['telephone' => '00221 77 123 45 67']))
+        ->assertSessionHasErrors('telephone');
+});
+
+it('connecte un membre par son téléphone', function () {
+    $user = User::factory()->create(['telephone' => '+221771234567', 'password' => 'secret123']);
+    $user->assignRole('membre');
+
+    $this->post('/connexion', ['telephone' => '77 123 45 67', 'password' => 'secret123'])
+        ->assertRedirect(route('espace'));
+
+    $this->assertAuthenticatedAs($user);
+});
+
+it('refuse la connexion d\'un compte désactivé', function () {
+    User::factory()->create(['telephone' => '+221771234567', 'password' => 'secret123', 'actif' => false]);
+
+    $this->post('/connexion', ['telephone' => '771234567', 'password' => 'secret123'])
+        ->assertSessionHasErrors('telephone');
+
+    $this->assertGuest();
+});
+
+it('permet de corriger une fiche et la renvoie en attente', function () {
+    $user = User::factory()->create();
+    $user->assignRole('membre');
+    $membre = Membre::factory()->for($user)->for($this->section)->create();
+    app(StatutMembreService::class)->changer($membre, StatutMembre::ACorriger, null, 'Photo floue');
+
+    $this->actingAs($user)->get('/mon-espace')->assertSee('Photo floue');
+
+    $this->actingAs($user)->put('/mon-espace/profil', [
+        'prenom' => 'Awa',
+        'nom' => 'Fall',
+        'sexe' => 'F',
+        'section_id' => $this->section->id,
+        'photo' => UploadedFile::fake()->image('nette.jpg', 900, 900),
+    ])->assertRedirect(route('espace'));
+
+    expect($membre->refresh()->statut)->toBe(StatutMembre::EnAttente);
+});
+
+it('protège les photos des membres', function () {
+    $proprietaire = User::factory()->create();
+    $membre = Membre::factory()->for($proprietaire)->create([
+        'photo_path' => UploadedFile::fake()->image('p.jpg', 900, 900)->store('photos', 'local'),
+    ]);
+    $autre = User::factory()->create();
+    $autre->assignRole('membre');
+
+    $this->actingAs($proprietaire)->get(route('photos.show', $membre))->assertOk();
+    $this->actingAs($autre)->get(route('photos.show', $membre))->assertForbidden();
+});
