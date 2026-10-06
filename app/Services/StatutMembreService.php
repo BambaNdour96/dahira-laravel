@@ -10,11 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Règle 4.1 : seules les transitions prévues sont autorisées,
- * avec un motif quand il est exigé.
+ * avec un motif quand il est exigé. La validation émet la carte.
  */
 final class StatutMembreService
 {
-    public function __construct(private readonly MatriculeService $matricules) {}
+    public function __construct(
+        private readonly MatriculeService $matricules,
+        private readonly CarteService $cartes,
+    ) {}
 
     public function changer(Membre $membre, StatutMembre $nouveau, ?User $auteur, ?string $motif = null): void
     {
@@ -47,6 +50,7 @@ final class StatutMembreService
 
             if ($nouveau === StatutMembre::Valide) {
                 $this->matricules->attribuer($membre);
+                $this->cartes->emettre($membre);
             }
         });
     }

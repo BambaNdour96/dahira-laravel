@@ -122,10 +122,10 @@
 
             {{-- Ma carte et mes cotisations : bientôt --}}
             <div class="mt-6 grid gap-4 sm:grid-cols-2">
-                <div class="rounded-xl border border-dashed border-stone-300 p-5 text-sm">
-                    <h2 class="font-semibold text-emerald-900">Ma carte de membre</h2>
-                    <p class="mt-2 text-stone-500">Bientôt disponible ici.</p>
-                </div>
+                <a href="{{ route('carte') }}" class="block rounded-xl bg-emerald-800 p-5 text-sm text-white shadow-sm hover:bg-emerald-900">
+                    <h2 class="font-semibold">Ma carte de membre</h2>
+                    <p class="mt-2 text-emerald-100">Afficher ma carte avec son QR code.</p>
+                </a>
                 <div class="rounded-xl border border-dashed border-stone-300 p-5 text-sm">
                     <h2 class="font-semibold text-emerald-900">Mes cotisations</h2>
                     <p class="mt-2 text-stone-500">Bientôt : le suivi de vos paiements et le paiement par Wave.</p>

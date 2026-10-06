@@ -6,6 +6,7 @@ use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
+use App\Enums\StatutCarte;
 use App\Enums\StatutMembre;
 use App\Models\Concerns\Journalise;
 use App\Services\PhotoService;
@@ -16,10 +17,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $user_id
  * @property string|null $matricule
  * @property string $prenom
  * @property string $nom
@@ -143,6 +147,18 @@ class Membre extends Model
     public function commissions(): BelongsToMany
     {
         return $this->belongsToMany(Commission::class)->withTimestamps();
+    }
+
+    /** @return HasMany<Carte, $this> */
+    public function cartes(): HasMany
+    {
+        return $this->hasMany(Carte::class);
+    }
+
+    /** @return HasOne<Carte, $this> */
+    public function carteActive(): HasOne
+    {
+        return $this->hasOne(Carte::class)->where('statut', StatutCarte::Active->value);
     }
 
     /** @return BelongsTo<User, $this> */

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Membres\Pages;
 
+use App\Filament\Resources\Membres\Actions\CarteActions;
 use App\Filament\Resources\Membres\Actions\ChangerStatutAction;
 use App\Filament\Resources\Membres\MembreResource;
 use Filament\Actions\Action;
@@ -14,6 +15,6 @@ class EditMembre extends EditRecord
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return ChangerStatutAction::toutes();
+        return [...ChangerStatutAction::toutes(), ...CarteActions::toutes()];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Imports;
 use App\Enums\Sexe;
 use App\Enums\StatutMembre;
 use App\Models\Membre;
+use App\Services\CarteService;
 use App\Services\MatriculeService;
 use App\Services\TelephoneNormalizer;
 use DateTime;
@@ -128,9 +129,15 @@ class MembreImporter extends Importer
     {
         $membre = $this->record;
 
-        if ($membre instanceof Membre && $membre->matricule === null) {
+        if (! $membre instanceof Membre) {
+            return;
+        }
+
+        if ($membre->matricule === null) {
             app(MatriculeService::class)->attribuer($membre, $membre->date_adhesion?->year);
         }
+
+        app(CarteService::class)->emettre($membre);
     }
 
     public static function getCompletedNotificationBody(Import $import): string

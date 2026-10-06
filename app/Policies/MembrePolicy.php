@@ -47,8 +47,14 @@ class MembrePolicy
         return $membre->user_id === $user->id || $this->view($user, $membre);
     }
 
+    /** Seul l'administrateur révoque une carte (perte, vol). */
+    public function revoquerCarte(User $user, Membre $membre): bool
+    {
+        return $user->hasRole('administrateur');
+    }
+
     /**
-     * L'administrateur peut tout faire. Le responsable traite seulement
+     * L'administrateur peut tout faire. Le Jewrine de cellule traite seulement
      * les inscriptions en attente de sa propre cellule.
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
