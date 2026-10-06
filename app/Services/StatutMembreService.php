@@ -37,6 +37,10 @@ final class StatutMembreService
             $membre->statut = $nouveau;
             $membre->motif_statut = $motif;
 
+            if ($nouveau === StatutMembre::Accepte) {
+                $membre->accepte_le = now();
+            }
+
             if ($nouveau === StatutMembre::Valide && $membre->valide_le === null) {
                 $membre->valide_le = now();
                 $membre->valide_par = $auteur?->id;

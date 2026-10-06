@@ -19,7 +19,8 @@ final class ChangerStatutAction
     public static function toutes(): array
     {
         return [
-            self::creer(StatutMembre::Valide, 'heroicon-o-check-circle', 'success'),
+            self::creer(StatutMembre::Accepte, 'heroicon-o-check-circle', 'success'),
+            self::creer(StatutMembre::Valide, 'heroicon-o-check-badge', 'gray'),
             self::creer(StatutMembre::ACorriger, 'heroicon-o-pencil-square', 'info'),
             self::creer(StatutMembre::Rejete, 'heroicon-o-x-circle', 'danger'),
             self::creer(StatutMembre::Suspendu, 'heroicon-o-pause-circle', 'gray'),
@@ -30,12 +31,14 @@ final class ChangerStatutAction
     private static function creer(StatutMembre $cible, string $icone, string $couleur): Action
     {
         $libelle = match ($cible) {
-            StatutMembre::Valide => 'Valider',
+            StatutMembre::Accepte => 'Accepter',
+            StatutMembre::Valide => 'Valider sans paiement',
             StatutMembre::ACorriger => 'Demander une correction',
             StatutMembre::Rejete => 'Rejeter',
             StatutMembre::Suspendu => 'Suspendre',
             StatutMembre::Radie => 'Radier',
             StatutMembre::EnAttente => 'Remettre en attente',
+            StatutMembre::Expire => 'Faire expirer',
         };
 
         return Action::make('statut_'.$cible->value)
@@ -47,7 +50,12 @@ final class ChangerStatutAction
             ->visible(fn (Membre $record): bool => $record->statut->peutPasserA($cible)
                 && Gate::allows('changerStatut', [$record, $cible]))
             ->requiresConfirmation()
-            ->modalDescription($cible === StatutMembre::Radie ? 'Attention : la radiation est définitive.' : null)
+            ->modalDescription(match ($cible) {
+                StatutMembre::Accepte => 'Le membre aura '.Membre::DELAI_PAIEMENT_JOURS.' jours pour régler les frais de carte.',
+                StatutMembre::Valide => 'Le membre sera validé sans payer les frais de carte, et recevra aussitôt sa carte.',
+                StatutMembre::Radie => 'Attention : la radiation est définitive.',
+                default => null,
+            })
             ->schema($cible->exigeMotif() ? [
                 Textarea::make('motif')
                     ->label('Motif')

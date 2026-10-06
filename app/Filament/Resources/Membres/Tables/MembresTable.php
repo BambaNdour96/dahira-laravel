@@ -7,6 +7,7 @@ use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
 use App\Enums\StatutMembre;
 use App\Filament\Resources\Membres\Actions\ChangerStatutAction;
+use App\Filament\Resources\Paiements\PaiementActions;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
@@ -43,6 +44,7 @@ class MembresTable
             ])
             ->recordActions([
                 EditAction::make(),
+                PaiementActions::especes(),
                 ActionGroup::make(ChangerStatutAction::toutes())
                     ->label('Statut')
                     ->icon('heroicon-o-arrows-right-left'),

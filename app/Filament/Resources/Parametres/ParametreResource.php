@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Parametres;
 use App\Filament\Resources\Parametres\Pages\ManageParametres;
 use App\Models\Parametre;
 use BackedEnum;
+use Closure;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\PageRegistration;
@@ -39,12 +40,31 @@ class ParametreResource extends Resource
                 ->dehydrated(false),
             TextInput::make('valeur')
                 ->label('Valeur')
-                ->url()
                 ->maxLength(255)
-                ->placeholder('https://chat.whatsapp.com/...')
-                ->rules(['nullable', 'starts_with:https://chat.whatsapp.com/'])
-                ->validationMessages(['starts_with' => 'Le lien doit commencer par https://chat.whatsapp.com/'])
-                ->helperText('Visible uniquement par les membres validés.'),
+                ->rules([
+                    fn (?Parametre $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+                        if (blank($value)) {
+                            return;
+                        }
+
+                        $estWave = str_starts_with((string) $record?->cle, 'wave');
+                        $hote = is_string($value) ? parse_url($value, PHP_URL_HOST) : null;
+                        $hote = is_string($hote) ? $hote : '';
+
+                        $valide = is_string($value)
+                            && str_starts_with($value, 'https://')
+                            && ($estWave
+                                ? ($hote === 'wave.com' || str_ends_with($hote, '.wave.com'))
+                                : $hote === 'chat.whatsapp.com');
+
+                        if (! $valide) {
+                            $fail($estWave
+                                ? 'Le lien doit être un lien Wave (https://pay.wave.com/...).'
+                                : 'Le lien doit commencer par https://chat.whatsapp.com/');
+                        }
+                    },
+                ])
+                ->helperText('Visible uniquement par les membres concernés.'),
         ]);
     }
 

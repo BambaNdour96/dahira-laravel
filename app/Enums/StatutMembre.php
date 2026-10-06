@@ -10,6 +10,8 @@ enum StatutMembre: string implements HasColor, HasLabel
     case EnAttente = 'en_attente';
     case ACorriger = 'a_corriger';
     case Rejete = 'rejete';
+    case Accepte = 'accepte';
+    case Expire = 'expire';
     case Valide = 'valide';
     case Suspendu = 'suspendu';
     case Radie = 'radie';
@@ -20,6 +22,8 @@ enum StatutMembre: string implements HasColor, HasLabel
             self::EnAttente => 'En attente',
             self::ACorriger => 'À corriger',
             self::Rejete => 'Rejeté',
+            self::Accepte => 'Accepté, paiement attendu',
+            self::Expire => 'Délai de paiement dépassé',
             self::Valide => 'Validé',
             self::Suspendu => 'Suspendu',
             self::Radie => 'Radié',
@@ -32,21 +36,24 @@ enum StatutMembre: string implements HasColor, HasLabel
             self::EnAttente => 'warning',
             self::ACorriger => 'info',
             self::Rejete, self::Radie => 'danger',
+            self::Accepte => 'primary',
             self::Valide => 'success',
-            self::Suspendu => 'gray',
+            self::Expire, self::Suspendu => 'gray',
         };
     }
 
     /**
-     * Règle 4.1 du cahier des charges.
+     * Règle 4.1 : accepter, puis payer les frais de carte pour être validé.
      *
      * @return list<self>
      */
     public function transitionsPossibles(): array
     {
         return match ($this) {
-            self::EnAttente => [self::Valide, self::ACorriger, self::Rejete],
+            self::EnAttente => [self::Accepte, self::Valide, self::ACorriger, self::Rejete],
             self::ACorriger => [self::EnAttente],
+            self::Accepte => [self::Valide, self::Expire, self::Rejete],
+            self::Expire => [self::EnAttente, self::Valide],
             self::Valide => [self::Suspendu, self::Radie],
             self::Suspendu => [self::Valide, self::Radie],
             self::Rejete, self::Radie => [],

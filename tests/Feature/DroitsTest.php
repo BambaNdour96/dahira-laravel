@@ -44,8 +44,8 @@ it('interdit au trésorier de modifier un membre', function () {
 });
 
 it('laisse le responsable valider une inscription de sa cellule', function () {
-    expect(Gate::forUser($this->responsable)->allows('changerStatut', [$this->membreA, StatutMembre::Valide]))->toBeTrue()
-        ->and(Gate::forUser($this->responsable)->allows('changerStatut', [$this->membreB, StatutMembre::Valide]))->toBeFalse()
+    expect(Gate::forUser($this->responsable)->allows('changerStatut', [$this->membreA, StatutMembre::Accepte]))->toBeTrue()
+        ->and(Gate::forUser($this->responsable)->allows('changerStatut', [$this->membreB, StatutMembre::Accepte]))->toBeFalse()
         ->and(Gate::forUser($this->responsable)->allows('changerStatut', [$this->membreA, StatutMembre::Radie]))->toBeFalse();
 });
 

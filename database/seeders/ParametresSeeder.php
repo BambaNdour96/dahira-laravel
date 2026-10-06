@@ -13,5 +13,10 @@ class ParametresSeeder extends Seeder
             ['cle' => 'whatsapp_national'],
             ['libelle' => 'Lien du groupe WhatsApp national'],
         );
+
+        Parametre::firstOrCreate(
+            ['cle' => 'wave_lien_paiement'],
+            ['libelle' => 'Lien de paiement Wave Business (frais de carte)'],
+        );
     }
 }

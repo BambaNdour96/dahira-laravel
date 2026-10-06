@@ -13,7 +13,7 @@ enum TypeTarif: string implements HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Adhesion => 'Adhésion',
+            self::Adhesion => 'Frais de carte de membre',
             self::Cotisation => 'Cotisation',
             self::CartePhysique => 'Carte physique',
         };

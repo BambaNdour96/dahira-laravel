@@ -48,16 +48,8 @@ class DemoSeeder extends Seeder
         );
 
         Tarif::firstOrCreate(
-            ['type' => TypeTarif::Adhesion, 'exercice_id' => null],
-            ['libelle' => 'Adhésion', 'montant' => 2000],
-        );
-        Tarif::firstOrCreate(
             ['type' => TypeTarif::Cotisation, 'exercice_id' => $exercice->id],
             ['libelle' => "Cotisation {$annee}", 'montant' => 12000],
-        );
-        Tarif::firstOrCreate(
-            ['type' => TypeTarif::CartePhysique, 'exercice_id' => null],
-            ['libelle' => 'Carte physique', 'montant' => 1500],
         );
 
         if (Membre::query()->exists()) {
@@ -71,8 +63,12 @@ class DemoSeeder extends Seeder
             $commissions->random(random_int(0, Commission::MAX_PAR_MEMBRE))->pluck('id'),
         ));
 
+        // 8 membres validés, 4 acceptés qui doivent encore payer, les autres en attente.
         $membres->take(8)->each(
             fn (Membre $membre) => $statuts->changer($membre, StatutMembre::Valide, null),
+        );
+        $membres->slice(8, 4)->each(
+            fn (Membre $membre) => $statuts->changer($membre, StatutMembre::Accepte, null),
         );
     }
 }

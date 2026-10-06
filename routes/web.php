@@ -4,6 +4,7 @@ use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\VerificationController;
@@ -41,6 +42,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/mon-espace', [EspaceController::class, 'show'])->name('espace');
     Route::get('/mon-espace/profil', [ProfilController::class, 'edit'])->name('espace.profil');
     Route::put('/mon-espace/profil', [ProfilController::class, 'update'])->name('espace.profil.update');
+    Route::post('/mon-espace/paiement', [PaiementMembreController::class, 'declarer'])
+        ->middleware('throttle:inscription')
+        ->name('espace.paiement');
+    Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
 
     Route::get('/photos/{membre}', PhotoController::class)->name('photos.show');

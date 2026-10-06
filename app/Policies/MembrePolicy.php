@@ -54,8 +54,8 @@ class MembrePolicy
     }
 
     /**
-     * L'administrateur peut tout faire. Le Jewrine de cellule traite seulement
-     * les inscriptions en attente de sa propre cellule.
+     * L'administrateur peut tout faire, y compris valider sans paiement.
+     * Le Jewrine accepte, fait corriger ou rejette les demandes de sa cellule.
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
     {
@@ -65,7 +65,7 @@ class MembrePolicy
 
         return $this->estResponsableDe($user, $membre)
             && $membre->statut === StatutMembre::EnAttente
-            && in_array($cible, [StatutMembre::Valide, StatutMembre::ACorriger, StatutMembre::Rejete], true);
+            && in_array($cible, [StatutMembre::Accepte, StatutMembre::ACorriger, StatutMembre::Rejete], true);
     }
 
     private function estResponsableDe(User $user, Membre $membre): bool

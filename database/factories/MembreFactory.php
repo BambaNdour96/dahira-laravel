@@ -44,4 +44,10 @@ class MembreFactory extends Factory
     {
         return $this->state(fn (): array => ['statut' => StatutMembre::Valide]);
     }
+
+    /** Membre accepté, qui doit encore régler ses frais de carte. */
+    public function accepte(): static
+    {
+        return $this->state(fn (): array => ['statut' => StatutMembre::Accepte, 'accepte_le' => now()]);
+    }
 }

@@ -49,6 +49,7 @@ use Illuminate\Support\Str;
  * @property string|null $secteur_activite
  * @property StatutMembre $statut
  * @property string|null $motif_statut
+ * @property Carbon|null $accepte_le
  * @property Carbon|null $date_adhesion
  * @property Carbon|null $valide_le
  * @property int|null $valide_par
@@ -59,6 +60,9 @@ class Membre extends Model
 {
     /** @use HasFactory<MembreFactory> */
     use HasFactory, Journalise;
+
+    /** Délai pour régler les frais de carte après l'acceptation. */
+    public const DELAI_PAIEMENT_JOURS = 10;
 
     /** Champs pris en compte dans la barre « Profil complété ». */
     public const CHAMPS_PROFIL = [
@@ -117,6 +121,7 @@ class Membre extends Model
             'langues' => 'array',
             'date_naissance' => 'date',
             'date_adhesion' => 'date',
+            'accepte_le' => 'datetime',
             'valide_le' => 'datetime',
             'consentement_le' => 'datetime',
         ];
@@ -130,6 +135,12 @@ class Membre extends Model
             ->count();
 
         return (int) round($remplis / count(self::CHAMPS_PROFIL) * 100);
+    }
+
+    /** Date limite pour régler les frais de carte. */
+    public function dateLimitePaiement(): ?Carbon
+    {
+        return $this->accepte_le?->copy()->addDays(self::DELAI_PAIEMENT_JOURS);
     }
 
     /** @return BelongsTo<Cellule, $this> */
@@ -160,6 +171,12 @@ class Membre extends Model
     public function carteActive(): HasOne
     {
         return $this->hasOne(Carte::class)->where('statut', StatutCarte::Active->value);
+    }
+
+    /** @return HasMany<Paiement, $this> */
+    public function paiements(): HasMany
+    {
+        return $this->hasMany(Paiement::class);
     }
 
     /** @return BelongsTo<User, $this> */
