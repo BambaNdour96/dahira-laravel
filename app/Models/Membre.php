@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -171,6 +172,18 @@ class Membre extends Model
     public function validePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'valide_par');
+    }
+
+    /** @return Attribute<never, string> */
+    protected function prenom(): Attribute
+    {
+        return Attribute::set(fn (string $valeur): string => Str::title(mb_strtolower(trim($valeur))));
+    }
+
+    /** @return Attribute<never, string> */
+    protected function nom(): Attribute
+    {
+        return Attribute::set(fn (string $valeur): string => mb_strtoupper(trim($valeur)));
     }
 
     /** @return Attribute<string, never> */
