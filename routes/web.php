@@ -6,6 +6,7 @@ use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\MesDonneesController;
 use App\Http\Controllers\MesRecusController;
 use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
@@ -75,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/{membre}/whatsapp', [RelanceController::class, 'whatsapp'])->name('relances.whatsapp');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
+    Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
 
     // Super administrateur : voir la plateforme comme un autre compte (lien signé, 5 minutes).
     Route::get('/en-tant-que/{user}', [EnTantQueController::class, 'demarrer'])
