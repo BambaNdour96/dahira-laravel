@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class MotDePasseController extends Controller
@@ -29,7 +30,7 @@ class MotDePasseController extends Controller
 
         $donnees = $request->validate([
             'mot_de_passe_actuel' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:mot_de_passe_actuel'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed', 'different:mot_de_passe_actuel'],
         ], [
             'mot_de_passe_actuel.required' => 'Indiquez votre mot de passe actuel.',
             'mot_de_passe_actuel.current_password' => 'Le mot de passe actuel est incorrect.',

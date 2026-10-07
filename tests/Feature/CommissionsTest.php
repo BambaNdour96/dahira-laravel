@@ -31,8 +31,8 @@ function inscriptionAvecCommissions(int $celluleId, array $commissions): array
         'cellule_id' => $celluleId,
         'commissions' => $commissions,
         'photo' => UploadedFile::fake()->image('photo.jpg', 900, 900),
-        'password' => 'motdepasse',
-        'password_confirmation' => 'motdepasse',
+        'password' => 'motdepasse1',
+        'password_confirmation' => 'motdepasse1',
         'consentement' => '1',
     ];
 }

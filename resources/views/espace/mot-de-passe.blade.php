@@ -20,7 +20,7 @@
         <x-champ nom="mot_de_passe_actuel" libelle="{{ $obligatoire ? 'Mot de passe provisoire' : 'Mot de passe actuel' }}"
                  type="password" requis autocomplete="current-password" />
         <x-champ nom="password" libelle="Nouveau mot de passe" type="password" requis autocomplete="new-password"
-                 aide="8 caractères minimum." />
+                 aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
         <x-champ nom="password_confirmation" libelle="Confirmez le nouveau mot de passe" type="password" requis
                  autocomplete="new-password" />
 

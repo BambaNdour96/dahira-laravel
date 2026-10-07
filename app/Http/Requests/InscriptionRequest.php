@@ -8,6 +8,7 @@ use App\Services\TelephoneNormalizer;
 use App\Support\MessagesValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class InscriptionRequest extends FormRequest
 {
@@ -51,7 +52,7 @@ class InscriptionRequest extends FormRequest
             'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
             'commissions' => ['required', 'array', 'min:1', 'max:'.Commission::MAX_PAR_MEMBRE],
             'commissions.*' => ['integer', 'distinct', Rule::exists('commissions', 'id')->where('actif', true)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
             'consentement' => ['accepted'],
         ];
     }

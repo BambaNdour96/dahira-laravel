@@ -36,8 +36,8 @@ function donneesInscription(array $surcharge = []): array
         'cellule_id' => test()->cellule->id,
         'commissions' => [test()->commission->id],
         'photo' => UploadedFile::fake()->image('photo.jpg', 1000, 1200),
-        'password' => 'motdepasse',
-        'password_confirmation' => 'motdepasse',
+        'password' => 'motdepasse2026',
+        'password_confirmation' => 'motdepasse2026',
         'consentement' => '1',
     ], $surcharge);
 }

@@ -99,7 +99,7 @@
                 </div>
             @endif
 
-            <x-champ nom="password" libelle="Mot de passe" type="password" requis autocomplete="new-password" aide="8 caractères minimum." />
+            <x-champ nom="password" libelle="Mot de passe" type="password" requis autocomplete="new-password" aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
             <x-champ nom="password_confirmation" libelle="Confirmez le mot de passe" type="password" requis autocomplete="new-password" />
 
             <label class="flex items-start gap-3 text-sm">

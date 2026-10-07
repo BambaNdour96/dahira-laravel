@@ -129,14 +129,14 @@ it('réserve l\'écran des paiements au trésorier et à l\'administrateur', fun
 });
 
 it('laisse un membre en attente ou accepté se reconnecter pour suivre sa demande', function (string $etat) {
-    $user = User::factory()->create(['telephone' => '+221761112233', 'password' => 'motdepasse']);
+    $user = User::factory()->create(['telephone' => '+221761112233', 'password' => 'motdepasse1']);
     $user->assignRole('membre');
 
     $fabrique = Membre::factory()->for($user);
     $etat === 'accepte' ? $fabrique->accepte()->create() : $fabrique->create();
 
     // Première connexion
-    $this->post('/connexion', ['telephone' => '76 111 22 33', 'password' => 'motdepasse'])
+    $this->post('/connexion', ['telephone' => '76 111 22 33', 'password' => 'motdepasse1'])
         ->assertRedirect(route('espace'));
     $this->get('/mon-espace')
         ->assertOk()
@@ -147,7 +147,7 @@ it('laisse un membre en attente ou accepté se reconnecter pour suivre sa demand
     $this->assertGuest();
 
     // Retour plus tard : la personne se reconnecte et retrouve sa demande
-    $this->post('/connexion', ['telephone' => '761112233', 'password' => 'motdepasse'])
+    $this->post('/connexion', ['telephone' => '761112233', 'password' => 'motdepasse1'])
         ->assertRedirect(route('espace'));
     $this->assertAuthenticatedAs($user);
     $this->get('/mon-espace')

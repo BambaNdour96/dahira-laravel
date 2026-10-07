@@ -9,6 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Mots de passe : au moins 8 caractères, une lettre et un chiffre ; en ligne, refus des mots de passe ayant fuité.
+        Password::defaults(fn () => $this->app->isProduction()
+            ? Password::min(8)->letters()->numbers()->uncompromised()
+            : Password::min(8)->letters()->numbers());
+
         // En ligne, toutes les adresses générées sont en HTTPS.
         if ($this->app->isProduction()) {
             URL::forceScheme('https');

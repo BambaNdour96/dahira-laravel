@@ -12,7 +12,7 @@
         <input type="hidden" name="email" value="{{ $email }}">
 
         <x-champ nom="password" libelle="Nouveau mot de passe" type="password" requis autocomplete="new-password"
-                 aide="8 caractères minimum." />
+                 aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
         <x-champ nom="password_confirmation" libelle="Confirmez le mot de passe" type="password" requis autocomplete="new-password" />
 
         <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-3 font-semibold text-white hover:bg-emerald-900">

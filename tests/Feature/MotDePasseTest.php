@@ -27,18 +27,18 @@ beforeEach(function () {
 it('permet de changer son mot de passe', function () {
     $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
         'mot_de_passe_actuel' => 'ancienmotdepasse',
-        'password' => 'nouveaumotdepasse',
-        'password_confirmation' => 'nouveaumotdepasse',
+        'password' => 'nouveaumotdepasse1',
+        'password_confirmation' => 'nouveaumotdepasse1',
     ])->assertRedirect(route('login'));
 
-    expect(Hash::check('nouveaumotdepasse', $this->user->fresh()->password))->toBeTrue();
+    expect(Hash::check('nouveaumotdepasse1', $this->user->fresh()->password))->toBeTrue();
 });
 
 it('refuse un mot de passe actuel incorrect', function () {
     $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
         'mot_de_passe_actuel' => 'mauvais',
-        'password' => 'nouveaumotdepasse',
-        'password_confirmation' => 'nouveaumotdepasse',
+        'password' => 'nouveaumotdepasse1',
+        'password_confirmation' => 'nouveaumotdepasse1',
     ])->assertSessionHasErrors('mot_de_passe_actuel');
 });
 
@@ -50,8 +50,8 @@ it('impose de changer un mot de passe provisoire', function () {
 
     $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
         'mot_de_passe_actuel' => $provisoire,
-        'password' => 'monpropremotdepasse',
-        'password_confirmation' => 'monpropremotdepasse',
+        'password' => 'monpropremotdepasse1',
+        'password_confirmation' => 'monpropremotdepasse1',
     ]);
 
     expect((bool) $this->user->fresh()->getAttribute('doit_changer_mot_de_passe'))->toBeFalse();
@@ -88,25 +88,25 @@ it('change le mot de passe avec le lien reçu', function () {
     $this->post('/reinitialiser-mot-de-passe', [
         'token' => $token,
         'email' => 'awa@exemple.sn',
-        'password' => 'motdepasseretrouve',
-        'password_confirmation' => 'motdepasseretrouve',
+        'password' => 'motdepasseretrouve1',
+        'password_confirmation' => 'motdepasseretrouve1',
     ])->assertRedirect(route('login'));
 
-    expect(Hash::check('motdepasseretrouve', $this->user->fresh()->password))->toBeTrue();
+    expect(Hash::check('motdepasseretrouve1', $this->user->fresh()->password))->toBeTrue();
 });
 
 it('déconnecte la personne après le changement de son mot de passe', function () {
     $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
         'mot_de_passe_actuel' => 'ancienmotdepasse',
-        'password' => 'nouveaumotdepasse',
-        'password_confirmation' => 'nouveaumotdepasse',
+        'password' => 'nouveaumotdepasse1',
+        'password_confirmation' => 'nouveaumotdepasse1',
     ]);
 
     $this->assertGuest();
 
     $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'ancienmotdepasse'])
         ->assertSessionHasErrors('telephone');
-    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'nouveaumotdepasse']);
+    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'nouveaumotdepasse1']);
     $this->assertAuthenticatedAs($this->user);
 });
 
@@ -119,4 +119,22 @@ it('génère un mot de passe provisoire facile à lire, qui fonctionne et rempla
         ->assertSessionHasErrors('telephone');
     $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => $provisoire]);
     $this->assertAuthenticatedAs($this->user);
+});
+
+it('refuse un mot de passe sans chiffre ou sans lettre', function (string $faible) {
+    $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
+        'mot_de_passe_actuel' => 'ancienmotdepasse',
+        'password' => $faible,
+        'password_confirmation' => $faible,
+    ])->assertSessionHasErrors('password');
+
+    expect(Hash::check('ancienmotdepasse', $this->user->fresh()->password))->toBeTrue();
+})->with(['seulementdeslettres', '1234567890']);
+
+it('affiche les erreurs de mot de passe en français', function () {
+    $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
+        'mot_de_passe_actuel' => 'ancienmotdepasse',
+        'password' => 'seulementdeslettres',
+        'password_confirmation' => 'seulementdeslettres',
+    ])->assertSessionHasErrors(['password' => 'Le mot de passe doit contenir au moins un chiffre.']);
 });
