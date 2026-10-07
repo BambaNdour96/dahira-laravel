@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\LienEspaceMembre;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\ChangementMotDePasseObligatoire;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -31,6 +32,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->profile()
+            ->multiFactorAuthentication([AppAuthentication::make()->recoverable()->brandName('Daara NDK')], isRequired: app()->isProduction())
             ->authMiddleware([ChangementMotDePasseObligatoire::class])
             ->navigationItems([LienEspaceMembre::item(), LienEspaceMembre::motDePasse()])
             ->renderHook(PanelsRenderHook::BODY_START, fn (): string => view('partials.bandeau-en-tant-que')->render())

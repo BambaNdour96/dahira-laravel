@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +13,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser
+/**
+ * @property string|null $app_authentication_secret
+ * @property list<string>|null $app_authentication_recovery_codes
+ */
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
@@ -20,7 +26,9 @@ class User extends Authenticatable implements FilamentUser
         'name', 'telephone', 'email', 'password', 'actif', 'derniere_connexion_at',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = [
+        'password', 'remember_token', 'app_authentication_secret', 'app_authentication_recovery_codes',
+    ];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -30,6 +38,9 @@ class User extends Authenticatable implements FilamentUser
             'derniere_connexion_at' => 'datetime',
             'password' => 'hashed',
             'actif' => 'boolean',
+            'doit_changer_mot_de_passe' => 'boolean',
+            'app_authentication_secret' => 'encrypted',
+            'app_authentication_recovery_codes' => 'encrypted:array',
         ];
     }
 
@@ -43,5 +54,37 @@ class User extends Authenticatable implements FilamentUser
     public function membre(): HasOne
     {
         return $this->hasOne(Membre::class);
+    }
+
+    // Double authentification (application Google Authenticator, Microsoft Authenticator…)
+
+    public function getAppAuthenticationSecret(): ?string
+    {
+        return $this->app_authentication_secret;
+    }
+
+    public function saveAppAuthenticationSecret(?string $secret): void
+    {
+        $this->app_authentication_secret = $secret;
+        $this->save();
+    }
+
+    /** Nom affiché dans l'application d'authentification. */
+    public function getAppAuthenticationHolderName(): string
+    {
+        return $this->name.' ('.$this->telephone.')';
+    }
+
+    /** @return ?array<string> */
+    public function getAppAuthenticationRecoveryCodes(): ?array
+    {
+        return $this->app_authentication_recovery_codes;
+    }
+
+    /** @param  array<string>|null  $codes */
+    public function saveAppAuthenticationRecoveryCodes(?array $codes): void
+    {
+        $this->app_authentication_recovery_codes = $codes === null ? null : array_values($codes);
+        $this->save();
     }
 }
