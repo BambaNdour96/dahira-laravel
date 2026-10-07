@@ -38,7 +38,7 @@ class PaiementMembreController extends Controller
         }
 
         return redirect()->route('espace')
-            ->with('succes', 'Merci ! Votre paiement est en cours de vérification par le trésorier.');
+            ->with('succes', 'Merci ! Votre paiement est en cours de vérification par le Jewrine finance.');
     }
 
     /** Après expiration, le membre renvoie sa demande à son Jewrine. */

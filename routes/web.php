@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConnexionController;
+use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\PaiementMembreController;
@@ -47,6 +48,12 @@ Route::middleware('auth')->group(function () {
         ->name('espace.paiement');
     Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
+
+    // Super administrateur : voir la plateforme comme un autre compte (lien signé, 5 minutes).
+    Route::get('/en-tant-que/{user}', [EnTantQueController::class, 'demarrer'])
+        ->middleware('signed')
+        ->name('en-tant-que');
+    Route::post('/retour-mon-compte', [EnTantQueController::class, 'arreter'])->name('en-tant-que.retour');
 
     Route::get('/photos/{membre}', PhotoController::class)->name('photos.show');
 });

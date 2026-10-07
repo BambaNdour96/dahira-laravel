@@ -38,7 +38,7 @@ it('cache les groupes WhatsApp tant que la demande est en attente', function () 
 
 it('réserve les réglages à l\'administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['super_administrateur', 'administrateur']);
 
     $this->actingAs($admin)->get('/admin/parametres')->assertOk();
     $this->actingAs($this->user)->get('/admin/parametres')->assertForbidden();

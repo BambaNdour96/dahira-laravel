@@ -14,8 +14,8 @@ use DomainException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Frais de carte : le membre déclare son paiement Wave, le trésorier le confirme.
- * Seul le trésorier (ou plus tard l'API Wave) peut marquer un paiement comme reçu.
+ * Frais de carte : le membre déclare son paiement Wave, le Jewrine finance le confirme.
+ * Seul le Jewrine finance (ou plus tard l'API Wave) peut marquer un paiement comme reçu.
  */
 final class PaiementService
 {

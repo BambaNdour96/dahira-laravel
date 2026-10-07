@@ -44,6 +44,6 @@ class DatabaseSeeder extends Seeder
             'actif' => true,
         ]);
 
-        $admin->assignRole('administrateur');
+        $admin->assignRole(['super_administrateur', 'administrateur']);
     }
 }

@@ -6,7 +6,7 @@ use App\Models\Paiement;
 use App\Models\User;
 
 /**
- * Les paiements sont gérés par le trésorier et l'administrateur.
+ * Les paiements sont gérés par le Jewrine finance et l'administrateur.
  */
 class PaiementPolicy
 {

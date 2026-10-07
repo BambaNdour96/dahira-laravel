@@ -22,7 +22,7 @@ class DemoSeeder extends Seeder
     {
         $cellules = Cellule::query()->get();
 
-        foreach (['Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
+        foreach (['Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
             Commission::firstOrCreate(['nom' => $nom]);
         }
 
@@ -35,7 +35,7 @@ class DemoSeeder extends Seeder
         Cellule::query()->where('nom', 'Kaolack')->update(['responsable_id' => $jewrine->id]);
 
         $tresorier = User::updateOrCreate(['telephone' => '+221770000002'], [
-            'name' => 'Trésorier (démo)',
+            'name' => 'Jewrine finance (démo)',
             'password' => 'password',
             'actif' => true,
         ]);

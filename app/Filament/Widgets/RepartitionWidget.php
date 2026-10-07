@@ -59,7 +59,7 @@ abstract class RepartitionWidget extends ChartWidget
 
     /**
      * Membres validés visibles par l'utilisateur : tous pour l'administrateur
-     * et le trésorier, ceux de sa cellule pour un Jewrine.
+     * et le Jewrine finance, ceux de sa cellule pour un Jewrine.
      *
      * @return Collection<int, Membre>
      */

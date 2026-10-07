@@ -10,7 +10,7 @@ class PostesSeeder extends Seeder
     public function run(): void
     {
         $postes = [
-            'Jewrine national', 'Secrétaire général', 'Trésorier', 'Jewrine cellule',
+            'Jewrine national', 'Secrétaire général', 'Jewrine finance', 'Jewrine cellule',
             'Président de commission', 'Commissaire', 'Responsable technique', 'Membre',
         ];
 

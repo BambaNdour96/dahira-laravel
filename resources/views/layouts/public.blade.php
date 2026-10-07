@@ -9,6 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen flex-col bg-stone-50 text-stone-800 antialiased">
+    @include('partials.bandeau-en-tant-que')
     <header class="border-b-4 border-or-500 bg-emerald-800 text-white">
         <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
             <a href="{{ route('accueil') }}" class="flex items-center gap-3">

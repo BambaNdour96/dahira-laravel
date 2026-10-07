@@ -16,7 +16,7 @@ class InscriptionRequest extends FormRequest
         return true;
     }
 
-    /** On normalise le téléphone avant de le contrôler (règle 4.5). */
+    /** On normalise le téléphone et on ignore le choix « Aucune commission ». */
     protected function prepareForValidation(): void
     {
         $brut = $this->input('telephone');
@@ -24,6 +24,10 @@ class InscriptionRequest extends FormRequest
         if (is_string($brut)) {
             $this->merge(['telephone' => TelephoneNormalizer::normaliser($brut) ?? $brut]);
         }
+
+        $this->merge([
+            'commissions' => array_values(array_filter((array) $this->input('commissions', []), 'filled')),
+        ]);
     }
 
     /** @return array<string, mixed> */

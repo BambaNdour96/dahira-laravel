@@ -203,3 +203,13 @@ it('limite le compte d\'un membre en attente au suivi de sa demande', function (
 
     $this->actingAs($user)->get('/mon-espace/profil')->assertForbidden();
 });
+
+it('explique clairement à un membre qu\'il n\'a pas accès au panneau', function () {
+    $user = User::factory()->create(['name' => 'Awa Fall']);
+    $user->assignRole('membre');
+
+    $this->actingAs($user)->get('/admin')
+        ->assertForbidden()
+        ->assertSee('Accès non autorisé')
+        ->assertSee('Changer de compte');
+});

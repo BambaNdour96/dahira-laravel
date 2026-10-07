@@ -70,7 +70,7 @@
                     <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
                         Paiement déclaré le {{ $paiementEnCours->declare_le->format('d/m/Y à H:i') }}
                         (référence <span class="font-mono">{{ $paiementEnCours->reference }}</span>).
-                        Il est en cours de vérification par le trésorier.
+                        Il est en cours de vérification par le Jewrine finance.
                     </p>
                 @else
                     @if ($dernierRefus)
@@ -88,7 +88,7 @@
                                     Payer avec Wave
                                 </a>
                             @else
-                                <p class="mt-1 text-stone-600">Le lien de paiement Wave sera bientôt disponible. Vous pouvez payer en espèces auprès du trésorier.</p>
+                                <p class="mt-1 text-stone-600">Le lien de paiement Wave sera bientôt disponible. Vous pouvez payer en espèces auprès du Jewrine finance.</p>
                             @endif
                         </li>
                         <li>
@@ -108,7 +108,7 @@
                             @enderror
                         </li>
                     </ol>
-                    <p class="mt-4 text-xs text-stone-500">Vous pouvez aussi régler en espèces auprès du trésorier de la Daara.</p>
+                    <p class="mt-4 text-xs text-stone-500">Vous pouvez aussi régler en espèces auprès du Jewrine finance de la Daara.</p>
                 @endif
 
             @elseif ($membre->statut === \App\Enums\StatutMembre::Expire)

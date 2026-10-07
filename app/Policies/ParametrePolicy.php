@@ -12,12 +12,12 @@ class ParametrePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasRole('super_administrateur');
     }
 
     public function view(User $user, Parametre $parametre): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasRole('super_administrateur');
     }
 
     public function create(User $user): bool
@@ -27,7 +27,7 @@ class ParametrePolicy
 
     public function update(User $user, Parametre $parametre): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasRole('super_administrateur');
     }
 
     public function delete(User $user, Parametre $parametre): bool

@@ -82,21 +82,21 @@
             </div>
 
             @if ($commissions->isNotEmpty())
-                <fieldset>
-                    <legend class="block text-sm font-medium">
-                        Commissions <span class="font-normal text-stone-500">(facultatif, 2 au maximum)</span>
-                    </legend>
-                    <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                <div>
+                    <label for="commission" class="block text-sm font-medium">
+                        Commission <span class="font-normal text-stone-500">(facultatif)</span>
+                    </label>
+                    <select id="commission" name="commissions[]"
+                            class="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
+                        <option value="">Aucune pour l'instant</option>
                         @foreach ($commissions as $commission)
-                            <label class="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm">
-                                <input type="checkbox" name="commissions[]" value="{{ $commission->id }}"
-                                       @checked(in_array((string) $commission->id, array_map('strval', (array) old('commissions', [])), true))
-                                       class="accent-emerald-800">
+                            <option value="{{ $commission->id }}"
+                                    @selected(in_array((string) $commission->id, array_map('strval', (array) old('commissions', [])), true))>
                                 {{ $commission->nom }}
-                            </label>
+                            </option>
                         @endforeach
-                    </div>
-                </fieldset>
+                    </select>
+                </div>
             @endif
 
             <x-champ nom="password" libelle="Mot de passe" type="password" requis autocomplete="new-password" aide="8 caractères minimum." />

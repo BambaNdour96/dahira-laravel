@@ -12,12 +12,12 @@ class JournalActivitePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasRole('super_administrateur');
     }
 
     public function view(User $user, JournalActivite $ligne): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasRole('super_administrateur');
     }
 
     public function create(User $user): bool

@@ -129,7 +129,7 @@ class MembreForm
                         ->multiple()
                         ->preload()
                         ->maxItems(Commission::MAX_PAR_MEMBRE)
-                        ->helperText('2 au maximum.'),
+                        ->helperText('Une seule commission par membre.'),
                     Select::make('poste_id')
                         ->label('Poste dans la Daara')
                         ->relationship('poste', 'nom', modifyQueryUsing: fn ($query) => $query->orderBy('ordre'))

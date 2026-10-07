@@ -37,8 +37,8 @@ function inscriptionAvecCommissions(int $celluleId, array $commissions): array
     ];
 }
 
-it('rattache jusqu\'à 2 commissions à l\'inscription', function () {
-    $ids = Commission::factory()->count(2)->create()->pluck('id')->all();
+it('rattache une commission à l\'inscription', function () {
+    $ids = Commission::factory()->count(1)->create()->pluck('id')->all();
 
     $this->post('/inscription', inscriptionAvecCommissions($this->cellule->id, $ids))
         ->assertRedirect(route('inscription.merci'));
@@ -47,8 +47,8 @@ it('rattache jusqu\'à 2 commissions à l\'inscription', function () {
         ->toBe(collect($ids)->sort()->values()->all());
 });
 
-it('refuse plus de 2 commissions', function () {
-    $ids = Commission::factory()->count(3)->create()->pluck('id')->all();
+it('refuse deux commissions', function () {
+    $ids = Commission::factory()->count(2)->create()->pluck('id')->all();
 
     $this->post('/inscription', inscriptionAvecCommissions($this->cellule->id, $ids))
         ->assertSessionHasErrors('commissions');

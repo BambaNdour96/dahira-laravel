@@ -14,7 +14,7 @@ class Commission extends Model
     use HasFactory, Journalise;
 
     /** Un membre appartient à 2 commissions au maximum. */
-    public const MAX_PAR_MEMBRE = 2;
+    public const MAX_PAR_MEMBRE = 1;
 
     protected $fillable = ['nom', 'description', 'actif'];
 

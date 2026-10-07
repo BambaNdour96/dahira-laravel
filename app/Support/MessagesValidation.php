@@ -22,7 +22,7 @@ final class MessagesValidation
             'image' => 'Le fichier doit être une image.',
             'mimes' => 'Formats acceptés : JPEG, PNG ou WebP.',
             'photo.max' => 'La photo dépasse 5 Mo. Choisissez une image plus légère.',
-            'commissions.max' => 'Vous pouvez choisir 2 commissions au maximum.',
+            'commissions.max' => 'Une seule commission est possible.',
             'commissions.*.exists' => 'Commission invalide.',
             'commissions.*.distinct' => 'Vous avez choisi deux fois la même commission.',
             'confirmed' => 'Les deux mots de passe ne correspondent pas.',

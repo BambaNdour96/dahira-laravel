@@ -51,6 +51,7 @@ class JournalActiviteResource extends Resource
                         'cree' => 'Création',
                         'modifie' => 'Modification',
                         'supprime' => 'Suppression',
+                        'en_tant_que' => 'Connexion en tant que',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
