@@ -94,3 +94,29 @@ it('change le mot de passe avec le lien reçu', function () {
 
     expect(Hash::check('motdepasseretrouve', $this->user->fresh()->password))->toBeTrue();
 });
+
+it('déconnecte la personne après le changement de son mot de passe', function () {
+    $this->actingAs($this->user)->put('/mon-compte/mot-de-passe', [
+        'mot_de_passe_actuel' => 'ancienmotdepasse',
+        'password' => 'nouveaumotdepasse',
+        'password_confirmation' => 'nouveaumotdepasse',
+    ]);
+
+    $this->assertGuest();
+
+    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'ancienmotdepasse'])
+        ->assertSessionHasErrors('telephone');
+    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'nouveaumotdepasse']);
+    $this->assertAuthenticatedAs($this->user);
+});
+
+it('génère un mot de passe provisoire facile à lire, qui fonctionne et remplace l\'ancien', function () {
+    $provisoire = app(CompteBureauService::class)->reinitialiserMotDePasse($this->user);
+
+    expect($provisoire)->toMatch('/^[A-HJ-NP-Z2-9]{8}$/');
+
+    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => 'ancienmotdepasse'])
+        ->assertSessionHasErrors('telephone');
+    $this->post('/connexion', ['telephone' => '77 444 55 66', 'password' => $provisoire]);
+    $this->assertAuthenticatedAs($this->user);
+});
