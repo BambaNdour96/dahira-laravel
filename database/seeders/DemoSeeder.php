@@ -22,6 +22,7 @@ class DemoSeeder extends Seeder
     {
         $cellules = Cellule::query()->get();
         $kaolack = Cellule::query()->where('nom', 'Kaolack')->firstOrFail();
+        $dakar = Cellule::query()->where('nom', 'Dakar')->firstOrFail();
 
         foreach (['Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
             Commission::firstOrCreate(['nom' => $nom]);
@@ -40,6 +41,7 @@ class DemoSeeder extends Seeder
         // Le bureau de démonstration : des membres validés, puis nommés.
         $this->membreDuBureau($statuts, $bureau, '+221770000001', 'Modou', 'Fall', $kaolack, 'Jewrine cellule', 'responsable_section');
         $this->membreDuBureau($statuts, $bureau, '+221770000002', 'Awa', 'Sarr', $kaolack, 'Jewrine finance', 'tresorier');
+        $this->membreDuBureau($statuts, $bureau, '+221770000003', 'Ibrahima', 'Diop', $dakar, 'Jewrine cellule', 'responsable_section');
 
         // Les autres membres : 8 validés, 4 acceptés qui doivent payer, les autres en attente.
         $membres = Membre::factory()->count(20)->recycle($cellules)->create();
