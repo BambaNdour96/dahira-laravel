@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Cellule;
+use App\Models\Membre;
 use App\Models\User;
 use App\Services\CompteBureauService;
 use Database\Seeders\RolesSeeder;
@@ -18,14 +19,12 @@ beforeEach(function () {
     $this->service = app(CompteBureauService::class);
 });
 
-function nouveauTresorier(CompteBureauService $service): User
+function membreValideAvecCompte(string $telephone = '+221762223344', string $motDePasse = 'monmotdepasse'): Membre
 {
-    return $service->creer([
-        'name' => 'Moussa Diop',
-        'telephone' => '76 222 33 44',
-        'role' => 'tresorier',
-        'password' => 'provisoire1',
-    ]);
+    $user = User::factory()->create(['telephone' => $telephone, 'password' => $motDePasse]);
+    $user->assignRole('membre');
+
+    return Membre::factory()->for($user)->valide()->create();
 }
 
 it('réserve les comptes du bureau au super administrateur', function () {
@@ -44,47 +43,33 @@ it('réserve les réglages au super administrateur', function () {
     $this->actingAs($admin)->get('/admin/parametres')->assertForbidden();
 });
 
-it('crée un compte de Jewrine finance', function () {
-    $user = nouveauTresorier($this->service);
+it('nomme un membre validé Jewrine finance, sans toucher à son mot de passe', function () {
+    $membre = membreValideAvecCompte();
 
-    expect($user->telephone)->toBe('+221762223344')
-        ->and($user->hasRole('tresorier'))->toBeTrue()
-        ->and(Hash::check('provisoire1', $user->password))->toBeTrue();
+    $user = $this->service->nommer($membre, 'tresorier');
+
+    expect($user->hasAllRoles(['membre', 'tresorier']))->toBeTrue()
+        ->and(Hash::check('monmotdepasse', $user->fresh()->password))->toBeTrue();
 });
+
+it('refuse de nommer un membre qui n\'est pas encore validé', function () {
+    $user = User::factory()->create();
+    $user->assignRole('membre');
+    $membre = Membre::factory()->for($user)->create();
+
+    $this->service->nommer($membre, 'tresorier');
+})->throws(DomainException::class);
 
 it('rattache un Jewrine à sa cellule', function () {
     $cellule = Cellule::factory()->create();
 
-    $user = $this->service->creer([
-        'name' => 'Ibrahima Sarr',
-        'telephone' => '77 444 55 66',
-        'role' => 'responsable_section',
-        'cellule_id' => $cellule->id,
-        'password' => 'provisoire1',
-    ]);
+    $user = $this->service->nommer(membreValideAvecCompte(), 'responsable_section', $cellule->id);
 
     expect($cellule->refresh()->responsable_id)->toBe($user->id);
 });
 
-it('donne un rôle à un membre déjà inscrit sans changer son mot de passe', function () {
-    $membre = User::factory()->create(['telephone' => '+221763334455', 'password' => 'monmotdepasse']);
-    $membre->assignRole('membre');
-
-    $user = $this->service->creer([
-        'name' => 'Autre nom',
-        'telephone' => '763334455',
-        'role' => 'tresorier',
-        'password' => 'autre12345',
-    ]);
-
-    expect($user->id)->toBe($membre->id)
-        ->and($user->hasAllRoles(['membre', 'tresorier']))->toBeTrue()
-        ->and(Hash::check('monmotdepasse', $user->fresh()->password))->toBeTrue();
-});
-
 it('retire un compte du bureau en gardant son rôle de membre', function () {
-    $user = nouveauTresorier($this->service);
-    $user->assignRole('membre');
+    $user = $this->service->nommer(membreValideAvecCompte(), 'tresorier');
 
     $this->service->retirerDuBureau($user);
 
@@ -92,23 +77,40 @@ it('retire un compte du bureau en gardant son rôle de membre', function () {
 });
 
 it('génère un nouveau mot de passe', function () {
-    $user = nouveauTresorier($this->service);
+    $user = $this->service->nommer(membreValideAvecCompte(), 'tresorier');
 
     $nouveau = $this->service->reinitialiserMotDePasse($user);
 
     expect(Hash::check($nouveau, $user->fresh()->password))->toBeTrue()
-        ->and(Hash::check('provisoire1', $user->fresh()->password))->toBeFalse();
+        ->and(Hash::check('monmotdepasse', $user->fresh()->password))->toBeFalse();
 });
 
 it('empêche un compte désactivé de se connecter', function () {
-    $user = nouveauTresorier($this->service);
+    $user = $this->service->nommer(membreValideAvecCompte(), 'tresorier');
 
-    $this->service->mettreAJour($user, ['name' => $user->name, 'role' => 'tresorier', 'actif' => false]);
+    $this->service->mettreAJour($user, ['role' => 'tresorier', 'actif' => false]);
 
-    $this->post('/connexion', ['telephone' => '762223344', 'password' => 'provisoire1'])
+    $this->post('/connexion', ['telephone' => '762223344', 'password' => 'monmotdepasse'])
         ->assertSessionHasErrors('telephone');
 });
 
 it('protège le compte du super administrateur', function () {
     $this->service->retirerDuBureau($this->super);
 })->throws(DomainException::class);
+
+it('montre « Panneau du bureau » sur le site aux seuls membres du bureau', function () {
+    $membre = membreValideAvecCompte();
+    $simple = membreValideAvecCompte('+221769998877');
+
+    $this->service->nommer($membre, 'tresorier');
+
+    $this->actingAs($membre->user)->get('/mon-espace')->assertSee('Panneau du bureau');
+    $this->actingAs($simple->user)->get('/mon-espace')->assertDontSee('Panneau du bureau');
+});
+
+it('montre « Mon compte de membre » dans le panneau', function () {
+    $membre = membreValideAvecCompte();
+    $this->service->nommer($membre, 'administrateur');
+
+    $this->actingAs($membre->user)->get('/admin')->assertOk()->assertSee('Mon compte de membre');
+});

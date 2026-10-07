@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\LienEspaceMembre;
 use App\Filament\Pages\Auth\Login;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -29,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->navigationItems([LienEspaceMembre::item()])
             ->renderHook(PanelsRenderHook::BODY_START, fn (): string => view('partials.bandeau-en-tant-que')->render())
             ->navigationGroups(['Registre', 'Paramètres'])
             ->brandLogo(asset('images/logo-ndk.png'))

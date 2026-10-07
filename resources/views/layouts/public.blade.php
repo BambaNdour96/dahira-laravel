@@ -10,6 +10,7 @@
 </head>
 <body class="flex min-h-screen flex-col bg-stone-50 text-stone-800 antialiased">
     @include('partials.bandeau-en-tant-que')
+
     <header class="border-b-4 border-or-500 bg-emerald-800 text-white">
         <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
             <a href="{{ route('accueil') }}" class="flex items-center gap-3">
@@ -20,8 +21,11 @@
                     <span class="block text-xs tracking-widest text-or-200 uppercase">Kaolack</span>
                 </span>
             </a>
-            <nav class="flex items-center gap-1 text-sm">
+            <nav class="flex flex-wrap items-center justify-end gap-1 text-sm">
                 @auth
+                    @if (auth()->user()->hasAnyRole(\App\Services\CompteBureauService::ROLES_BUREAU))
+                        <a href="/admin" class="rounded-lg bg-or-500 px-3 py-2 font-semibold text-emerald-950 hover:bg-or-400">Panneau du bureau</a>
+                    @endif
                     <a href="{{ route('espace') }}" class="rounded-lg px-3 py-2 hover:bg-white/10">Mon espace</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\JournalActivite;
+use App\Models\Membre;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +13,7 @@ use Illuminate\Support\Str;
 
 /**
  * Comptes du bureau, gérés uniquement par le super administrateur.
+ * Règle : on ne nomme au bureau qu'un membre déjà validé.
  * Chaque changement est noté au journal d'activité.
  */
 final class CompteBureauService
@@ -31,30 +34,45 @@ final class CompteBureauService
         'membre' => 'Membre',
     ];
 
-    /**
-     * Crée un compte du bureau. Si le numéro appartient déjà à un compte
-     * (par exemple un membre inscrit), ce compte reçoit simplement le rôle.
-     *
-     * @param  array<string, mixed>  $donnees
-     */
-    public function creer(array $donnees): User
-    {
-        $telephone = TelephoneNormalizer::normaliser((string) ($donnees['telephone'] ?? ''));
+    /** Rôles qui donnent accès au panneau du bureau. */
+    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'tresorier', 'responsable_section'];
 
-        if ($telephone === null) {
-            throw new DomainException('Numéro de téléphone invalide.');
+    /** Nomme au bureau un membre validé : il garde sa fiche, sa carte et son mot de passe. */
+    public function nommer(Membre $membre, string $role, mixed $celluleId = null): User
+    {
+        if ($membre->statut !== StatutMembre::Valide) {
+            throw new DomainException('Seul un membre validé peut être nommé au bureau.');
         }
 
-        return DB::transaction(function () use ($donnees, $telephone): User {
-            $user = User::query()->where('telephone', $telephone)->first();
+        $user = $membre->user;
 
-            if ($user === null) {
-                $user = User::create([
-                    'name' => (string) $donnees['name'],
-                    'telephone' => $telephone,
-                    'email' => $donnees['email'] ?? null,
-                    'password' => (string) $donnees['password'],
-                    'actif' => true,
+        if ($user === null) {
+            throw new DomainException('Ce membre n\'a pas de compte de connexion.');
+        }
+
+        if ($user->hasRole('super_administrateur')) {
+            throw new DomainException('Le compte du super administrateur ne se modifie pas ici.');
+        }
+
+        DB::transaction(fn () => $this->appliquerRole($user, $role, $celluleId));
+
+        return $user;
+    }
+
+    /** @param  array<string, mixed>  $donnees */
+    public function mettreAJour(User $user, array $donnees): User
+    {
+        if ($user->hasRole('super_administrateur')) {
+            throw new DomainException('Le compte du super administrateur ne se modifie pas ici.');
+        }
+
+        return DB::transaction(function () use ($user, $donnees): User {
+            $actif = (bool) ($donnees['actif'] ?? true);
+
+            if ($actif !== (bool) $user->actif) {
+                $user->update(['actif' => $actif]);
+                JournalActivite::enregistrer($user, 'modifie', [
+                    'apres' => ['compte' => $actif ? 'réactivé' : 'désactivé'],
                 ]);
             }
 
@@ -64,34 +82,7 @@ final class CompteBureauService
         });
     }
 
-    /** @param  array<string, mixed>  $donnees */
-    public function mettreAJour(User $user, array $donnees): User
-    {
-        return DB::transaction(function () use ($user, $donnees): User {
-            $user->update([
-                'name' => (string) $donnees['name'],
-                'email' => $donnees['email'] ?? null,
-            ]);
-
-            // Le compte du super administrateur ne peut être ni désactivé ni modifié dans ses droits.
-            if (! $user->hasRole('super_administrateur')) {
-                $actif = (bool) ($donnees['actif'] ?? true);
-
-                if ($actif !== (bool) $user->actif) {
-                    $user->update(['actif' => $actif]);
-                    JournalActivite::enregistrer($user, 'modifie', [
-                        'apres' => ['compte' => $actif ? 'réactivé' : 'désactivé'],
-                    ]);
-                }
-
-                $this->appliquerRole($user, (string) $donnees['role'], $donnees['cellule_id'] ?? null);
-            }
-
-            return $user;
-        });
-    }
-
-    /** La personne quitte le bureau, mais reste membre si elle l'était. */
+    /** La personne quitte le bureau, mais reste membre. */
     public function retirerDuBureau(User $user): void
     {
         if ($user->hasRole('super_administrateur')) {
@@ -130,8 +121,8 @@ final class CompteBureauService
 
         $avant = $user->getRoleNames()->join(', ');
 
-        // On garde le rôle « membre » et le rôle « super administrateur » s'ils existent.
-        $aGarder = $user->getRoleNames()->intersect(['membre', 'super_administrateur'])->values()->all();
+        // On garde le rôle « membre ».
+        $aGarder = $user->getRoleNames()->intersect(['membre'])->values()->all();
         $user->syncRoles([...$aGarder, $role]);
 
         Cellule::query()->where('responsable_id', $user->id)->update(['responsable_id' => null]);

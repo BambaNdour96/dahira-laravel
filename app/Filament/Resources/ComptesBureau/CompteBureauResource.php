@@ -7,14 +7,11 @@ use App\Filament\Resources\ComptesBureau\Pages\ManageComptesBureau;
 use App\Models\Cellule;
 use App\Models\User;
 use App\Services\CompteBureauService;
-use App\Services\TelephoneNormalizer;
 use BackedEnum;
-use Closure;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\PageRegistration;
@@ -45,57 +42,35 @@ class CompteBureauResource extends Resource
 
     protected static ?string $navigationLabel = 'Comptes du bureau';
 
-    public static function form(Schema $schema): Schema
+    /**
+     * Champs communs à la nomination et à la modification.
+     *
+     * @return list<Select>
+     */
+    public static function champsRole(): array
     {
-        return $schema->components([
-            TextInput::make('name')
-                ->label('Nom complet')
-                ->required()
-                ->maxLength(150),
-            TextInput::make('telephone')
-                ->label('Téléphone')
-                ->tel()
-                ->required()
-                ->disabledOn('edit')
-                ->placeholder('77 123 45 67')
-                ->helperText('Si ce numéro appartient déjà à un membre inscrit, il reçoit simplement le rôle.')
-                ->rules([
-                    fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-                        if (TelephoneNormalizer::normaliser(is_string($value) ? $value : null) === null) {
-                            $fail('Numéro invalide. Exemple : 77 123 45 67.');
-                        }
-                    },
-                ]),
-            TextInput::make('email')
-                ->label('Email')
-                ->email()
-                ->maxLength(255)
-                ->unique(table: 'users', column: 'email', ignoreRecord: true),
+        return [
             Select::make('role')
                 ->label('Rôle')
                 ->options(CompteBureauService::ROLES)
                 ->required()
-                ->live()
-                ->hidden(fn (?User $record): bool => (bool) $record?->hasRole('super_administrateur')),
+                ->live(),
             Select::make('cellule_id')
                 ->label('Cellule de ce Jewrine')
                 ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
                 ->visible(fn ($get): bool => $get('role') === 'responsable_section')
                 ->required(fn ($get): bool => $get('role') === 'responsable_section')
                 ->helperText('Si cette cellule avait déjà un Jewrine, il sera remplacé.'),
-            TextInput::make('password')
-                ->label('Mot de passe provisoire')
-                ->password()
-                ->revealable()
-                ->minLength(8)
-                ->required()
-                ->visibleOn('create')
-                ->helperText('À transmettre à la personne. Ignoré si le numéro a déjà un compte.'),
+        ];
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            ...self::champsRole(),
             Toggle::make('actif')
                 ->label('Compte actif')
-                ->helperText('Un compte désactivé ne peut plus se connecter.')
-                ->visibleOn('edit')
-                ->hidden(fn (?User $record): bool => (bool) $record?->hasRole('super_administrateur')),
+                ->helperText('Un compte désactivé ne peut plus se connecter, ni au panneau ni à son compte de membre.'),
         ]);
     }
 
@@ -103,25 +78,26 @@ class CompteBureauResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn ($query) => $query
-                ->whereHas('roles', fn ($roles) => $roles->whereIn('name', [
-                    'super_administrateur', 'administrateur', 'tresorier', 'responsable_section',
-                ]))
-                ->with('roles'))
+                ->whereHas('roles', fn ($roles) => $roles->whereIn('name', CompteBureauService::ROLES_BUREAU))
+                ->with(['roles', 'membre']))
             ->columns([
                 TextColumn::make('name')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('telephone')->label('Téléphone')->searchable(),
+                TextColumn::make('membre.matricule')->label('Matricule')->placeholder('—'),
                 TextColumn::make('roles.name')
                     ->label('Rôles')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => CompteBureauService::LIBELLES[$state] ?? $state),
                 TextColumn::make('cellule')
-                    ->label('Cellule')
+                    ->label('Cellule dirigée')
                     ->state(fn (User $record): string => (string) (Cellule::query()->where('responsable_id', $record->id)->value('nom') ?? '—')),
                 IconColumn::make('actif')->label('Actif')->boolean(),
                 TextColumn::make('derniere_connexion_at')->label('Dernière connexion')->since()->placeholder('Jamais'),
             ])
             ->recordActions([
                 EditAction::make()
+                    ->label('Modifier le rôle')
+                    ->hidden(fn (User $record): bool => $record->hasRole('super_administrateur'))
                     ->mutateRecordDataUsing(fn (array $data, User $record): array => [
                         ...$data,
                         'role' => $record->getRoleNames()->intersect(array_keys(CompteBureauService::ROLES))->first(),
@@ -154,7 +130,7 @@ class CompteBureauResource extends Resource
                     ->color('danger')
                     ->hidden(fn (User $record): bool => $record->hasRole('super_administrateur'))
                     ->requiresConfirmation()
-                    ->modalDescription('La personne perd ses droits dans le panneau, mais garde son compte de membre si elle en a un.')
+                    ->modalDescription('La personne perd ses droits dans le panneau, mais reste membre, avec sa carte.')
                     ->action(function (User $record): void {
                         try {
                             app(CompteBureauService::class)->retirerDuBureau($record);
