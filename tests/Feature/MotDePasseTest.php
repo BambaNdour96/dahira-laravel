@@ -29,7 +29,7 @@ it('permet de changer son mot de passe', function () {
         'mot_de_passe_actuel' => 'ancienmotdepasse',
         'password' => 'nouveaumotdepasse',
         'password_confirmation' => 'nouveaumotdepasse',
-    ])->assertRedirect(route('espace'));
+    ])->assertRedirect(route('login'));
 
     expect(Hash::check('nouveaumotdepasse', $this->user->fresh()->password))->toBeTrue();
 });

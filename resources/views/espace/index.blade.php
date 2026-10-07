@@ -104,6 +104,9 @@
                             <p class="mt-1 text-xs text-stone-500">Dans l'application Wave : historique, puis le détail de ce paiement.</p>
                             <form method="POST" action="{{ route('espace.paiement') }}" class="mt-2 flex flex-col gap-2 sm:flex-row">
                                 @csrf
+                                <input type="tel" name="numero_wave" value="{{ old('numero_wave', $membre->telephone) }}" inputmode="tel" autocomplete="tel"
+                                       placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
+                                       class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
                                 <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
                                        placeholder="Référence de la transaction"
                                        class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
@@ -111,6 +114,9 @@
                                     J'ai payé
                                 </button>
                             </form>
+                            @error('numero_wave')
+                                <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                            @enderror
                             @error('reference')
                                 <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
                             @enderror

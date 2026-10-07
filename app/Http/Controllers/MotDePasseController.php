@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\JournalActivite;
 use App\Models\User;
-use App\Services\CompteBureauService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MotDePasseController extends Controller
@@ -20,6 +21,7 @@ class MotDePasseController extends Controller
         ]);
     }
 
+    /** Après le changement, la personne est déconnectée partout et se reconnecte avec son nouveau mot de passe. */
     public function update(Request $request): RedirectResponse
     {
         $utilisateur = $request->user();
@@ -44,10 +46,16 @@ class MotDePasseController extends Controller
 
         JournalActivite::enregistrer($utilisateur, 'modifie', ['apres' => ['mot_de_passe' => 'changé par la personne']]);
 
-        $request->session()->regenerate();
+        // Toutes les connexions ouvertes sont fermées, y compris celle-ci.
+        if (config('session.driver') === 'database') {
+            DB::table('sessions')->where('user_id', $utilisateur->id)->delete();
+        }
 
-        $destination = $utilisateur->hasAnyRole(CompteBureauService::ROLES_BUREAU) ? '/admin' : route('espace');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return redirect($destination)->with('succes', 'Votre mot de passe a été changé.');
+        return redirect()->route('login')
+            ->with('succes', 'Votre mot de passe a été changé. Reconnectez-vous avec votre nouveau mot de passe.');
     }
 }

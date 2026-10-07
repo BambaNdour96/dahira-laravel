@@ -54,6 +54,7 @@ class PaiementResource extends Resource
                     ->formatStateUsing(fn ($state): string => number_format((int) $state, 0, ',', ' ').' FCFA'),
                 TextColumn::make('moyen')->label('Moyen')->badge(),
                 TextColumn::make('reference')->label('Référence Wave')->fontFamily('mono')->copyable()->searchable()->placeholder('—'),
+                TextColumn::make('numero_wave')->label('Numéro Wave')->placeholder('—')->searchable(),
                 TextColumn::make('statut')->label('Statut')->badge(),
                 TextColumn::make('motif_refus')->label('Motif du refus')->placeholder('—')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('traitePar.name')->label('Traité par')->placeholder('—')->toggleable(),

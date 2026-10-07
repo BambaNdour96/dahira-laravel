@@ -112,6 +112,9 @@
                 <div>
                     <p class="font-semibold text-emerald-900">3. Indiquez la référence de votre reçu Wave</p>
                     <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+                        <input type="tel" name="numero_wave" value="{{ old('numero_wave', $membre->telephone) }}" inputmode="tel" autocomplete="tel"
+                               placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
+                               class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
                         <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
                                placeholder="Référence de la transaction"
                                class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
@@ -119,6 +122,9 @@
                             J'ai payé
                         </button>
                     </div>
+                    @error('numero_wave')
+                        <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
                     @error('reference')
                         <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
                     @enderror

@@ -11,6 +11,7 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\Tarif;
 use App\Models\User;
+use App\Support\AntiFraude;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 final class CotisationService
 {
     /** Nombres de mois que l'on peut payer d'un coup. */
-    public const CHOIX_MOIS = [1, 3, 6, 12];
+    public const CHOIX_MOIS = [1, 2, 3];
 
     public function montantMensuel(): int
     {
@@ -196,7 +197,7 @@ final class CotisationService
     }
 
     /** Le membre déclare un paiement Wave pour plusieurs mois. */
-    public function declarer(Membre $membre, string $reference, int $nombreMois): Paiement
+    public function declarer(Membre $membre, string $reference, int $nombreMois, ?string $numeroWave = null): Paiement
     {
         $this->verifierPeutCotiser($membre, $nombreMois);
 
@@ -217,6 +218,7 @@ final class CotisationService
             'nombre_mois' => $nombreMois,
             'moyen' => MoyenPaiement::Wave,
             'reference' => $reference,
+            'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
         ]);
@@ -242,6 +244,7 @@ final class CotisationService
     public function enregistrerEspeces(Membre $membre, int $nombreMois, ?User $tresorier): Paiement
     {
         $this->verifierPeutCotiser($membre, $nombreMois);
+        AntiFraude::verifierPasSoiMeme($membre, $tresorier);
 
         return DB::transaction(function () use ($membre, $nombreMois, $tresorier): Paiement {
             $paiement = Paiement::query()->create([

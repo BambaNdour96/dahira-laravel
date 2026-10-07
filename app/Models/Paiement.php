@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int $nombre_mois
  * @property MoyenPaiement $moyen
  * @property string|null $reference
+ * @property string|null $numero_wave
  * @property StatutPaiement $statut
  * @property string|null $motif_refus
  * @property Carbon $declare_le
@@ -30,7 +31,7 @@ class Paiement extends Model
     use Journalise;
 
     protected $fillable = [
-        'membre_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'statut',
+        'membre_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
         'motif_refus', 'declare_le', 'traite_le', 'traite_par',
     ];
 

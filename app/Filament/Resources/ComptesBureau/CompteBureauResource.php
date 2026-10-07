@@ -7,6 +7,7 @@ use App\Filament\Resources\ComptesBureau\Pages\ManageComptesBureau;
 use App\Models\Cellule;
 use App\Models\User;
 use App\Services\CompteBureauService;
+use App\Support\AffichageMotDePasse;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\Action;
@@ -118,7 +119,7 @@ class CompteBureauResource extends Resource
 
                         Notification::make()
                             ->title('Nouveau mot de passe de '.$record->name)
-                            ->body('Mot de passe provisoire : '.$motDePasse.' — Transmettez-le à la personne. Il ne sera plus affiché.')
+                            ->body(AffichageMotDePasse::corps($motDePasse))
                             ->success()
                             ->persistent()
                             ->send();

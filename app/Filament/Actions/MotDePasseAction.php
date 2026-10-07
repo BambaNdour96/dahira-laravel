@@ -4,6 +4,7 @@ namespace App\Filament\Actions;
 
 use App\Models\Membre;
 use App\Services\CompteBureauService;
+use App\Support\AffichageMotDePasse;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Gate;
@@ -35,7 +36,7 @@ final class MotDePasseAction
 
                 Notification::make()
                     ->title('Mot de passe provisoire de '.$record->prenom.' '.$record->nom)
-                    ->body('Mot de passe provisoire : '.$motDePasse.' — Transmettez-le au membre. Il ne sera plus affiché.')
+                    ->body(AffichageMotDePasse::corps($motDePasse))
                     ->success()
                     ->persistent()
                     ->send();

@@ -6,9 +6,9 @@ use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Models\Membre;
 use App\Models\Paiement;
-use App\Models\Parametre;
 use App\Models\User;
 use App\Services\CotisationService;
+use App\Support\LienWave;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,17 +20,23 @@ class CotisationController extends Controller
     public function show(Request $request, CotisationService $cotisations): View
     {
         $membre = $this->membre($request);
+        $mensuel = $cotisations->montantMensuel();
         $paiements = Paiement::query()->where('membre_id', $membre->id)->where('objet', 'cotisation');
+
+        $liensWave = collect(CotisationService::CHOIX_MOIS)
+            ->mapWithKeys(fn (int $nombre): array => [$nombre => LienWave::cotisation($nombre, $mensuel)])
+            ->all();
 
         return view('espace.cotisations', [
             'membre' => $membre,
-            'mensuel' => $cotisations->montantMensuel(),
+            'mensuel' => $mensuel,
             'retard' => $cotisations->moisEnRetard($membre),
             'regleJusqua' => $cotisations->regleJusqua($membre),
             'debut' => $cotisations->debut($membre),
             'calendrier' => $cotisations->calendrier($membre, now()->year),
             'choix' => CotisationService::CHOIX_MOIS,
-            'lienWave' => Parametre::valeur('wave_lien_paiement'),
+            'liensWave' => $liensWave,
+            'lienWave' => collect($liensWave)->filter()->first(),
             'enCours' => (clone $paiements)->where('statut', StatutPaiement::Declare->value)->latest('declare_le')->first(),
             'dernierRefus' => (clone $paiements)->where('statut', StatutPaiement::Refuse->value)->latest('traite_le')->first(),
             'historique' => (clone $paiements)->latest('declare_le')->limit(12)->get(),
@@ -41,23 +47,16 @@ class CotisationController extends Controller
     {
         $membre = $this->membre($request);
 
-        $request->merge([
-            'reference' => strtoupper(preg_replace('/\s+/', '', (string) $request->input('reference')) ?? ''),
-        ]);
-
-        $donnees = $request->validate([
-            'reference' => ['required', 'string', 'min:4', 'max:60', 'unique:paiements,reference'],
+        $request->validate([
             'nombre_mois' => ['required', 'integer', Rule::in(CotisationService::CHOIX_MOIS)],
         ], [
-            'reference.required' => 'Indiquez la référence de votre transaction Wave.',
-            'reference.min' => 'Cette référence est trop courte.',
-            'reference.max' => 'Cette référence est trop longue.',
-            'reference.unique' => 'Cette référence a déjà été utilisée.',
-            'nombre_mois.in' => 'Choisissez 1, 3, 6 ou 12 mois.',
+            'nombre_mois.in' => 'Choisissez 1, 2 ou 3 mois.',
         ]);
 
+        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+
         try {
-            $cotisations->declarer($membre, (string) $donnees['reference'], (int) $donnees['nombre_mois']);
+            $cotisations->declarer($membre, $reference, (int) $request->input('nombre_mois'), $numeroWave);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }

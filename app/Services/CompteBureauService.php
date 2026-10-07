@@ -7,9 +7,10 @@ use App\Models\Cellule;
 use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\User;
+use App\Support\AffichageMotDePasse;
 use DomainException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Comptes du bureau, gérés uniquement par le super administrateur.
@@ -105,8 +106,14 @@ final class CompteBureauService
     /** Génère un mot de passe provisoire, à transmettre à la personne. */
     public function reinitialiserMotDePasse(User $user): string
     {
-        $motDePasse = Str::password(10, symbols: false);
+        $motDePasse = AffichageMotDePasse::generer();
         $user->forceFill(['password' => $motDePasse, 'doit_changer_mot_de_passe' => true])->save();
+
+        // Le compte est débloqué, et toutes ses connexions ouvertes sont fermées.
+        RateLimiter::clear('blocage-compte:'.$user->telephone);
+        if (config('session.driver') === 'database') {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        }
 
         JournalActivite::enregistrer($user, 'modifie', ['apres' => ['mot_de_passe' => 'réinitialisé']]);
 

@@ -10,15 +10,20 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\Tarif;
 use App\Models\User;
+use App\Support\AntiFraude;
 use DomainException;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Le membre déclare son paiement Wave, le Jewrine finance le confirme.
- * Seul le Jewrine finance (ou plus tard l'API Wave) peut marquer un paiement comme reçu.
+ * Seul un autre membre du bureau (ou plus tard l'API Wave) peut marquer un paiement comme reçu.
  */
 final class PaiementService
 {
+    /** Nombre de déclarations refusées en 30 jours qui déclenche une alerte. */
+    public const SEUIL_ALERTE_REFUS = 3;
+
     public function __construct(
         private readonly StatutMembreService $statuts,
         private readonly CotisationService $cotisations,
@@ -46,7 +51,7 @@ final class PaiementService
             ->first();
     }
 
-    public function declarer(Membre $membre, string $reference): Paiement
+    public function declarer(Membre $membre, string $reference, ?string $numeroWave = null): Paiement
     {
         if ($membre->statut !== StatutMembre::Accepte) {
             throw new DomainException('Votre demande doit d\'abord être acceptée par votre Jewrine de cellule.');
@@ -61,6 +66,7 @@ final class PaiementService
             'montant' => $this->montantFraisCarte(),
             'moyen' => MoyenPaiement::Wave,
             'reference' => $reference,
+            'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
         ]);
@@ -71,6 +77,8 @@ final class PaiementService
         if ($paiement->statut !== StatutPaiement::Declare) {
             throw new DomainException('Ce paiement a déjà été traité.');
         }
+
+        AntiFraude::verifierPasSoiMeme($paiement->membre, $tresorier);
 
         DB::transaction(function () use ($paiement, $tresorier): void {
             $paiement->update([
@@ -99,12 +107,16 @@ final class PaiementService
             throw new DomainException('Ce paiement a déjà été traité.');
         }
 
+        AntiFraude::verifierPasSoiMeme($paiement->membre, $tresorier);
+
         $paiement->update([
             'statut' => StatutPaiement::Refuse,
             'motif_refus' => $motif,
             'traite_le' => now(),
             'traite_par' => $tresorier?->id,
         ]);
+
+        $this->alerterSiRefusRepetes($paiement->membre);
     }
 
     public function enregistrerEspeces(Membre $membre, ?User $tresorier): Paiement
@@ -112,6 +124,8 @@ final class PaiementService
         if (! in_array($membre->statut, [StatutMembre::Accepte, StatutMembre::Expire], true)) {
             throw new DomainException('Ce membre n\'attend pas de paiement de frais de carte.');
         }
+
+        AntiFraude::verifierPasSoiMeme($membre, $tresorier);
 
         return DB::transaction(function () use ($membre, $tresorier): Paiement {
             $paiement = $membre->paiements()->create([
@@ -128,5 +142,31 @@ final class PaiementService
 
             return $paiement;
         });
+    }
+
+    /** Après 3 déclarations refusées en 30 jours, le super administrateur est prévenu. */
+    private function alerterSiRefusRepetes(Membre $membre): void
+    {
+        $refus = Paiement::query()
+            ->where('membre_id', $membre->id)
+            ->where('statut', StatutPaiement::Refuse->value)
+            ->where('traite_le', '>=', now()->subDays(30))
+            ->count();
+
+        if ($refus !== self::SEUIL_ALERTE_REFUS) {
+            return;
+        }
+
+        $superAdmins = User::query()->role('super_administrateur')->get();
+
+        if ($superAdmins->isEmpty()) {
+            return;
+        }
+
+        Notification::make()
+            ->title('Déclarations de paiement refusées à répétition')
+            ->body($membre->prenom.' '.$membre->nom.' a eu '.$refus.' déclarations refusées en 30 jours. À vérifier.')
+            ->warning()
+            ->sendToDatabase($superAdmins);
     }
 }

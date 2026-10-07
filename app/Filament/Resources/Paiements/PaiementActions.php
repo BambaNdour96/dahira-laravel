@@ -29,7 +29,7 @@ final class PaiementActions
                 && Gate::allows('update', $record))
             ->requiresConfirmation()
             ->modalDescription(fn (Paiement $record): string => 'Vérifiez d\'abord dans Wave Business le paiement de '
-                .self::fcfa($record->montant).', référence '.$record->reference.'. '
+                .self::fcfa($record->montant).', référence '.$record->reference.($record->numero_wave ? ', payé depuis le '.$record->numero_wave : '').'. '
                 .($record->objet === 'cotisation'
                     ? 'Les '.$record->nombre_mois.' mois seront marqués réglés.'
                     : 'Le membre sera validé et recevra sa carte.'))
