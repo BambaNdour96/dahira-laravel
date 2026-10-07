@@ -125,7 +125,7 @@
         Déjà inscrit ? <a href="{{ route('login') }}" class="font-medium text-emerald-800 underline">Se connecter</a>
     </p>
 
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         (() => {
             const formulaire = document.getElementById('formulaire-inscription');
             const etapes = formulaire.querySelectorAll('[data-etape]');

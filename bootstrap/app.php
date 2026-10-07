@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ChangementMotDePasseObligatoire;
+use App\Http\Middleware\EnTetesSecurite;
 use App\Http\Middleware\ModeMaintenance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->web(append: [EnTetesSecurite::class]);
         $middleware->web(append: [ChangementMotDePasseObligatoire::class]);
         $middleware->web(append: [ModeMaintenance::class]);
         //

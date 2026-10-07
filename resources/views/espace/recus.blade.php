@@ -24,7 +24,7 @@
             @if ($type)
                 <input type="hidden" name="type" value="{{ $type }}">
             @endif
-            <select name="annee" onchange="this.form.submit()"
+            <select name="annee"
                     class="ml-auto rounded-lg border border-stone-300 bg-white px-3 py-1.5">
                 <option value="">Toutes les années</option>
                 @foreach ($annees as $choixAnnee)
@@ -71,4 +71,7 @@
     @endif
 
     <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+        document.querySelector('select[name="annee"]')?.addEventListener('change', (evenement) => evenement.target.form.submit());
+    </script>
 @endsection

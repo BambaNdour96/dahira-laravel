@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\LienEspaceMembre;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\ChangementMotDePasseObligatoire;
+use App\Http\Middleware\EnTetesSecurite;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -32,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->middleware([EnTetesSecurite::class])
             ->profile()
             ->multiFactorAuthentication([AppAuthentication::make()->recoverable()->brandName('Daara NDK')], isRequired: app()->isProduction())
             ->authMiddleware([ChangementMotDePasseObligatoire::class])

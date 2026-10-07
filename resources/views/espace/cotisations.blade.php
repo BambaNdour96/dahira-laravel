@@ -137,7 +137,7 @@
                 </div>
             </form>
 
-            <script>
+            <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
                 (() => {
                     const bouton = document.getElementById('bouton-wave');
                     const montant = document.getElementById('montant-wave');
