@@ -63,9 +63,9 @@ it('refuse une commission qui n\'est plus proposée', function () {
         ->assertSessionHasErrors('commissions.0');
 });
 
-it('accepte une inscription sans commission', function () {
+it('exige une commission à l\'inscription', function () {
     $this->post('/inscription', inscriptionAvecCommissions($this->cellule->id, []))
-        ->assertRedirect(route('inscription.merci'));
+        ->assertSessionHasErrors('commissions');
 });
 
 it('réserve l\'écran des commissions à l\'administrateur', function () {

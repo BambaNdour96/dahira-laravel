@@ -3,6 +3,7 @@
 use App\Enums\NiveauEtudes;
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
+use App\Models\Commission;
 use App\Models\Membre;
 use App\Models\User;
 use App\Services\StatutMembreService;
@@ -17,6 +18,7 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
     Storage::fake('local');
     $this->cellule = Cellule::factory()->create();
+    $this->commission = Commission::factory()->create();
 });
 
 function donneesInscription(array $surcharge = []): array
@@ -32,6 +34,7 @@ function donneesInscription(array $surcharge = []): array
         'telephone' => '77 123 45 67',
         'email' => '',
         'cellule_id' => test()->cellule->id,
+        'commissions' => [test()->commission->id],
         'photo' => UploadedFile::fake()->image('photo.jpg', 1000, 1200),
         'password' => 'motdepasse',
         'password_confirmation' => 'motdepasse',

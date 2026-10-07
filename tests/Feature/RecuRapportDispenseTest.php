@@ -45,8 +45,8 @@ it('numérote les reçus à la suite', function () {
 
     $annee = now()->format('Y');
 
-    expect($premier->numero_recu)->toBe("REC-{$annee}-0001")
-        ->and($second->numero_recu)->toBe("REC-{$annee}-0002");
+    expect($premier->numero_recu)->toBe("COT-{$annee}-0001")
+        ->and($second->numero_recu)->toBe("COT-{$annee}-0002");
 });
 
 it('attribue un reçu à la confirmation d\'une déclaration Wave', function () {

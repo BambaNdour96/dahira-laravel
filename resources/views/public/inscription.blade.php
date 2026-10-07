@@ -84,11 +84,11 @@
             @if ($commissions->isNotEmpty())
                 <div>
                     <label for="commission" class="block text-sm font-medium">
-                        Commission <span class="font-normal text-stone-500">(facultatif)</span>
+                        Commission <span class="text-red-700">*</span>
                     </label>
-                    <select id="commission" name="commissions[]"
+                    <select id="commission" name="commissions[]" required
                             class="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
-                        <option value="">Aucune pour l'instant</option>
+                        <option value="">Choisissez votre commission</option>
                         @foreach ($commissions as $commission)
                             <option value="{{ $commission->id }}"
                                     @selected(in_array((string) $commission->id, array_map('strval', (array) old('commissions', [])), true))>

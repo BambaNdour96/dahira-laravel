@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatutPaiement;
-use App\Models\Cotisation;
 use App\Models\Paiement;
 use App\Models\User;
 use Dompdf\Dompdf;
@@ -13,7 +12,7 @@ use Illuminate\Support\Facades\Gate;
 
 class RecuController extends Controller
 {
-    /** Le membre télécharge son reçu ; le bureau peut télécharger tous les reçus. */
+    /** Le membre télécharge ses reçus ; le bureau peut télécharger tous les reçus. */
     public function show(Request $request, Paiement $paiement): Response
     {
         $utilisateur = $request->user();
@@ -25,8 +24,7 @@ class RecuController extends Controller
         $logo = public_path('images/logo-ndk.png');
 
         $html = view('pdf.recu', [
-            'paiement' => $paiement->load(['membre.cellule', 'traitePar']),
-            'mois' => Cotisation::query()->where('paiement_id', $paiement->id)->orderBy('mois')->get(),
+            'paiement' => $paiement->load(['membre.cellule', 'traitePar', 'cotisations']),
             'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,
         ])->render();
 
@@ -37,7 +35,7 @@ class RecuController extends Controller
 
         return response((string) $pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$paiement->numero_recu.'.pdf"',
+            'Content-Disposition' => 'inline; filename="'.$paiement->nomFichierRecu().'"',
         ]);
     }
 }

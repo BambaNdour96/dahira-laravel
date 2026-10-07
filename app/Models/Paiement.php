@@ -8,6 +8,7 @@ use App\Models\Concerns\Journalise;
 use App\Services\RecuService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,10 +38,11 @@ class Paiement extends Model
 
     protected static function booted(): void
     {
-        // Tout paiement confirmé reçoit un numéro de reçu unique.
+        // Tout paiement confirmé reçoit un numéro de reçu unique, selon sa nature.
         static::saving(function (Paiement $paiement): void {
             if ($paiement->statut === StatutPaiement::Confirme && $paiement->numero_recu === null) {
-                $paiement->numero_recu = app(RecuService::class)->prochainNumero((int) now()->format('Y'));
+                $paiement->numero_recu = app(RecuService::class)
+                    ->prochainNumero((int) now()->format('Y'), $paiement->prefixeRecu());
             }
         });
     }
@@ -58,12 +60,54 @@ class Paiement extends Model
         ];
     }
 
-    /** Libellé lisible : « Frais de carte » ou « Cotisation (3 mois) ». */
+    public function estCotisation(): bool
+    {
+        return $this->objet === 'cotisation';
+    }
+
+    /** Préfixe du numéro de reçu : INS pour l'inscription, COT pour une cotisation. */
+    public function prefixeRecu(): string
+    {
+        return $this->estCotisation() ? 'COT' : 'INS';
+    }
+
+    /** « Reçu d'inscription » ou « Reçu de cotisation ». */
+    public function natureRecu(): string
+    {
+        return $this->estCotisation() ? 'Reçu de cotisation' : 'Reçu d\'inscription';
+    }
+
+    /** Libellé lisible : « Inscription (frais de carte) » ou « Cotisation (3 mois) ». */
     public function libelleObjet(): string
     {
-        return $this->objet === 'cotisation'
+        return $this->estCotisation()
             ? 'Cotisation ('.$this->nombre_mois.' mois)'
-            : 'Frais de carte';
+            : 'Inscription (frais de carte)';
+    }
+
+    /** Nom du fichier PDF, selon la nature. */
+    public function nomFichierRecu(): string
+    {
+        return ($this->estCotisation() ? 'Recu-cotisation-' : 'Recu-inscription-').$this->numero_recu.'.pdf';
+    }
+
+    /** Période couverte par une cotisation : « novembre 2026 – janvier 2027 ». */
+    public function periode(): ?string
+    {
+        if (! $this->estCotisation()) {
+            return null;
+        }
+
+        $mois = $this->cotisations->sortBy('mois')->pluck('mois');
+
+        if ($mois->isEmpty()) {
+            return null;
+        }
+
+        $premier = Carbon::parse((string) $mois->first())->translatedFormat('F Y');
+        $dernier = Carbon::parse((string) $mois->last())->translatedFormat('F Y');
+
+        return $premier === $dernier ? $premier : $premier.' – '.$dernier;
     }
 
     /** @return BelongsTo<Membre, $this> */
@@ -76,5 +120,11 @@ class Paiement extends Model
     public function traitePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'traite_par');
+    }
+
+    /** @return HasMany<Cotisation, $this> */
+    public function cotisations(): HasMany
+    {
+        return $this->hasMany(Cotisation::class);
     }
 }

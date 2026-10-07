@@ -3,10 +3,12 @@
 use App\Models\Cotisation;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\Parametre;
 use App\Models\User;
 use App\Services\CarteService;
 use App\Services\CotisationService;
 use App\Services\PaiementService;
+use App\Support\LienWave;
 use Database\Seeders\RolesSeeder;
 use Database\Seeders\TarifsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -123,4 +125,34 @@ it('réserve la page des cotisations aux membres validés', function () {
     membreValideDepuis($valide, 1);
 
     $this->actingAs($valide)->get('/mes-cotisations')->assertOk()->assertSee('1 000 FCFA');
+});
+
+it('propose un lien Wave différent pour 1, 2 et 3 mois', function () {
+    foreach ([1 => 'UNMOIS', 2 => 'DEUXMOIS', 3 => 'TROISMOIS'] as $nombre => $code) {
+        Parametre::query()->create([
+            'cle' => 'wave_lien_'.$nombre.'_mois',
+            'libelle' => 'Lien '.$nombre.' mois',
+            'valeur' => 'https://pay.wave.com/m/'.$code,
+        ]);
+    }
+
+    membreValideDepuis($this->user, 1);
+
+    $this->actingAs($this->user)->get('/mes-cotisations')
+        ->assertOk()
+        ->assertSee('https://pay.wave.com/m/UNMOIS')
+        ->assertSee('https://pay.wave.com/m/DEUXMOIS')
+        ->assertSee('https://pay.wave.com/m/TROISMOIS');
+});
+
+it('n\'ouvre jamais le lien d\'un autre montant quand un lien manque', function () {
+    Parametre::query()->create([
+        'cle' => 'wave_lien_1_mois',
+        'libelle' => 'Lien 1 mois',
+        'valeur' => 'https://pay.wave.com/m/UNMOIS',
+    ]);
+
+    membreValideDepuis($this->user, 1);
+
+    expect(LienWave::cotisation(2, 1000))->toBeNull();
 });

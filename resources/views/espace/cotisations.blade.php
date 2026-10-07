@@ -13,6 +13,8 @@
             'avenir' => 'bg-stone-100 text-stone-500',
             'avant' => 'bg-stone-50 text-stone-300',
         ];
+        $choixParDefaut = (int) old('nombre_mois', in_array(count($retard), $choix, true) ? count($retard) : 1);
+        $lienParDefaut = $liensWave[$choixParDefaut] ?? null;
     @endphp
 
     <h1 class="text-2xl font-semibold text-emerald-900">Mes cotisations</h1>
@@ -82,11 +84,13 @@
 
                 <div>
                     <p class="font-semibold text-emerald-900">1. Choisissez le nombre de mois</p>
-                    <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div class="mt-2 grid grid-cols-3 gap-2">
                         @foreach ($choix as $nombre)
-                            <label class="flex cursor-pointer flex-col items-center rounded-lg border border-stone-300 px-3 py-2 has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50">
+                            <label class="flex cursor-pointer flex-col items-center rounded-lg border border-stone-300 px-2 py-3 has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50">
                                 <input type="radio" name="nombre_mois" value="{{ $nombre }}" class="sr-only"
-                                       @checked((int) old('nombre_mois', max(1, count($retard))) === $nombre) required>
+                                       data-lien-wave="{{ $liensWave[$nombre] ?? '' }}"
+                                       data-montant="{{ $fcfa($nombre * $mensuel) }}"
+                                       @checked($choixParDefaut === $nombre) required>
                                 <span class="font-semibold">{{ $nombre }} mois</span>
                                 <span class="text-xs text-stone-500">{{ $fcfa($nombre * $mensuel) }}</span>
                             </label>
@@ -98,15 +102,14 @@
                 </div>
 
                 <div>
-                    <p class="font-semibold text-emerald-900">2. Payez le montant avec Wave</p>
-                    @if ($lienWave)
-                        <a href="{{ $lienWave }}" target="_blank" rel="noopener"
-                           class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
-                            Payer avec Wave
-                        </a>
-                    @else
-                        <p class="mt-1 text-stone-600">Le lien Wave sera bientôt disponible. Vous pouvez payer en espèces auprès du Jewrine finance.</p>
-                    @endif
+                    <p class="font-semibold text-emerald-900">2. Payez avec Wave</p>
+                    <a id="bouton-wave" href="{{ $lienParDefaut ?? '#' }}" target="_blank" rel="noopener"
+                       class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90 {{ $lienParDefaut ? '' : 'hidden' }}">
+                        Payer <span id="montant-wave">{{ $fcfa($choixParDefaut * $mensuel) }}</span> avec Wave
+                    </a>
+                    <p id="lien-absent" class="mt-1 text-stone-600 {{ $lienParDefaut ? 'hidden' : '' }}">
+                        Le lien Wave pour ce montant n'est pas encore disponible. Vous pouvez payer en espèces auprès du Jewrine finance.
+                    </p>
                 </div>
 
                 <div>
@@ -133,23 +136,53 @@
                     @enderror
                 </div>
             </form>
+
+            <script>
+                (() => {
+                    const bouton = document.getElementById('bouton-wave');
+                    const montant = document.getElementById('montant-wave');
+                    const absent = document.getElementById('lien-absent');
+
+                    document.querySelectorAll('input[name="nombre_mois"]').forEach((choix) => {
+                        choix.addEventListener('change', () => {
+                            const lien = choix.dataset.lienWave;
+                            montant.textContent = choix.dataset.montant;
+
+                            if (lien) {
+                                bouton.href = lien;
+                                bouton.classList.remove('hidden');
+                                absent.classList.add('hidden');
+                            } else {
+                                bouton.href = '#';
+                                bouton.classList.add('hidden');
+                                absent.classList.remove('hidden');
+                            }
+                        });
+                    });
+                })();
+            </script>
         @endif
     </div>
 
     {{-- Historique --}}
     @if ($historique->isNotEmpty())
         <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
-            <h2 class="font-semibold text-emerald-900">Mes derniers paiements</h2>
+            <div class="flex items-center justify-between">
+                <h2 class="font-semibold text-emerald-900">Mes derniers paiements</h2>
+                <a href="{{ route('recus.index') }}" class="text-xs font-medium text-emerald-800 underline">Tous mes reçus</a>
+            </div>
             <ul class="mt-3 divide-y divide-stone-100 text-sm">
                 @foreach ($historique as $paiement)
-                    <li class="flex items-center justify-between py-2">
+                    <li class="flex items-center justify-between gap-2 py-2">
                         <span>
                             {{ $paiement->declare_le->format('d/m/Y') }} · {{ $paiement->nombre_mois }} mois · {{ $paiement->moyen->getLabel() }}
                         </span>
-                        <span class="font-semibold">{{ $fcfa($paiement->montant) }} · {{ $paiement->statut->getLabel() }}</span>
-                        @if ($paiement->numero_recu)
-                            <a href="{{ route('recus.show', $paiement) }}" target="_blank" class="ml-2 text-xs font-medium text-emerald-800 underline">Reçu</a>
-                        @endif
+                        <span class="text-right">
+                            <span class="font-semibold">{{ $fcfa($paiement->montant) }} · {{ $paiement->statut->getLabel() }}</span>
+                            @if ($paiement->numero_recu)
+                                <a href="{{ route('recus.show', $paiement) }}" target="_blank" class="ml-2 text-xs font-medium text-emerald-800 underline">Reçu</a>
+                            @endif
+                        </span>
                     </li>
                 @endforeach
             </ul>

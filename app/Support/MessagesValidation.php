@@ -23,6 +23,8 @@ final class MessagesValidation
             'mimes' => 'Formats acceptés : JPEG, PNG ou WebP.',
             'photo.max' => 'La photo dépasse 5 Mo. Choisissez une image plus légère.',
             'commissions.max' => 'Une seule commission est possible.',
+            'commissions.required' => 'Choisissez votre commission.',
+            'commissions.min' => 'Choisissez votre commission.',
             'commissions.*.exists' => 'Commission invalide.',
             'commissions.*.distinct' => 'Vous avez choisi deux fois la même commission.',
             'confirmed' => 'Les deux mots de passe ne correspondent pas.',

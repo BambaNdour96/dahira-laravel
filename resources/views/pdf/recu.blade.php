@@ -8,7 +8,7 @@
         .entete table { width: 100%; }
         .logo { width: 52px; height: 52px; border-radius: 26px; background: #fff; }
         .titre { font-size: 15px; font-weight: bold; }
-        .sous-titre { font-size: 9px; color: #f5e0a0; letter-spacing: 2px; }
+        .sous-titre { font-size: 10px; color: #f5e0a0; letter-spacing: 2px; }
         .contenu { padding: 18px; }
         .numero { font-size: 16px; font-weight: bold; color: #1e5223; }
         table.infos { width: 100%; border-collapse: collapse; margin-top: 12px; }
@@ -28,14 +28,14 @@
                 @endif
                 <td>
                     <div class="titre">Daara Nouroud Daareyni Kaolack</div>
-                    <div class="sous-titre">REÇU DE PAIEMENT</div>
+                    <div class="sous-titre">{{ mb_strtoupper($paiement->natureRecu()) }}</div>
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="contenu">
-        <div class="numero">Reçu n° {{ $paiement->numero_recu }}</div>
+        <div class="numero">{{ $paiement->natureRecu() }} n° {{ $paiement->numero_recu }}</div>
         <div>Émis le {{ $paiement->traite_le?->format('d/m/Y à H:i') }}</div>
 
         <table class="infos">
@@ -43,11 +43,8 @@
             <tr><td class="libelle">Matricule</td><td>{{ $paiement->membre->matricule ?? '—' }}</td></tr>
             <tr><td class="libelle">Cellule</td><td>{{ $paiement->membre->cellule->nom }}</td></tr>
             <tr><td class="libelle">Objet</td><td>{{ $paiement->libelleObjet() }}</td></tr>
-            @if ($mois->isNotEmpty())
-                <tr>
-                    <td class="libelle">Mois couverts</td>
-                    <td>{{ $mois->map(fn ($cotisation) => ucfirst($cotisation->mois->translatedFormat('F Y')))->join(', ') }}</td>
-                </tr>
+            @if ($paiement->periode())
+                <tr><td class="libelle">Période couverte</td><td>{{ ucfirst($paiement->periode()) }}</td></tr>
             @endif
             <tr><td class="libelle">Moyen de paiement</td><td>{{ $paiement->moyen->getLabel() }}</td></tr>
             @if ($paiement->reference)

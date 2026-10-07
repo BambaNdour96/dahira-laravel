@@ -154,3 +154,12 @@ it('laisse un membre en attente ou accepté se reconnecter pour suivre sa demand
         ->assertOk()
         ->assertSee($etat === 'accepte' ? 'FCFA' : 'en cours de vérification');
 })->with(['en_attente', 'accepte']);
+
+it('donne au membre le reçu de son inscription', function () {
+    app(PaiementService::class)->enregistrerEspeces($this->membre, $this->tresorier);
+
+    $this->actingAs($this->user)->get('/mon-espace')
+        ->assertOk()
+        ->assertSee("Mon reçu d'inscription", false)
+        ->assertSee('Tous mes reçus');
+});

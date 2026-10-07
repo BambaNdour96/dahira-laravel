@@ -202,6 +202,10 @@
                     </div>
                 </dl>
                 <p class="mt-3 text-xs text-stone-500">Ces informations sont attribuées par le bureau.</p>
+                @if ($recuFraisCarte)
+                    <a href="{{ route('recus.show', $recuFraisCarte) }}" target="_blank" class="mt-2 inline-block text-sm font-medium text-emerald-800 underline">Mon reçu d'inscription</a>
+                @endif
+                <a href="{{ route('recus.index') }}" class="mt-2 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Tous mes reçus</a>
             </div>
 
             {{-- Ma carte et mes cotisations --}}
