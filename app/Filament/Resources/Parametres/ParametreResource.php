@@ -71,6 +71,7 @@ class ParametreResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->where('cle', '!=', 'maintenance'))
             ->columns([
                 TextColumn::make('libelle')->label('Réglage'),
                 TextColumn::make('valeur')->label('Valeur')->limit(50)->placeholder('Non renseigné'),

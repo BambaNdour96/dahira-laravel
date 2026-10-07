@@ -18,5 +18,10 @@ class ParametresSeeder extends Seeder
             ['cle' => 'wave_lien_paiement'],
             ['libelle' => 'Lien de paiement Wave Business (frais de carte)'],
         );
+
+        Parametre::firstOrCreate(
+            ['cle' => 'maintenance'],
+            ['libelle' => 'Mode maintenance', 'valeur' => '0'],
+        );
     }
 }
