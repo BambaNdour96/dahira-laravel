@@ -223,6 +223,7 @@
             <a href="{{ route('espace.profil') }}" class="mt-6 inline-block text-sm font-medium text-emerald-800 underline">Modifier mon profil</a>
             <a href="{{ route('mot-de-passe.edit') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Changer mon mot de passe</a>
                 <a href="{{ route('donnees.export') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Télécharger mes données</a>
+                <a href="{{ route('suppression.create') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-red-700 underline">Supprimer mon compte</a>
         @endif
     @endif
 @endsection

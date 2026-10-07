@@ -15,6 +15,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RelanceController;
+use App\Http\Controllers\SuppressionCompteController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
+    Route::get('/mon-compte/suppression', [SuppressionCompteController::class, 'create'])->name('suppression.create');
+    Route::post('/mon-compte/suppression', [SuppressionCompteController::class, 'store'])->middleware('throttle:connexion')->name('suppression.store');
 
     // Super administrateur : voir la plateforme comme un autre compte (lien signé, 5 minutes).
     Route::get('/en-tant-que/{user}', [EnTantQueController::class, 'demarrer'])

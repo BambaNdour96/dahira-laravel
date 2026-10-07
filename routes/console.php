@@ -13,3 +13,6 @@ Schedule::command('membres:expirer')->dailyAt('03:00');
 
 // Le 5 de chaque mois : rappel par email aux membres en retard de cotisation.
 Schedule::command('cotisations:rappeler')->monthlyOn(5, '09:00');
+
+// Chaque nuit à 3 h : application des durées de conservation des données personnelles.
+Schedule::command('donnees:purger')->dailyAt('03:00');
