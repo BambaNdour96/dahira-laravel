@@ -39,7 +39,7 @@ jobs:
         with:
           php-version: '8.3'
           extensions: mbstring, intl, gd, bcmath, pdo_pgsql, zip
-          coverage: none
+          coverage: pcov
 
       - uses: actions/setup-node@v4
         with:
@@ -64,5 +64,5 @@ jobs:
       - name: Failles connues
         run: composer audit
 
-      - name: Tests (Pest)
-        run: ./vendor/bin/pest
+      - name: Tests (Pest) et couverture minimale de 90 %
+        run: ./vendor/bin/pest --coverage --min=90
