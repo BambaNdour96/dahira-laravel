@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $traite_le
  * @property int|null $traite_par
  * @property string|null $numero_recu
+ * @property-read Membre $membre
  */
 class Paiement extends Model
 {

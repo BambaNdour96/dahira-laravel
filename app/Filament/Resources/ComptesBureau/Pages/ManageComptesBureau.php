@@ -40,7 +40,7 @@ class ManageComptesBureau extends ManageRecords
                         return;
                     }
 
-                    $membre = Membre::query()->findOrFail($data['membre_id']);
+                    $membre = Membre::query()->whereKey($data['membre_id'])->firstOrFail();
 
                     try {
                         app(CompteBureauService::class)->nommer($membre, (string) $data['role'], $data['cellule_id'] ?? null);

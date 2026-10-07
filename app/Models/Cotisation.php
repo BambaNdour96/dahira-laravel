@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $paiement_id
  * @property bool $exoneree
  * @property string|null $motif
+ * @property-read Membre $membre
+ * @property-read Paiement|null $paiement
  */
 class Cotisation extends Model
 {

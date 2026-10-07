@@ -151,7 +151,7 @@ final class CotisationService
         $calendrier = [];
 
         for ($numero = 1; $numero <= 12; $numero++) {
-            $mois = Carbon::create($annee, $numero, 1)->startOfMonth();
+            $mois = Carbon::parse(sprintf('%04d-%02d-01', $annee, $numero))->startOfMonth();
 
             $etat = match (true) {
                 isset($exonerees[$mois->format('Y-m')]) => 'exonere',

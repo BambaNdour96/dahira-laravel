@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $revoquee_le
  * @property int|null $revoquee_par
  * @property string|null $motif_revocation
+ * @property-read Membre $membre
  */
 class Carte extends Model
 {

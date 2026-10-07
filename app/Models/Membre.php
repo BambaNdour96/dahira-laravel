@@ -55,6 +55,7 @@ use Illuminate\Support\Str;
  * @property int|null $valide_par
  * @property Carbon|null $consentement_le
  * @property string|null $consentement_version
+ * @property-read Cellule $cellule
  */
 class Membre extends Model
 {

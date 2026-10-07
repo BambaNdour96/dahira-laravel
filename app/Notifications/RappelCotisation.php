@@ -10,7 +10,7 @@ class RappelCotisation extends Notification
 {
     use Queueable;
 
-    /** @param  list<string>  $mois */
+    /** @param  array<int, string>  $mois */
     public function __construct(
         public string $prenom,
         public array $mois,
