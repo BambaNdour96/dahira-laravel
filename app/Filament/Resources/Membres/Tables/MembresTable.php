@@ -7,6 +7,7 @@ use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
 use App\Enums\StatutMembre;
 use App\Filament\Actions\EnTantQueAction;
+use App\Filament\Actions\MotDePasseAction;
 use App\Filament\Resources\Membres\Actions\ChangerStatutAction;
 use App\Filament\Resources\Paiements\PaiementActions;
 use Filament\Actions\ActionGroup;
@@ -46,6 +47,7 @@ class MembresTable
             ->recordActions([
                 EditAction::make(),
                 EnTantQueAction::pourMembre(),
+                MotDePasseAction::pourMembre(),
                 PaiementActions::especes(),
                 PaiementActions::cotisationEspeces(),
                 PaiementActions::exoneration(),

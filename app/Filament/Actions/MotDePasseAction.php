@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Filament\Actions;
+
+use App\Models\Membre;
+use App\Services\CompteBureauService;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Gate;
+
+/**
+ * Le Jewrine de la cellule ou un administrateur donne un mot de passe provisoire à un membre.
+ */
+final class MotDePasseAction
+{
+    public static function pourMembre(): Action
+    {
+        return Action::make('nouveauMotDePasse')
+            ->label('Nouveau mot de passe')
+            ->icon('heroicon-o-key')
+            ->color('gray')
+            ->visible(fn (Membre $record): bool => $record->user !== null
+                && ! $record->user->hasRole('super_administrateur')
+                && Gate::allows('update', $record))
+            ->requiresConfirmation()
+            ->modalDescription('Un mot de passe provisoire sera généré. Le membre devra en choisir un nouveau à sa prochaine connexion.')
+            ->action(function (Membre $record): void {
+                $utilisateur = $record->user;
+
+                if ($utilisateur === null || ! Gate::allows('update', $record)) {
+                    return;
+                }
+
+                $motDePasse = app(CompteBureauService::class)->reinitialiserMotDePasse($utilisateur);
+
+                Notification::make()
+                    ->title('Mot de passe provisoire de '.$record->prenom.' '.$record->nom)
+                    ->body('Mot de passe provisoire : '.$motDePasse.' — Transmettez-le au membre. Il ne sera plus affiché.')
+                    ->success()
+                    ->persistent()
+                    ->send();
+            });
+    }
+}

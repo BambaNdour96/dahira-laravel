@@ -6,6 +6,8 @@ use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\MotDePasseController;
+use App\Http\Controllers\MotDePasseOublieController;
 use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfilController;
@@ -36,7 +38,15 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:connexion')
         ->name('login.store');
 
-    Route::view('/mot-de-passe-oublie', 'public.mot-de-passe-oublie')->name('password.request');
+    // Mot de passe oublié
+    Route::get('/mot-de-passe-oublie', [MotDePasseOublieController::class, 'create'])->name('password.request');
+    Route::post('/mot-de-passe-oublie', [MotDePasseOublieController::class, 'store'])
+        ->middleware('throttle:connexion')
+        ->name('password.email');
+    Route::get('/reinitialiser-mot-de-passe/{token}', [MotDePasseOublieController::class, 'edit'])->name('password.reset');
+    Route::post('/reinitialiser-mot-de-passe', [MotDePasseOublieController::class, 'update'])
+        ->middleware('throttle:connexion')
+        ->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -51,6 +61,11 @@ Route::middleware('auth')->group(function () {
         ->name('espace.paiement');
     Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
+
+    Route::get('/mon-compte/mot-de-passe', [MotDePasseController::class, 'edit'])->name('mot-de-passe.edit');
+    Route::put('/mon-compte/mot-de-passe', [MotDePasseController::class, 'update'])
+        ->middleware('throttle:connexion')
+        ->name('mot-de-passe.update');
 
     Route::get('/mes-cotisations', [CotisationController::class, 'show'])->name('cotisations');
     Route::post('/mes-cotisations', [CotisationController::class, 'declarer'])

@@ -106,7 +106,7 @@ final class CompteBureauService
     public function reinitialiserMotDePasse(User $user): string
     {
         $motDePasse = Str::password(10, symbols: false);
-        $user->update(['password' => $motDePasse]);
+        $user->forceFill(['password' => $motDePasse, 'doit_changer_mot_de_passe' => true])->save();
 
         JournalActivite::enregistrer($user, 'modifie', ['apres' => ['mot_de_passe' => 'réinitialisé']]);
 
