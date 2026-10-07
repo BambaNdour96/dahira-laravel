@@ -17,6 +17,8 @@ class ConnexionResource extends Resource
 {
     protected static ?string $model = Connexion::class;
 
+    protected static bool $hasTitleCaseModelLabel = false;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-finger-print';
 
     protected static string|UnitEnum|null $navigationGroup = 'Paramètres';

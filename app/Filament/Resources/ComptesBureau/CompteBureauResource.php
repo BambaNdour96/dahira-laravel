@@ -29,6 +29,8 @@ class CompteBureauResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static bool $hasTitleCaseModelLabel = false;
+
     protected static ?string $slug = 'comptes-bureau';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-key';
