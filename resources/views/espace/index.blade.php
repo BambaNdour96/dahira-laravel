@@ -34,6 +34,14 @@
                 <span class="mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-semibold {{ $classes }}">{{ $membre->statut->getLabel() }}</span>
             </div>
         </div>
+        {{-- Cotisations en retard --}}
+        @if ($estValide && $retardCotisation > 0)
+            <a href="{{ route('cotisations') }}" class="mt-6 block rounded-xl bg-red-50 p-4 ring-1 ring-red-200 hover:bg-red-100">
+                <p class="font-semibold text-red-900">Cotisation en retard de {{ $retardCotisation }} mois</p>
+                <p class="mt-1 text-sm text-red-800">Réglez vos mois en attente avec Wave : appuyez ici.</p>
+            </a>
+        @endif
+
 
         {{-- Compléter mon profil : seulement pour les membres validés --}}
         @if ($estValide && $membre->completude() < 100)

@@ -65,23 +65,35 @@ final class CotisationService
     /** @return list<Carbon> Mois passés restés impayés. */
     public function moisEnRetard(Membre $membre): array
     {
-        $debut = $this->debut($membre);
+        return $this->calculerRetard($membre, $this->moisRegles($membre));
+    }
 
-        if ($debut === null || $membre->statut !== StatutMembre::Valide) {
-            return [];
+    /**
+     * Nombre de mois de retard de chaque membre, calculé en une seule requête.
+     *
+     * @param  iterable<Membre>  $membres
+     * @return array<int, int>
+     */
+    public function retards(iterable $membres): array
+    {
+        $liste = collect($membres);
+
+        $reglesParMembre = Cotisation::query()
+            ->whereIn('membre_id', $liste->pluck('id'))
+            ->get(['membre_id', 'mois'])
+            ->groupBy('membre_id');
+
+        $resultat = [];
+
+        foreach ($liste as $membre) {
+            $regles = collect($reglesParMembre->get($membre->id, []))
+                ->mapWithKeys(fn (Cotisation $cotisation): array => [$cotisation->mois->format('Y-m') => true])
+                ->all();
+
+            $resultat[$membre->id] = count($this->calculerRetard($membre, $regles));
         }
 
-        $regles = $this->moisRegles($membre);
-        $courant = now()->startOfMonth();
-        $retard = [];
-
-        for ($mois = $debut->copy(); $mois->lt($courant); $mois->addMonth()) {
-            if (! isset($regles[$mois->format('Y-m')])) {
-                $retard[] = $mois->copy();
-            }
-        }
-
-        return $retard;
+        return $resultat;
     }
 
     /** @return list<Carbon> Les prochains mois à régler, les plus anciens d'abord. */
@@ -213,6 +225,30 @@ final class CotisationService
 
             return $paiement;
         });
+    }
+
+    /**
+     * @param  array<string, bool>  $regles
+     * @return list<Carbon>
+     */
+    private function calculerRetard(Membre $membre, array $regles): array
+    {
+        $debut = $this->debut($membre);
+
+        if ($debut === null || $membre->statut !== StatutMembre::Valide) {
+            return [];
+        }
+
+        $courant = now()->startOfMonth();
+        $retard = [];
+
+        for ($mois = $debut->copy(); $mois->lt($courant); $mois->addMonth()) {
+            if (! isset($regles[$mois->format('Y-m')])) {
+                $retard[] = $mois->copy();
+            }
+        }
+
+        return $retard;
     }
 
     private function verifierPeutCotiser(Membre $membre, int $nombreMois): void

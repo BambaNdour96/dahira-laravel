@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Models\Parametre;
 use App\Models\User;
+use App\Services\CotisationService;
 use App\Services\PaiementService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EspaceController extends Controller
 {
-    public function show(Request $request, PaiementService $paiements): View
+    public function show(Request $request, PaiementService $paiements, CotisationService $cotisations): View
     {
         $user = $request->user();
         $membre = $user instanceof User
@@ -25,9 +27,13 @@ class EspaceController extends Controller
             'montantFraisCarte' => $paiements->montantFraisCarte(),
             'paiementEnCours' => $membre ? $paiements->enCours($membre) : null,
             'dernierRefus' => $membre?->paiements()
+                ->where('objet', 'frais_carte')
                 ->where('statut', StatutPaiement::Refuse->value)
                 ->latest('traite_le')
                 ->first(),
+            'retardCotisation' => $membre !== null && $membre->statut === StatutMembre::Valide
+                ? count($cotisations->moisEnRetard($membre))
+                : 0,
         ]);
     }
 }
