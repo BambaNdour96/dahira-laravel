@@ -1,0 +1,30 @@
+name: Sécurité des dépendances
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Chaque lundi à 6 h : une faille peut être découverte même sans changement de code.
+    - cron: '0 6 * * 1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Failles connues dans les bibliothèques PHP
+        run: composer audit --locked
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Failles connues dans les bibliothèques JavaScript
+        run: npm audit --audit-level=high
