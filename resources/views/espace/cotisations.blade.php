@@ -7,6 +7,7 @@
         $fcfa = fn (int $montant): string => number_format($montant, 0, ',', ' ').' FCFA';
         $couleurs = [
             'regle' => 'bg-emerald-700 text-white',
+            'exonere' => 'bg-sky-600 text-white',
             'retard' => 'bg-red-600 text-white',
             'courant' => 'bg-or-500 text-emerald-950',
             'avenir' => 'bg-stone-100 text-stone-500',
@@ -51,6 +52,7 @@
         </div>
         <div class="mt-3 flex flex-wrap gap-3 text-xs text-stone-600">
             <span><span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-700"></span> Réglé</span>
+            <span><span class="inline-block h-2.5 w-2.5 rounded-full bg-sky-600"></span> Dispensé</span>
             <span><span class="inline-block h-2.5 w-2.5 rounded-full bg-red-600"></span> En retard</span>
             <span><span class="inline-block h-2.5 w-2.5 rounded-full bg-or-500"></span> Mois en cours</span>
             <span><span class="inline-block h-2.5 w-2.5 rounded-full bg-stone-200"></span> À venir</span>
@@ -139,6 +141,9 @@
                             {{ $paiement->declare_le->format('d/m/Y') }} · {{ $paiement->nombre_mois }} mois · {{ $paiement->moyen->getLabel() }}
                         </span>
                         <span class="font-semibold">{{ $fcfa($paiement->montant) }} · {{ $paiement->statut->getLabel() }}</span>
+                        @if ($paiement->numero_recu)
+                            <a href="{{ route('recus.show', $paiement) }}" target="_blank" class="ml-2 text-xs font-medium text-emerald-800 underline">Reçu</a>
+                        @endif
                     </li>
                 @endforeach
             </ul>

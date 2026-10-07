@@ -9,6 +9,7 @@ use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:inscription')
         ->name('cotisations.declarer');
     Route::get('/relances/{membre}/whatsapp', [RelanceController::class, 'whatsapp'])->name('relances.whatsapp');
+    Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
 
     // Super administrateur : voir la plateforme comme un autre compte (lien signé, 5 minutes).
     Route::get('/en-tant-que/{user}', [EnTantQueController::class, 'demarrer'])

@@ -39,6 +39,7 @@ class PaiementResource extends Resource
         return $table
             ->modifyQueryUsing(fn ($query) => $query->with(['membre.cellule', 'traitePar']))
             ->columns([
+                TextColumn::make('numero_recu')->label('Reçu')->fontFamily('mono')->placeholder('—')->searchable(),
                 TextColumn::make('declare_le')->label('Déclaré le')->dateTime('d/m/Y H:i')->sortable(),
                 TextColumn::make('membre.prenom')->label('Prénom')->searchable(),
                 TextColumn::make('membre.nom')->label('Nom')->searchable(),
@@ -65,6 +66,7 @@ class PaiementResource extends Resource
             ->recordActions([
                 PaiementActions::confirmer(),
                 PaiementActions::refuser(),
+                PaiementActions::recu(),
             ])
             ->defaultSort('declare_le', 'desc');
     }

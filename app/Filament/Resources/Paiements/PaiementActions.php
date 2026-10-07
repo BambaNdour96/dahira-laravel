@@ -152,6 +152,62 @@ final class PaiementActions
             });
     }
 
+    /** Télécharger le reçu d'un paiement confirmé. */
+    public static function recu(): Action
+    {
+        return Action::make('recu')
+            ->label('Reçu')
+            ->icon('heroicon-o-document-text')
+            ->color('gray')
+            ->visible(fn (Paiement $record): bool => $record->numero_recu !== null)
+            ->url(fn (Paiement $record): string => route('recus.show', $record))
+            ->openUrlInNewTab();
+    }
+
+    /** Dispense de cotisation, réservée au super administrateur. */
+    public static function exoneration(): Action
+    {
+        return Action::make('exonerer')
+            ->label('Dispenser de cotisation')
+            ->icon('heroicon-o-gift')
+            ->color('info')
+            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide && self::estSuperAdmin())
+            ->schema([
+                Select::make('nombre_mois')
+                    ->label('Nombre de mois dispensés')
+                    ->options(collect(range(1, 12))->mapWithKeys(fn (int $n): array => [$n => $n.' mois'])->all())
+                    ->required()
+                    ->helperText('Les mois de retard sont dispensés en premier.'),
+                Textarea::make('motif')
+                    ->label('Motif')
+                    ->placeholder('Exemple : maladie, étudiant sans revenu')
+                    ->required()
+                    ->maxLength(255),
+            ])
+            ->action(function (Membre $record, array $data): void {
+                if (! self::estSuperAdmin()) {
+                    return;
+                }
+
+                try {
+                    app(CotisationService::class)->exonerer($record, (int) $data['nombre_mois'], (string) $data['motif']);
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Dispense enregistrée.')->success()->send();
+            });
+    }
+
+    private static function estSuperAdmin(): bool
+    {
+        $utilisateur = Auth::user();
+
+        return $utilisateur instanceof User && $utilisateur->hasRole('super_administrateur');
+    }
+
     private static function fcfa(int $montant): string
     {
         return number_format($montant, 0, ',', ' ').' FCFA';

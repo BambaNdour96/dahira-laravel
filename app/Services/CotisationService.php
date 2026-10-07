@@ -139,6 +139,12 @@ final class CotisationService
     public function calendrier(Membre $membre, int $annee): array
     {
         $debut = $this->debut($membre);
+        $exonerees = Cotisation::query()
+            ->where('membre_id', $membre->id)
+            ->where('exoneree', true)
+            ->pluck('mois')
+            ->mapWithKeys(fn ($mois): array => [Carbon::parse((string) $mois)->format('Y-m') => true])
+            ->all();
         $regles = $this->moisRegles($membre);
         $courant = now()->startOfMonth();
         $calendrier = [];
@@ -147,6 +153,7 @@ final class CotisationService
             $mois = Carbon::create($annee, $numero, 1)->startOfMonth();
 
             $etat = match (true) {
+                isset($exonerees[$mois->format('Y-m')]) => 'exonere',
                 isset($regles[$mois->format('Y-m')]) => 'regle',
                 $debut === null || $mois->lt($debut) => 'avant',
                 $mois->lt($courant) => 'retard',
@@ -158,6 +165,34 @@ final class CotisationService
         }
 
         return $calendrier;
+    }
+
+    /** Le super administrateur dispense un membre de plusieurs mois, avec un motif. */
+    public function exonerer(Membre $membre, int $nombreMois, string $motif): void
+    {
+        if ($membre->statut !== StatutMembre::Valide) {
+            throw new DomainException('Seuls les membres validés peuvent être dispensés.');
+        }
+
+        if ($nombreMois < 1 || $nombreMois > 12) {
+            throw new DomainException('On peut dispenser de 1 à 12 mois.');
+        }
+
+        if (blank($motif)) {
+            throw new DomainException('Le motif de la dispense est obligatoire.');
+        }
+
+        DB::transaction(function () use ($membre, $nombreMois, $motif): void {
+            foreach ($this->prochainsMois($membre, $nombreMois) as $mois) {
+                Cotisation::query()->create([
+                    'membre_id' => $membre->id,
+                    'mois' => $mois->toDateString(),
+                    'montant' => 0,
+                    'exoneree' => true,
+                    'motif' => $motif,
+                ]);
+            }
+        });
     }
 
     /** Le membre déclare un paiement Wave pour plusieurs mois. */
