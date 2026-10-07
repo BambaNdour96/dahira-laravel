@@ -20,10 +20,19 @@
         </div>
 
         @if ($membre)
-            <div class="mt-6 rounded-2xl bg-emerald-700 p-5 text-center text-white shadow-lg">
-                <p class="text-4xl">✓</p>
-                <p class="mt-1 text-2xl font-bold">Membre actif</p>
-            </div>
+            @if ($retard > 0)
+                <div class="mt-6 rounded-2xl bg-amber-600 p-5 text-center text-white shadow-lg">
+                    <p class="text-4xl">!</p>
+                    <p class="mt-1 text-2xl font-bold">Membre actif</p>
+                    <p class="mt-1 font-semibold">Cotisation en retard : {{ $retard }} mois</p>
+                </div>
+            @else
+                <div class="mt-6 rounded-2xl bg-emerald-700 p-5 text-center text-white shadow-lg">
+                    <p class="text-4xl">✓</p>
+                    <p class="mt-1 text-2xl font-bold">Membre actif</p>
+                    <p class="mt-1 font-semibold">Cotisation à jour</p>
+                </div>
+            @endif
 
             <div class="mt-4 flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 @if ($photo)

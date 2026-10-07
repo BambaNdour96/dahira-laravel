@@ -196,10 +196,10 @@
                     <h2 class="font-semibold">Ma carte de membre</h2>
                     <p class="mt-2 text-emerald-100">Afficher ma carte avec son QR code.</p>
                 </a>
-                <div class="rounded-xl border border-dashed border-stone-300 p-5 text-sm">
+                <a href="{{ route('cotisations') }}" class="block rounded-xl bg-white p-5 text-sm shadow-sm ring-1 ring-stone-200 hover:ring-emerald-700">
                     <h2 class="font-semibold text-emerald-900">Mes cotisations</h2>
-                    <p class="mt-2 text-stone-500">Bientôt : le suivi de vos cotisations.</p>
-                </div>
+                    <p class="mt-2 text-stone-500">Voir mes mois réglés et payer avec Wave.</p>
+                </a>
             </div>
 
             <a href="{{ route('espace.profil') }}" class="mt-6 inline-block text-sm font-medium text-emerald-800 underline">Modifier mon profil</a>

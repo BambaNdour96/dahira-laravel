@@ -7,9 +7,11 @@ use App\Enums\StatutPaiement;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
+use App\Services\CotisationService;
 use App\Services\PaiementService;
 use DomainException;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
@@ -27,8 +29,10 @@ final class PaiementActions
                 && Gate::allows('update', $record))
             ->requiresConfirmation()
             ->modalDescription(fn (Paiement $record): string => 'Vérifiez d\'abord dans Wave Business le paiement de '
-                .number_format($record->montant, 0, ',', ' ').' FCFA, référence '.$record->reference
-                .'. Le membre sera validé et recevra sa carte.')
+                .self::fcfa($record->montant).', référence '.$record->reference.'. '
+                .($record->objet === 'cotisation'
+                    ? 'Les '.$record->nombre_mois.' mois seront marqués réglés.'
+                    : 'Le membre sera validé et recevra sa carte.'))
             ->action(function (Paiement $record): void {
                 if (! Gate::allows('update', $record)) {
                     return;
@@ -42,7 +46,10 @@ final class PaiementActions
                     return;
                 }
 
-                Notification::make()->title('Paiement confirmé : le membre a reçu sa carte.')->success()->send();
+                Notification::make()
+                    ->title($record->objet === 'cotisation' ? 'Cotisation confirmée.' : 'Paiement confirmé : le membre a reçu sa carte.')
+                    ->success()
+                    ->send();
             });
     }
 
@@ -78,18 +85,19 @@ final class PaiementActions
             });
     }
 
+    /** Frais de carte réglés en espèces. */
     public static function especes(): Action
     {
         return Action::make('paiementEspeces')
-            ->label('Paiement en espèces')
+            ->label('Frais de carte en espèces')
             ->icon('heroicon-o-banknotes')
             ->color('success')
             ->visible(fn (Membre $record): bool => in_array($record->statut, [StatutMembre::Accepte, StatutMembre::Expire], true)
                 && Gate::allows('create', Paiement::class))
             ->requiresConfirmation()
             ->modalDescription(fn (): string => 'Confirmez avoir reçu '
-                .number_format(app(PaiementService::class)->montantFraisCarte(), 0, ',', ' ')
-                .' FCFA en espèces. Le membre sera validé et recevra sa carte.')
+                .self::fcfa(app(PaiementService::class)->montantFraisCarte())
+                .' en espèces. Le membre sera validé et recevra sa carte.')
             ->action(function (Membre $record): void {
                 if (! Gate::allows('create', Paiement::class)) {
                     return;
@@ -105,6 +113,48 @@ final class PaiementActions
 
                 Notification::make()->title('Paiement enregistré : le membre a reçu sa carte.')->success()->send();
             });
+    }
+
+    /** Cotisations réglées en espèces. */
+    public static function cotisationEspeces(): Action
+    {
+        return Action::make('cotisationEspeces')
+            ->label('Cotisation en espèces')
+            ->icon('heroicon-o-calendar-days')
+            ->color('success')
+            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide
+                && Gate::allows('create', Paiement::class))
+            ->schema([
+                Select::make('nombre_mois')
+                    ->label('Nombre de mois réglés')
+                    ->options(fn (): array => collect(CotisationService::CHOIX_MOIS)
+                        ->mapWithKeys(fn (int $nombre): array => [
+                            $nombre => $nombre.' mois — '.self::fcfa($nombre * app(CotisationService::class)->montantMensuel()),
+                        ])
+                        ->all())
+                    ->required()
+                    ->helperText('Le paiement couvre d\'abord les mois de retard.'),
+            ])
+            ->action(function (Membre $record, array $data): void {
+                if (! Gate::allows('create', Paiement::class)) {
+                    return;
+                }
+
+                try {
+                    app(CotisationService::class)->enregistrerEspeces($record, (int) $data['nombre_mois'], self::auteur());
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Cotisation enregistrée.')->success()->send();
+            });
+    }
+
+    private static function fcfa(int $montant): string
+    {
+        return number_format($montant, 0, ',', ' ').' FCFA';
     }
 
     private static function auteur(): ?User

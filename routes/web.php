@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConnexionController;
+use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
@@ -48,6 +49,11 @@ Route::middleware('auth')->group(function () {
         ->name('espace.paiement');
     Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
+
+    Route::get('/mes-cotisations', [CotisationController::class, 'show'])->name('cotisations');
+    Route::post('/mes-cotisations', [CotisationController::class, 'declarer'])
+        ->middleware('throttle:inscription')
+        ->name('cotisations.declarer');
 
     // Super administrateur : voir la plateforme comme un autre compte (lien signé, 5 minutes).
     Route::get('/en-tant-que/{user}', [EnTantQueController::class, 'demarrer'])

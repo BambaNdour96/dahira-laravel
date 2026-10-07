@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\CarteService;
+use App\Services\CotisationService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
@@ -13,13 +14,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class VerificationController extends Controller
 {
-    public function show(string $jeton, CarteService $cartes): View
+    public function show(string $jeton, CarteService $cartes, CotisationService $cotisations): View
     {
         $carte = $cartes->verifier($jeton);
         $membre = $carte?->membre;
 
         return view('public.verification', [
             'membre' => $membre,
+            'retard' => $membre !== null ? count($cotisations->moisEnRetard($membre)) : 0,
             'photo' => $membre?->photo_path
                 ? URL::temporarySignedRoute('verification.photo', now()->addMinutes(5), ['jeton' => $jeton])
                 : null,

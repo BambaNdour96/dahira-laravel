@@ -47,6 +47,7 @@ class MembresTable
                 EditAction::make(),
                 EnTantQueAction::pourMembre(),
                 PaiementActions::especes(),
+                PaiementActions::cotisationEspeces(),
                 ActionGroup::make(ChangerStatutAction::toutes())
                     ->label('Statut')
                     ->icon('heroicon-o-arrows-right-left'),

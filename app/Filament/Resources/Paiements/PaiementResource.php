@@ -43,6 +43,11 @@ class PaiementResource extends Resource
                 TextColumn::make('membre.prenom')->label('Prénom')->searchable(),
                 TextColumn::make('membre.nom')->label('Nom')->searchable(),
                 TextColumn::make('membre.cellule.nom')->label('Cellule'),
+                TextColumn::make('objet')
+                    ->label('Objet')
+                    ->state(fn (Paiement $record): string => $record->libelleObjet())
+                    ->badge()
+                    ->color(fn (Paiement $record): string => $record->objet === 'cotisation' ? 'info' : 'primary'),
                 TextColumn::make('montant')
                     ->label('Montant')
                     ->formatStateUsing(fn ($state): string => number_format((int) $state, 0, ',', ' ').' FCFA'),
@@ -54,6 +59,7 @@ class PaiementResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('statut')->label('Statut')->options(StatutPaiement::class)->default(StatutPaiement::Declare->value),
+                SelectFilter::make('objet')->label('Objet')->options(['frais_carte' => 'Frais de carte', 'cotisation' => 'Cotisation']),
                 SelectFilter::make('moyen')->label('Moyen')->options(MoyenPaiement::class),
             ])
             ->recordActions([

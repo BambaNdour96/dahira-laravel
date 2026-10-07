@@ -14,12 +14,15 @@ use DomainException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Frais de carte : le membre déclare son paiement Wave, le Jewrine finance le confirme.
+ * Le membre déclare son paiement Wave, le Jewrine finance le confirme.
  * Seul le Jewrine finance (ou plus tard l'API Wave) peut marquer un paiement comme reçu.
  */
 final class PaiementService
 {
-    public function __construct(private readonly StatutMembreService $statuts) {}
+    public function __construct(
+        private readonly StatutMembreService $statuts,
+        private readonly CotisationService $cotisations,
+    ) {}
 
     /** Montant fixé par le bureau dans Paramètres → Tarifs. */
     public function montantFraisCarte(): int
@@ -33,9 +36,11 @@ final class PaiementService
         return is_numeric($montant) ? (int) $montant : 1000;
     }
 
+    /** Déclaration de frais de carte en cours de vérification. */
     public function enCours(Membre $membre): ?Paiement
     {
         return $membre->paiements()
+            ->where('objet', 'frais_carte')
             ->where('statut', StatutPaiement::Declare->value)
             ->latest('declare_le')
             ->first();
@@ -73,6 +78,12 @@ final class PaiementService
                 'traite_le' => now(),
                 'traite_par' => $tresorier?->id,
             ]);
+
+            if ($paiement->objet === 'cotisation') {
+                $this->cotisations->affecter($paiement);
+
+                return;
+            }
 
             $membre = $paiement->membre;
 

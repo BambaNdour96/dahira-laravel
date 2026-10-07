@@ -3,13 +3,11 @@
 namespace Database\Seeders;
 
 use App\Enums\StatutMembre;
-use App\Enums\TypeTarif;
 use App\Models\Cellule;
 use App\Models\Commission;
 use App\Models\Exercice;
 use App\Models\Membre;
 use App\Models\Poste;
-use App\Models\Tarif;
 use App\Models\User;
 use App\Services\CompteBureauService;
 use App\Services\StatutMembreService;
@@ -33,11 +31,6 @@ class DemoSeeder extends Seeder
         $exercice = Exercice::firstOrCreate(
             ['libelle' => (string) $annee],
             ['date_debut' => "{$annee}-01-01", 'date_fin' => "{$annee}-12-31"],
-        );
-
-        Tarif::firstOrCreate(
-            ['type' => TypeTarif::Cotisation, 'exercice_id' => $exercice->id],
-            ['libelle' => "Cotisation {$annee}", 'montant' => 12000],
         );
 
         if (Membre::query()->exists()) {

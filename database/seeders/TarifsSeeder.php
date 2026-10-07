@@ -17,5 +17,10 @@ class TarifsSeeder extends Seeder
             ['type' => TypeTarif::Adhesion, 'exercice_id' => null],
             ['libelle' => 'Frais de carte de membre', 'montant' => 1000],
         );
+
+        Tarif::firstOrCreate(
+            ['type' => TypeTarif::Cotisation, 'exercice_id' => null],
+            ['libelle' => 'Cotisation mensuelle', 'montant' => 1000],
+        );
     }
 }
