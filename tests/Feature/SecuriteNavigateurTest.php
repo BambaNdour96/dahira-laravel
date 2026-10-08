@@ -22,7 +22,7 @@ it('envoie les en-têtes de sécurité sur le site des membres', function () {
 
     expect($csp)->toContain("frame-ancestors 'none'")
         ->and($csp)->toContain("object-src 'none'")
-        ->and($csp)->toMatch("/script-src 'self' 'nonce-[A-Za-z0-9]+'/");
+        ->and($csp)->toMatch("/script-src 'nonce-[A-Za-z0-9]+' 'strict-dynamic'/");
 });
 
 it('signe les scripts de la page avec le nonce de la politique', function () {
@@ -47,4 +47,8 @@ it('protège aussi le panneau du bureau contre l\'intégration dans une autre pa
         ->assertOk()
         ->assertHeader('X-Frame-Options', 'DENY')
         ->assertHeader('X-Content-Type-Options', 'nosniff');
+});
+
+it('décrit la plateforme pour les moteurs de recherche', function () {
+    $this->get('/')->assertSee('<meta name="description" content="Plateforme officielle des membres', false);
 });

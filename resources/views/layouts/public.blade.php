@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="@yield('description', 'Plateforme officielle des membres de la Daara Nouroud Daareyni Kaolack : inscription, carte de membre, cotisations et vie de la Daara.')">
     <meta name="theme-color" content="#1e5223">
     <title>@yield('titre', 'Accueil') – Daara Nouroud Daareyni Kaolack</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ndk.png') }}">

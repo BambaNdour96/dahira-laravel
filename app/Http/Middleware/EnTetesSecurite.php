@@ -50,7 +50,7 @@ class EnTetesSecurite
 
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}'{$vite}",
+            "script-src 'nonce-{$nonce}' 'strict-dynamic' 'unsafe-inline' https:{$vite}",
             "style-src 'self' 'unsafe-inline'{$vite}",
             "img-src 'self' data: blob:",
             "font-src 'self' data:",
