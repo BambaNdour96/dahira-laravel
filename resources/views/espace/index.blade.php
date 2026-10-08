@@ -13,6 +13,7 @@
     </a>
 
     @include('espace.partials.annonces-recentes')
+    @include('espace.partials.evenements-a-venir')
 
     @if (! $membre)
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">

@@ -6,6 +6,8 @@ use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
+use App\Http\Controllers\EvenementController;
+use App\Http\Controllers\ExportPresencesController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\MesDonneesController;
 use App\Http\Controllers\MesNotificationsController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
 use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RelanceController;
@@ -83,6 +86,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
     Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
     Route::get('/annonces', [AnnonceController::class, 'index'])->name('annonces.index');
+    Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
+    Route::post('/v/{jeton}/presence/{evenement}', [PresenceController::class, 'store'])->name('presences.store');
+    Route::get('/exports/evenements/{evenement}/presences', ExportPresencesController::class)->name('evenements.presences.export');
     Route::get('/mon-compte/suppression', [SuppressionCompteController::class, 'create'])->name('suppression.create');
     Route::post('/mon-compte/suppression', [SuppressionCompteController::class, 'store'])->middleware('throttle:connexion')->name('suppression.store');
 

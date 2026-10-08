@@ -56,6 +56,7 @@
         @endif
 
         <p class="mt-6 text-center text-xs text-stone-500">Vérifié le {{ now()->format('d/m/Y à H:i') }}</p>
-    </main>
+        @include('public.partials.presence')
+</main>
 </body>
 </html>
