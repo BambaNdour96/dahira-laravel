@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Une activité de la Daara (Magal, ziarra, conférence, réunion), avec la présence des membres.
@@ -21,7 +20,6 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon $debut
  * @property Carbon|null $fin
  * @property int|null $cellule_id
- * @property string|null $affiche_path
  * @property int|null $auteur_id
  * @property-read Cellule|null $cellule
  */
@@ -32,7 +30,7 @@ class Evenement extends Model
     /** Le contrôle des présences ouvre 3 heures avant le début et ferme 3 heures après la fin. */
     public const MARGE_HEURES = 3;
 
-    protected $fillable = ['titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'affiche_path', 'auteur_id'];
+    protected $fillable = ['titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'auteur_id'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -48,12 +46,6 @@ class Evenement extends Model
         static::creating(function (Evenement $evenement): void {
             $identifiant = Auth::id();
             $evenement->auteur_id ??= is_numeric($identifiant) ? (int) $identifiant : null;
-        });
-
-        static::deleted(function (Evenement $evenement): void {
-            if ($evenement->affiche_path !== null) {
-                Storage::disk('public')->delete($evenement->affiche_path);
-            }
         });
     }
 
@@ -79,11 +71,6 @@ class Evenement extends Model
     public function libelleCible(): string
     {
         return $this->cellule !== null ? 'Cellule de '.$this->cellule->nom : 'Toute la Daara';
-    }
-
-    public function urlAffiche(): ?string
-    {
-        return $this->affiche_path !== null ? '/storage/'.$this->affiche_path : null;
     }
 
     /** Nombre de membres validés concernés, pour calculer le taux de participation. */

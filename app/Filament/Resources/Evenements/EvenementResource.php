@@ -12,7 +12,6 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -55,13 +54,6 @@ class EvenementResource extends Resource
                 ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
                 ->placeholder('Toute la Daara'),
             Textarea::make('description')->label('Description')->rows(4)->maxLength(5000),
-            FileUpload::make('affiche_path')
-                ->label('Affiche')
-                ->image()
-                ->disk('public')
-                ->directory('affiches')
-                ->visibility('public')
-                ->maxSize(5120),
             Select::make('controleurs')
                 ->label('Contrôleurs à l\'entrée')
                 ->relationship('controleurs', 'name', fn ($query) => $query->whereHas('membre', fn ($membre) => $membre->where('statut', StatutMembre::Valide->value)))
