@@ -41,7 +41,7 @@ jobs:
           extensions: mbstring, intl, gd, bcmath, pdo_pgsql, zip
           coverage: pcov
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
