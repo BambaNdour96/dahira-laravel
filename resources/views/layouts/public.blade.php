@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('description', 'Plateforme officielle des membres de la Daara Nouroud Daareyni Kaolack : inscription, carte de membre, cotisations et vie de la Daara.')">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e5223">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
     <meta name="theme-color" content="#1e5223">
     <title>@yield('titre', 'Accueil') – Daara Nouroud Daareyni Kaolack</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ndk.png') }}">
@@ -40,6 +43,10 @@
     </header>
 
     <main class="mx-auto w-full max-w-xl flex-1 px-4 py-8">
+        <div id="installer-app" hidden class="mb-6 flex items-center justify-between gap-3 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+            <p class="text-sm text-emerald-900">Installez l'application de la Daara sur votre téléphone.</p>
+            <button type="button" id="bouton-installer" class="shrink-0 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Installer</button>
+        </div>
         @if (session('succes'))
             <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
                 {{ session('succes') }}
@@ -55,5 +62,27 @@
             <a href="{{ route('confidentialite') }}" class="underline hover:text-emerald-800">Données personnelles</a>
         </div>
     </footer>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+        }
+
+        let invitation = null;
+        const bloc = document.getElementById('installer-app');
+
+        window.addEventListener('beforeinstallprompt', (evenement) => {
+            evenement.preventDefault();
+            invitation = evenement;
+            bloc?.removeAttribute('hidden');
+        });
+
+        document.getElementById('bouton-installer')?.addEventListener('click', async () => {
+            if (!invitation) return;
+            invitation.prompt();
+            await invitation.userChoice;
+            invitation = null;
+            bloc?.setAttribute('hidden', '');
+        });
+    </script>
 </body>
 </html>

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.accueil')->name('accueil');
 Route::view('/confidentialite', 'public.confidentialite')->name('confidentialite');
+Route::view('/hors-ligne', 'public.hors-ligne')->name('hors-ligne');
 
 // Page ouverte par le QR code de la carte.
 Route::get('/v/{jeton}', [VerificationController::class, 'show'])

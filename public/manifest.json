@@ -1,0 +1,19 @@
+{
+    "id": "/",
+    "name": "Daara Nouroud Daareyni Kaolack",
+    "short_name": "Daara NDK",
+    "description": "Carte de membre, cotisations et vie de la Daara Nouroud Daareyni Kaolack.",
+    "lang": "fr",
+    "dir": "ltr",
+    "start_url": "/mon-espace",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffffff",
+    "theme_color": "#1e5223",
+    "icons": [
+        { "src": "/images/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "/images/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "/images/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

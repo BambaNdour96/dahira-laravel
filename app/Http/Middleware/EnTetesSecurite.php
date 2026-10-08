@@ -55,7 +55,7 @@ class EnTetesSecurite
             "img-src 'self' data: blob:",
             "font-src 'self' data:",
             "connect-src 'self'{$viteWs}",
-            "object-src 'none'",
+            "object-src 'none'",            "worker-src 'self'",            "manifest-src 'self'",
             "base-uri 'self'",
             "form-action 'self'",
             "frame-ancestors 'none'",
