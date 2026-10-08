@@ -3,6 +3,15 @@
 @section('titre', 'Mon compte')
 
 @section('contenu')
+    @php
+        $nonLues = auth()->user()?->unreadNotifications()->where('type', \App\Notifications\NotificationMembre::class)->count() ?? 0;
+    @endphp
+    <a href="{{ route('notifications.index') }}"
+       class="mb-6 flex items-center justify-between rounded-xl px-4 py-3 text-sm {{ $nonLues > 0 ? 'bg-or-100 font-semibold text-emerald-950 ring-1 ring-or-400' : 'bg-white text-stone-600 ring-1 ring-stone-200' }}">
+        <span>🔔 {{ $nonLues > 0 ? 'Vous avez '.$nonLues.' nouvelle(s) notification(s)' : 'Mes notifications' }}</span>
+        <span class="underline">Voir</span>
+    </a>
+
     @if (! $membre)
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
             <p>Ce compte n'est rattaché à aucune fiche de membre.</p>

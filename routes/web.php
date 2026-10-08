@@ -7,6 +7,7 @@ use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\MesDonneesController;
+use App\Http\Controllers\MesNotificationsController;
 use App\Http\Controllers\MesRecusController;
 use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
@@ -79,6 +80,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
+    Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
     Route::get('/mon-compte/suppression', [SuppressionCompteController::class, 'create'])->name('suppression.create');
     Route::post('/mon-compte/suppression', [SuppressionCompteController::class, 'store'])->middleware('throttle:connexion')->name('suppression.store');
 

@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Carte;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Observers\AvisMembreObserver;
 use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -23,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Notifications adressées aux membres.
+        Membre::observe(AvisMembreObserver::class);
+        Paiement::observe(AvisMembreObserver::class);
+        Carte::observe(AvisMembreObserver::class);
+
         // Notifications de tâches pour le bureau.
         Membre::observe(TachesObserver::class);
         Paiement::observe(TachesObserver::class);
