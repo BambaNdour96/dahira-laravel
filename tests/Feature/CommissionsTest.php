@@ -4,6 +4,7 @@ use App\Models\Cellule;
 use App\Models\Commission;
 use App\Models\Membre;
 use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -76,4 +77,12 @@ it('réserve l\'écran des commissions à l\'administrateur', function () {
 
     $this->actingAs($admin)->get('/admin/commissions')->assertOk();
     $this->actingAs($responsable)->get('/admin/commissions')->assertForbidden();
+});
+
+it('crée les six commissions officielles avec les données de production', function () {
+    $this->seed(DatabaseSeeder::class);
+
+    expect(Commission::query()->orderBy('id')->pluck('nom')->all())->toBe([
+        'Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse',
+    ]);
 });

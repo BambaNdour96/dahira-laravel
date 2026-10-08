@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             CellulesSeeder::class,
             ParametresSeeder::class,
             TarifsSeeder::class,
+            CommissionsSeeder::class,
         ]);
 
         $this->creerAdministrateur();
