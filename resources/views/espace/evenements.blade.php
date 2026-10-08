@@ -1,27 +1,19 @@
 @extends('layouts.public')
 
-@section('titre', 'Événements')
+@section('titre', 'Mes participations')
 
 @section('contenu')
-    <h1 class="text-2xl font-semibold text-emerald-900">Événements de la Daara</h1>
+    <h1 class="text-2xl font-semibold text-emerald-900">Mes participations</h1>
+    <p class="mt-1 text-sm text-stone-600">
+        Les événements de la Daara où votre présence a été enregistrée, au scan de votre carte de membre.
+    </p>
 
-    <h2 class="mt-6 font-semibold text-emerald-900">À venir</h2>
-    @if ($aVenir->isEmpty())
-        <p class="mt-2 rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">Aucun événement prévu pour le moment.</p>
-    @else
-        <ul class="mt-3 space-y-4">
-            @foreach ($aVenir as $evenement)
-                @include('espace.partials.evenement', ['evenement' => $evenement, 'complet' => true])
-            @endforeach
-        </ul>
-        <p class="mt-3 text-xs text-stone-500">Le jour de l'événement, présentez votre carte de membre à l'entrée : elle sera scannée pour enregistrer votre présence.</p>
-    @endif
-
-    <h2 class="mt-8 font-semibold text-emerald-900">Mes participations</h2>
     @if ($participations->isEmpty())
-        <p class="mt-2 text-sm text-stone-500">Aucune participation enregistrée pour le moment.</p>
+        <p class="mt-6 rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
+            Aucune participation enregistrée pour le moment. Présentez votre carte à l'entrée des prochains événements.
+        </p>
     @else
-        <ul class="mt-3 divide-y divide-stone-100 rounded-xl bg-white text-sm ring-1 ring-stone-200">
+        <ul class="mt-6 divide-y divide-stone-100 rounded-xl bg-white text-sm ring-1 ring-stone-200">
             @foreach ($participations as $presence)
                 <li class="flex items-center justify-between gap-3 px-4 py-3">
                     <span>
@@ -32,6 +24,8 @@
                 </li>
             @endforeach
         </ul>
+
+        <div class="mt-6">{{ $participations->links() }}</div>
     @endif
 
     <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>

@@ -13,7 +13,6 @@
     </a>
 
     @include('espace.partials.annonces-recentes')
-    @include('espace.partials.evenements-a-venir')
 
     @if (! $membre)
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
@@ -235,6 +234,7 @@
             <a href="{{ route('espace.profil') }}" class="mt-6 inline-block text-sm font-medium text-emerald-800 underline">Modifier mon profil</a>
             <a href="{{ route('mot-de-passe.edit') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Changer mon mot de passe</a>
                 <a href="{{ route('donnees.export') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Télécharger mes données</a>
+                <a href="{{ route('evenements.index') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Mes participations</a>
                 <a href="{{ route('suppression.create') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-red-700 underline">Supprimer mon compte</a>
         @endif
     @endif

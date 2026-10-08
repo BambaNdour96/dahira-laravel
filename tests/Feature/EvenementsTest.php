@@ -5,7 +5,6 @@ use App\Models\Evenement;
 use App\Models\Membre;
 use App\Models\Presence;
 use App\Models\User;
-use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,18 +39,6 @@ beforeEach(function () {
         'titre' => 'Magal 2026', 'lieu' => 'Kaolack', 'debut' => now()->addHour(),
     ]);
     $this->evenement->controleurs()->attach($this->controleur->id);
-});
-
-it('prévient les membres concernés d\'un nouvel événement de cellule', function () {
-    [$deKaolack] = membreAvecCarte($this->kaolack);
-    [$deDakar] = membreAvecCarte($this->dakar);
-
-    Evenement::query()->create(['titre' => 'Réunion', 'lieu' => 'Kaolack', 'debut' => now()->addDays(3), 'cellule_id' => $this->kaolack->id]);
-
-    $recues = fn (User $compte): int => DB::table('notifications')
-        ->where('notifiable_id', $compte->id)->where('type', NotificationMembre::class)->where('data', 'like', '%union%')->count();
-
-    expect($recues($deKaolack))->toBe(1)->and($recues($deDakar))->toBe(0);
 });
 
 it('montre le bouton de présence au contrôleur, et à lui seul', function () {
@@ -106,6 +93,16 @@ it('réserve les événements et l\'export des présences au super administrateu
     $this->actingAs($admin)->get(route('evenements.presences.export', $this->evenement))->assertForbidden();
 });
 
-it('annonce les prochains événements dans le compte du membre', function () {
-    $this->actingAs($this->compteMembre)->get('/mon-espace')->assertSee('Prochains événements')->assertSee('Magal 2026');
+it('ne prévient plus les membres à la création d\'un événement, le site s\'en charge', function () {
+    Evenement::query()->create(['titre' => 'Conférence', 'lieu' => 'Dakar', 'debut' => now()->addDays(5)]);
+
+    expect(DB::table('notifications')->where('notifiable_id', $this->compteMembre->id)->where('data', 'like', '%Conf%')->count())->toBe(0);
+});
+
+it('donne au membre l\'accès à ses participations, sans bloc d\'événements à venir', function () {
+    $this->actingAs($this->compteMembre)->get('/mon-espace')
+        ->assertSee('Mes participations')
+        ->assertDontSee('Prochains événements');
+
+    $this->actingAs($this->compteMembre)->get('/evenements')->assertOk()->assertSee('Aucune participation enregistrée');
 });

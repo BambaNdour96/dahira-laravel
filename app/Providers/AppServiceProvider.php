@@ -3,11 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Carte;
-use App\Models\Evenement;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Observers\AvisMembreObserver;
-use App\Observers\EvenementObserver;
 use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -27,8 +25,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Les membres sont prévenus des nouveaux événements.
-        Evenement::observe(EvenementObserver::class);
 
         // Notifications adressées aux membres.
         Membre::observe(AvisMembreObserver::class);
