@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Membre;
+use App\Models\Paiement;
+use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -20,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Notifications de tâches pour le bureau.
+        Membre::observe(TachesObserver::class);
+        Paiement::observe(TachesObserver::class);
+
         // Mots de passe : au moins 8 caractères, une lettre et un chiffre ; en ligne, refus des mots de passe ayant fuité.
         Password::defaults(fn () => $this->app->isProduction()
             ? Password::min(8)->letters()->numbers()->uncompromised()

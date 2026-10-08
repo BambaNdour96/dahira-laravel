@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Membres;
 
+use App\Enums\StatutMembre;
 use App\Filament\Resources\Membres\Pages\CreateMembre;
 use App\Filament\Resources\Membres\Pages\EditMembre;
 use App\Filament\Resources\Membres\Pages\ListMembres;
@@ -89,5 +90,18 @@ class MembreResource extends Resource
             'create' => CreateMembre::route('/create'),
             'edit' => EditMembre::route('/{record}/edit'),
         ];
+    }
+
+    /** Demandes à examiner, limitées à la cellule pour un Jewrine. */
+    public static function getNavigationBadge(): ?string
+    {
+        $nombre = self::getEloquentQuery()->where('statut', StatutMembre::EnAttente->value)->count();
+
+        return $nombre > 0 ? (string) $nombre : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
     }
 }

@@ -79,4 +79,17 @@ class PaiementResource extends Resource
             'index' => ManagePaiements::route('/'),
         ];
     }
+
+    /** Déclarations de paiement à vérifier. */
+    public static function getNavigationBadge(): ?string
+    {
+        $nombre = Paiement::query()->where('statut', StatutPaiement::Declare->value)->count();
+
+        return $nombre > 0 ? (string) $nombre : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
 }
