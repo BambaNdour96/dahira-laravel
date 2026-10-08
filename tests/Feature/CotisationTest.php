@@ -60,7 +60,7 @@ it('ne réclame rien avant la date de démarrage des cotisations', function () {
 it('enregistre une déclaration de plusieurs mois', function () {
     membreValideDepuis($this->user, 0);
 
-    $this->actingAs($this->user)->post('/mes-cotisations', ['reference' => 't_cot 123', 'nombre_mois' => 3])
+    $this->actingAs($this->user)->post('/mes-cotisations', ['reference' => 't_cot 123 456 789', 'nombre_mois' => 3])
         ->assertRedirect(route('cotisations'));
 
     $paiement = Paiement::query()->firstOrFail();
@@ -68,7 +68,7 @@ it('enregistre une déclaration de plusieurs mois', function () {
     expect($paiement->objet)->toBe('cotisation')
         ->and($paiement->montant)->toBe(3000)
         ->and($paiement->nombre_mois)->toBe(3)
-        ->and($paiement->reference)->toBe('T_COT123');
+        ->and($paiement->reference)->toBe('T_COT123456789');
 });
 
 it('couvre d\'abord les mois de retard à la confirmation', function () {

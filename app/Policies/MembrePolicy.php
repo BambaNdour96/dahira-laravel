@@ -59,6 +59,11 @@ class MembrePolicy
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
     {
+        // Personne ne modifie son propre statut, même un administrateur.
+        if ($membre->user_id !== null && $membre->user_id === $user->id) {
+            return false;
+        }
+
         if ($user->hasRole('administrateur')) {
             return true;
         }

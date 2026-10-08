@@ -60,7 +60,7 @@ class PaiementMembreController extends Controller
             'numero_wave' => ['nullable', 'string', 'max:30'],
         ], [
             'reference.required' => 'Indiquez la référence de votre transaction Wave.',
-            'reference.regex' => 'Référence invalide : uniquement des lettres, des chiffres et des tirets, 4 caractères au moins.',
+            'reference.regex' => 'Référence Wave invalide : elle commence par T_, suivi de 12 à 20 lettres et chiffres. Exemple : T_CN535JQDN4VAPI5R.',
             'reference.unique' => 'Cette référence a déjà été utilisée. Une référence ne peut servir qu\'une seule fois.',
         ]);
 

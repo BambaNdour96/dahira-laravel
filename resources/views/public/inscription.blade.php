@@ -63,6 +63,7 @@
 
         {{-- Page 2 : contact, résidence et Daara --}}
         <section data-etape="2" class="hidden space-y-5">
+            <x-indicatif />
             <x-champ nom="telephone" libelle="Téléphone" type="tel" requis inputmode="tel" autocomplete="tel"
                      placeholder="77 123 45 67" aide="Il vous servira à vous connecter." />
             <x-champ nom="email" libelle="Email" type="email" autocomplete="email" aide="Facultatif." />

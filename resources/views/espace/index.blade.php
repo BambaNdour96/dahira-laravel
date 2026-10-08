@@ -108,7 +108,7 @@
                                        placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
                                        class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
                                 <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
-                                       placeholder="Référence de la transaction"
+                                       placeholder="Exemple : T_CN535JQDN4VAPI5R"
                                        class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
                                 <button type="submit" class="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">
                                     J'ai payé

@@ -42,20 +42,20 @@ it('montre les frais de carte au membre accepté', function () {
 });
 
 it('enregistre la déclaration de paiement', function () {
-    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 't_abc 123'])
+    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 't_abc 123 456 789'])
         ->assertRedirect(route('espace'));
 
     $paiement = Paiement::query()->firstOrFail();
 
-    expect($paiement->reference)->toBe('T_ABC123')
+    expect($paiement->reference)->toBe('T_ABC123456789')
         ->and($paiement->statut)->toBe(StatutPaiement::Declare)
         ->and($paiement->montant)->toBe(1000);
 });
 
 it('refuse une référence déjà utilisée', function () {
-    app(PaiementService::class)->declarer(Membre::factory()->accepte()->create(), 'T_ABC123');
+    app(PaiementService::class)->declarer(Membre::factory()->accepte()->create(), 'T_ABC123456789');
 
-    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 'T_ABC123'])
+    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 'T_ABC123456789'])
         ->assertSessionHasErrors('reference');
 });
 
@@ -74,7 +74,7 @@ it('laisse le membre déclarer à nouveau après un refus', function () {
     $service = app(PaiementService::class);
     $service->refuser($service->declarer($this->membre, 'T_FAUX'), $this->tresorier, 'Référence introuvable');
 
-    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 'T_BON'])
+    $this->actingAs($this->user)->post('/mon-espace/paiement', ['reference' => 'T_BON123456789X'])
         ->assertRedirect(route('espace'));
 
     expect($this->membre->refresh()->statut)->toBe(StatutMembre::Accepte);

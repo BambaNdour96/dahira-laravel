@@ -47,7 +47,7 @@ it('refuse une référence mal formée', function () {
 
 it('enregistre le numéro Wave utilisé pour payer', function () {
     $this->actingAs($this->user)->post('/mes-cotisations', [
-        'reference' => 'TWAVE777',
+        'reference' => 'T_WAVE777TEST001',
         'nombre_mois' => 2,
         'numero_wave' => '76 111 22 33',
     ])->assertRedirect(route('cotisations'));
@@ -57,7 +57,7 @@ it('enregistre le numéro Wave utilisé pour payer', function () {
 
 it('refuse un numéro Wave invalide', function () {
     $this->actingAs($this->user)->post('/mes-cotisations', [
-        'reference' => 'TWAVE888',
+        'reference' => 'T_WAVE888TEST001',
         'nombre_mois' => 1,
         'numero_wave' => '123',
     ])->assertSessionHasErrors('numero_wave');

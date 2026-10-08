@@ -12,7 +12,7 @@ use DomainException;
 final class AntiFraude
 {
     /** Format accepté pour une référence Wave, après mise en majuscules et suppression des espaces. */
-    public const FORMAT_REFERENCE = '/^[A-Z0-9_-]{4,60}$/';
+    public const FORMAT_REFERENCE = '/^T_[A-Z0-9]{12,20}$/';
 
     /** Personne ne confirme son propre paiement : un autre membre du bureau doit le faire. */
     public static function verifierPasSoiMeme(Membre $membre, ?User $tresorier): void
