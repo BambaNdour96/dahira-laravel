@@ -88,4 +88,7 @@
     </p>
 
     <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    <p class="mt-4 text-center text-xs text-stone-500">
+        Carte mise à jour le {{ now()->format('d/m/Y à H:i') }}. Elle reste consultable sans connexion sur ce téléphone.
+    </p>
 @endsection

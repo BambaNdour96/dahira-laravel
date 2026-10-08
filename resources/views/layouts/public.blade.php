@@ -84,5 +84,26 @@
             bloc?.setAttribute('hidden', '');
         });
     </script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+        (() => {
+            const proprietaire = {{ \Illuminate\Support\Js::from(auth()->check() ? substr(hash('sha256', auth()->id().config('app.key')), 0, 16) : null) }};
+
+            try {
+                if (localStorage.getItem('ndk-proprietaire') !== proprietaire) {
+                    if ('caches' in window) {
+                        caches.delete('ndk-carte');
+                    }
+
+                    if (proprietaire) {
+                        localStorage.setItem('ndk-proprietaire', proprietaire);
+                    } else {
+                        localStorage.removeItem('ndk-proprietaire');
+                    }
+                }
+            } catch (erreur) {
+                // Navigateur sans stockage : rien à effacer.
+            }
+        })();
+    </script>
 </body>
 </html>

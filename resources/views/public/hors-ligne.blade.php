@@ -20,6 +20,8 @@
         <img src="/images/logo-ndk.png" alt="Logo de la Daara Nouroud Daareyni Kaolack">
         <h1>Vous êtes hors connexion</h1>
         <p>Votre téléphone n'a pas accès à internet pour le moment. Vérifiez votre connexion, puis réessayez.</p>
+        <a href="/ma-carte" style="display:block;margin-top:24px;padding:12px 16px;border-radius:10px;background:#1e5223;color:#fff;font-weight:600;text-decoration:none;">Afficher ma carte de membre</a>
+        <p style="font-size:13px;">Disponible si vous l'avez déjà ouverte une fois sur ce téléphone.</p>
     </main>
 </body>
 </html>
