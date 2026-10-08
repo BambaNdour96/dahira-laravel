@@ -4,13 +4,14 @@ namespace App\Notifications;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Notification adressée à un membre : dans son compte, et par email s'il en a un.
  */
-class NotificationMembre extends Notification
+class NotificationMembre extends Notification implements ShouldQueue
 {
     use Queueable;
 

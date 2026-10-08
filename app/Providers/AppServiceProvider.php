@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Annonce;
 use App\Models\Carte;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Observers\AnnonceObserver;
 use App\Observers\AvisMembreObserver;
 use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Les membres sont prévenus des nouvelles annonces.
+        Annonce::observe(AnnonceObserver::class);
+
         // Notifications adressées aux membres.
         Membre::observe(AvisMembreObserver::class);
         Paiement::observe(AvisMembreObserver::class);

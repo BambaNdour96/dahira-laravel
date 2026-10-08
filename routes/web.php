@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnnonceController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
@@ -81,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
     Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
+    Route::get('/annonces', [AnnonceController::class, 'index'])->name('annonces.index');
     Route::get('/mon-compte/suppression', [SuppressionCompteController::class, 'create'])->name('suppression.create');
     Route::post('/mon-compte/suppression', [SuppressionCompteController::class, 'store'])->middleware('throttle:connexion')->name('suppression.store');
 
