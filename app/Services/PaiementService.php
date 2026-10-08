@@ -157,7 +157,7 @@ final class PaiementService
             return;
         }
 
-        $superAdmins = User::query()->role('super_administrateur')->get();
+        $superAdmins = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', 'super_administrateur'))->get();
 
         if ($superAdmins->isEmpty()) {
             return;

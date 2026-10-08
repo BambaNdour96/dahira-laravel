@@ -62,7 +62,7 @@ class SuppressionCompteController extends Controller
 
         JournalActivite::enregistrer($demande, 'demande_suppression');
 
-        $superAdmins = User::query()->role('super_administrateur')->get();
+        $superAdmins = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', 'super_administrateur'))->get();
 
         if ($superAdmins->isNotEmpty()) {
             Notification::make()
