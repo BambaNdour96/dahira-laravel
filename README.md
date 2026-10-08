@@ -1,58 +1,244 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Daara Nouroud Daareyni Kaolack — Plateforme des membres
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plateforme officielle de gestion des membres de la Daara Nouroud Daareyni Kaolack (NDK) :
+inscription en ligne, carte de membre virtuelle avec QR code, cotisations par Wave, reçus,
+relances et tableau de bord du bureau.
 
-## About Laravel
+![Tests](https://img.shields.io/badge/tests-Pest-green) ![Couverture](https://img.shields.io/badge/couverture-%E2%89%A5%2090%20%25-green) ![Analyse statique](https://img.shields.io/badge/Larastan-niveau%208-blue) ![Accessibilit%C3%A9](https://img.shields.io/badge/Lighthouse-100%2F100-brightgreen)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Sommaire
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. [Fonctionnalités](#fonctionnalités)
+2. [Technologies](#technologies)
+3. [Installation en local](#installation-en-local)
+4. [Comptes de démonstration](#comptes-de-démonstration)
+5. [Qualité et tests](#qualité-et-tests)
+6. [Architecture](#architecture)
+7. [Rôles et droits](#rôles-et-droits)
+8. [Sécurité](#sécurité)
+9. [Données personnelles](#données-personnelles)
+10. [Tâches planifiées](#tâches-planifiées)
+11. [Contact](#contact)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Fonctionnalités
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Pour les membres
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Inscription** en deux pages, adaptée au téléphone : identité, photo, cellule et commission.
+- **Parcours d'adhésion** : demande examinée par le Jewrine de la cellule, puis frais de carte (1 000 FCFA),
+  puis validation avec matricule `NDK-AAAA-NNNN`.
+- **Carte de membre virtuelle** avec QR code, consultable même **hors connexion**.
+- **Cotisations mensuelles** (1 000 FCFA) payées par **Wave** (1, 2 ou 3 mois), avec calendrier coloré.
+- **Reçus PDF** numérotés par nature (`INS-…` pour l'inscription, `COT-…` pour les cotisations).
+- **Données personnelles** : téléchargement de ses données et demande de suppression.
+- **Application installable** sur l'écran d'accueil du téléphone (PWA).
 
-## Agentic Development
+### Pour le bureau
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+- **Panneau d'administration** (Filament) : registre des membres, cellules, commissions, postes, tarifs.
+- **Validation des paiements** Wave et enregistrement des paiements en espèces.
+- **Relances** : message de groupe WhatsApp, bandeau dans le compte, email mensuel, relance individuelle suivie.
+- **Tableau de bord** : statistiques des membres, encaissements, taux de membres à jour, graphiques.
+- **Exports Excel** des membres et des paiements, **import CSV** des membres existants.
+
+### Pour le super administrateur
+
+- Nomination des membres du bureau, réglages (liens Wave et WhatsApp), mode maintenance.
+- Journal d'activité, historique des connexions, consultation « en tant que » un autre compte.
+- Dispenses de cotisation, traitement des demandes de suppression de données.
+
+---
+
+## Technologies
+
+| Domaine | Choix |
+| --- | --- |
+| Langage | PHP 8.3 (8.4 en production) |
+| Cadre applicatif | Laravel 13 |
+| Panneau d'administration | Filament 5 |
+| Base de données | PostgreSQL 16 |
+| Interface | Blade, Tailwind CSS, Vite |
+| Droits | spatie/laravel-permission |
+| Images, QR codes, PDF | Intervention Image, endroid/qr-code, Dompdf |
+| Tests | Pest, couverture PCOV |
+| Qualité | Larastan (niveau 8), Laravel Pint |
+| Intégration continue | GitHub Actions, Dependabot |
+
+---
+
+## Installation en local
+
+### Prérequis
+
+- PHP 8.3 avec les extensions `pdo_pgsql`, `intl`, `gd`, `mbstring`, `bcmath`, `zip`
+- Composer 2
+- Node.js 22
+- Docker (pour PostgreSQL)
+
+### Étapes
 
 ```bash
-composer require laravel/boost --dev
+git clone git@github.com:BambaNdour96/dahira-laravel.git
+cd dahira-laravel
 
-php artisan boost:install
+composer install
+npm ci
+
+cp .env.example .env
+php artisan key:generate
+
+# Base de données PostgreSQL dans Docker
+docker compose -f compose.dev.yml up -d
+
+# Tables et données de démonstration
+php artisan migrate --seed
+
+# Fichiers front
+npm run build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Lancer l'application
 
-## Contributing
+Dans trois terminaux :
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan serve          # le site : http://127.0.0.1:8000
+php artisan queue:work     # les exports et les emails
+php artisan schedule:work  # les tâches planifiées
+```
 
-## Code of Conduct
+- Site des membres : http://127.0.0.1:8000
+- Panneau du bureau : http://127.0.0.1:8000/admin
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+En développement, les emails ne partent pas : ils sont écrits dans `storage/logs/laravel.log`.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Comptes de démonstration
 
-## License
+Créés uniquement en environnement local par `php artisan migrate --seed`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Rôle | Téléphone | Mot de passe |
+| --- | --- | --- |
+| Jewrine de cellule (Kaolack) | `77 000 00 01` | `password` |
+| Jewrine finance | `77 000 00 02` | `password` |
+| Jewrine de cellule (Dakar) | `77 000 00 03` | `password` |
+
+Le compte du super administrateur est défini dans le fichier `.env`.
+
+---
+
+## Qualité et tests
+
+```bash
+./vendor/bin/pint                       # style du code
+./vendor/bin/phpstan analyse            # analyse statique, niveau 8
+./vendor/bin/pest                       # tests
+./vendor/bin/pest --coverage --min=90   # tests et couverture minimale
+composer audit && npm audit             # failles connues des dépendances
+```
+
+À chaque envoi sur GitHub, l'intégration continue vérifie le style, l'analyse statique,
+les failles connues, puis lance tous les tests avec une **couverture minimale de 90 %**.
+Les dépendances sont aussi auditées chaque lundi, et Dependabot propose les mises à jour.
+
+Les tests couvrent notamment :
+
+- les règles métier (statuts, matricules, cotisations, reçus, dispenses) ;
+- la **matrice complète des droits** : chaque règle d'accès est vérifiée pour chaque rôle ;
+- les boutons du panneau, simulés comme de vrais clics ;
+- les mécanismes anti-fraude, la sécurité de connexion et les en-têtes de sécurité ;
+- les droits liés aux données personnelles.
+
+---
+
+## Architecture
+
+```
+app/
+├── Enums/               Statuts et listes de valeurs (membre, paiement, carte…)
+├── Services/            Règles métier : statuts, paiements, cotisations, cartes, reçus…
+├── Support/             Outils transverses : anti-fraude, liens Wave, messages de relance…
+├── Models/              Modèles Eloquent, avec journalisation automatique
+├── Policies/            Règles d'accès par rôle et par cellule
+├── Http/
+│   ├── Controllers/     Site des membres
+│   └── Middleware/      Maintenance, en-têtes de sécurité, mot de passe provisoire
+├── Filament/            Panneau du bureau : écrans, actions, widgets, exports
+├── Listeners/           Historique des connexions, blocage après échecs
+├── Notifications/       Emails (rappels de cotisation)
+└── Console/Commands/    Tâches planifiées
+tests/
+├── Feature/             Tests de bout en bout et matrice des droits
+└── Unit/                Tests unitaires
+```
+
+**Principes retenus :**
+
+- toute règle métier vit dans un **service**, jamais dans un écran ;
+- chaque droit est vérifié **deux fois** : pour afficher un bouton, puis au moment de l'action ;
+- toute action sensible est **journalisée** (auteur, date, changements).
+
+---
+
+## Rôles et droits
+
+| Rôle | Périmètre |
+| --- | --- |
+| Super administrateur | Tout, plus les comptes du bureau, les réglages, le journal et les données personnelles |
+| Administrateur | Registre complet, données de référence, révocation des cartes |
+| Jewrine finance | Paiements, cotisations, relances, rapport financier ; consultation des membres |
+| Jewrine de cellule | Membres de **sa seule cellule** : acceptation, correction, relances |
+| Membre | Son propre compte uniquement |
+
+Aucun paiement ne peut être supprimé, et personne ne peut confirmer **son propre** paiement.
+
+---
+
+## Sécurité
+
+- **En-têtes de sécurité** : politique de sécurité du contenu stricte (nonce et `strict-dynamic`),
+  protection contre l'intégration dans une autre page, HSTS en production.
+- **Mots de passe** : 8 caractères minimum avec lettres et chiffres, refus des mots de passe
+  ayant fuité (en production), mot de passe provisoire à changer obligatoirement.
+- **Connexion** : blocage de 15 minutes après 5 échecs, avec alerte au super administrateur ;
+  double authentification du bureau (obligatoire en production).
+- **Anti-fraude des paiements** : liens Wave à montant fixe, référence unique et contrôlée,
+  numéro Wave déclaré, interdiction de valider son propre paiement, alerte après refus répétés.
+- **Photos** stockées hors du dossier public et servies après contrôle des droits.
+
+---
+
+## Données personnelles
+
+La plateforme applique la **loi sénégalaise n° 2008-12 du 25 janvier 2008** sur la protection
+des données à caractère personnel :
+
+- page « Données personnelles » détaillant finalités, destinataires et durées de conservation ;
+- **droit d'accès** : téléchargement des données au format JSON ;
+- **droit à l'effacement** : demande de suppression traitée par anonymisation,
+  la comptabilité restant intacte ;
+- **durées de conservation** appliquées automatiquement chaque nuit.
+
+---
+
+## Tâches planifiées
+
+| Tâche | Fréquence | Rôle |
+| --- | --- | --- |
+| `cotisations:rappeler` | Le 5 de chaque mois | Email de rappel aux membres en retard |
+| `donnees:purger` | Chaque nuit | Application des durées de conservation |
+
+En production, une seule entrée `cron` suffit : `* * * * * php artisan schedule:run`.
+
+---
+
+## Contact
+
+Responsable technique : **Cheikh Ahmadou Bamba Ndour**
+
+Projet développé pour la Daara Nouroud Daareyni Kaolack. Tous droits réservés.
