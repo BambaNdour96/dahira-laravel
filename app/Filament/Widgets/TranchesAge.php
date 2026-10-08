@@ -6,7 +6,7 @@ use Carbon\CarbonInterface;
 
 class TranchesAge extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 6;
 

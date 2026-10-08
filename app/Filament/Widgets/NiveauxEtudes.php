@@ -4,7 +4,7 @@ namespace App\Filament\Widgets;
 
 class NiveauxEtudes extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 7;
 

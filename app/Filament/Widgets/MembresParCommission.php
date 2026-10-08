@@ -6,7 +6,7 @@ use App\Models\Commission;
 
 class MembresParCommission extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 4;
 

@@ -4,7 +4,7 @@ namespace App\Filament\Widgets;
 
 class SituationsProfessionnelles extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 8;
 

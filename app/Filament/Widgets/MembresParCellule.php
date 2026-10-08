@@ -4,7 +4,7 @@ namespace App\Filament\Widgets;
 
 class MembresParCellule extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 3;
 

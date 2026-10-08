@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EncaissementsParCellule extends RepartitionWidget
 {
-    protected ?string  = null;
+    protected ?string $pollingInterval = null;
 
     protected static ?int $sort = 4;
 
