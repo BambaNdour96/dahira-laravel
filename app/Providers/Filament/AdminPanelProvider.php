@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->authMiddleware([\App\Http\Middleware\ExpirationInactivite::class])
             ->middleware([EnTetesSecurite::class])
             ->profile()
             ->multiFactorAuthentication([AppAuthentication::make()->recoverable()->brandName('Daara NDK')], isRequired: app()->isProduction())
@@ -44,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo-ndk.png'))
             ->databaseNotifications()
+            ->databaseNotificationsPolling(null)
             ->colors([
                 'primary' => Color::Green,
             ])

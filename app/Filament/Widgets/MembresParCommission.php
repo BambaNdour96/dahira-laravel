@@ -6,6 +6,8 @@ use App\Models\Commission;
 
 class MembresParCommission extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 4;
 
     protected function titre(): string

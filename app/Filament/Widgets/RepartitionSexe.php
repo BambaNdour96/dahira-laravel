@@ -4,6 +4,8 @@ namespace App\Filament\Widgets;
 
 class RepartitionSexe extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 5;
 
     protected function titre(): string

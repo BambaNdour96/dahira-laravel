@@ -14,4 +14,9 @@ return [
     // Données personnelles : contact du responsable et hébergeur (à préciser à la mise en ligne).
     'contact_donnees' => env('DAHIRA_CONTACT_DONNEES', 'le super administrateur de la plateforme, via le bureau de la Daara'),
     'hebergeur' => env('DAHIRA_HEBERGEUR', 'précisé lors de la mise en ligne'),
+
+    // Déconnexion après inactivité, en minutes.
+    'inactivite_bureau' => (int) env('DAHIRA_INACTIVITE_BUREAU', 10),
+    'inactivite_super_admin' => (int) env('DAHIRA_INACTIVITE_SUPER_ADMIN', 25),
+    'inactivite_membres' => (int) env('DAHIRA_INACTIVITE_MEMBRES', 6),
 ];

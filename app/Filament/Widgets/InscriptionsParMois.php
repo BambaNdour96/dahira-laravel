@@ -7,6 +7,8 @@ use Illuminate\Support\Carbon;
 
 class InscriptionsParMois extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 'full';

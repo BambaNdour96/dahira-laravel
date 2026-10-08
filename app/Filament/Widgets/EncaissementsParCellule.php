@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class EncaissementsParCellule extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 4;
 
     public static function canView(): bool

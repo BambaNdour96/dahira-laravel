@@ -6,6 +6,8 @@ use Carbon\CarbonInterface;
 
 class TranchesAge extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 6;
 
     protected function titre(): string

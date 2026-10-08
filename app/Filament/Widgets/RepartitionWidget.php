@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Collection;
  */
 abstract class RepartitionWidget extends ChartWidget
 {
+    protected ?string  = null;
+
     /** Vert et or du logo. */
     protected const COULEURS = ['#1e5223', '#d4a017', '#36923d', '#b3850f', '#8bc98e', '#f5e0a0', '#236428', '#58ad5e'];
 

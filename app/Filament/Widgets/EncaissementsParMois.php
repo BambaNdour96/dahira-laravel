@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class EncaissementsParMois extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';

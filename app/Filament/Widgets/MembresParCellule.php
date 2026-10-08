@@ -4,6 +4,8 @@ namespace App\Filament\Widgets;
 
 class MembresParCellule extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 3;
 
     protected function titre(): string

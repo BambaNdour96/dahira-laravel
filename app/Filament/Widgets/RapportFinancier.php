@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class RapportFinancier extends StatsOverviewWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 2;
 
     public static function canView(): bool

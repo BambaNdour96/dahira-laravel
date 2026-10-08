@@ -4,6 +4,8 @@ namespace App\Filament\Widgets;
 
 class NiveauxEtudes extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 7;
 
     protected function titre(): string

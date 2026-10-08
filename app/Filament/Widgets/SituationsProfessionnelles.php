@@ -4,6 +4,8 @@ namespace App\Filament\Widgets;
 
 class SituationsProfessionnelles extends RepartitionWidget
 {
+    protected ?string  = null;
+
     protected static ?int $sort = 8;
 
     protected function titre(): string
