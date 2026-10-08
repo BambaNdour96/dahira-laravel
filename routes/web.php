@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AnnonceController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
@@ -85,7 +84,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');
     Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
-    Route::get('/annonces', [AnnonceController::class, 'index'])->name('annonces.index');
     Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
     Route::post('/v/{jeton}/presence/{evenement}', [PresenceController::class, 'store'])->name('presences.store');
     Route::get('/exports/evenements/{evenement}/presences', ExportPresencesController::class)->name('evenements.presences.export');
