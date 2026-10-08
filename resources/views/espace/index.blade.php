@@ -12,7 +12,6 @@
         <span class="underline">Voir</span>
     </a>
 
-    @include('espace.partials.annonces-recentes')
 
     @if (! $membre)
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
