@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\StatutMembre;
 use App\Models\Membre;
 use App\Models\User;
+use App\Services\CompteBureauService;
 
 class MembrePolicy
 {
@@ -61,6 +62,11 @@ class MembrePolicy
     {
         // Personne ne modifie son propre statut, même un administrateur.
         if ($membre->user_id !== null && $membre->user_id === $user->id) {
+            return false;
+        }
+
+        // Le statut d'un membre du bureau ne change que par le super administrateur.
+        if ($membre->user?->hasAnyRole(CompteBureauService::ROLES_BUREAU) === true && ! $user->hasRole('super_administrateur')) {
             return false;
         }
 

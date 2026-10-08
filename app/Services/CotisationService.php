@@ -244,7 +244,7 @@ final class CotisationService
     public function enregistrerEspeces(Membre $membre, int $nombreMois, ?User $tresorier): Paiement
     {
         $this->verifierPeutCotiser($membre, $nombreMois);
-        AntiFraude::verifierPasSoiMeme($membre, $tresorier);
+        AntiFraude::verifierValidateur($membre, $tresorier);
 
         return DB::transaction(function () use ($membre, $nombreMois, $tresorier): Paiement {
             $paiement = Paiement::query()->create([

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ParametresSeeder::class,
             TarifsSeeder::class,
             CommissionsSeeder::class,
+            ReglesValidationSeeder::class,
         ]);
 
         $this->creerAdministrateur();
