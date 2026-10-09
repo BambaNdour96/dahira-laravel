@@ -1,244 +1,139 @@
-# Daara Nouroud Daareyni Kaolack — Plateforme des membres
+# Plateforme des membres – Daara Nouroud Daareyni Kaolack (NDK)
 
-Plateforme officielle de gestion des membres de la Daara Nouroud Daareyni Kaolack (NDK) :
-inscription en ligne, carte de membre virtuelle avec QR code, cotisations par Wave, reçus,
-relances et tableau de bord du bureau.
+Plateforme web de gestion des membres de la Daara : inscription en ligne, carte de membre virtuelle vérifiable par QR code, cotisations par Wave, panneau du bureau et présence aux événements par scan.
 
-![Tests](https://img.shields.io/badge/tests-Pest-green) ![Couverture](https://img.shields.io/badge/couverture-%E2%89%A5%2090%20%25-green) ![Analyse statique](https://img.shields.io/badge/Larastan-niveau%208-blue) ![Accessibilit%C3%A9](https://img.shields.io/badge/Lighthouse-100%2F100-brightgreen)
-
----
-
-## Sommaire
-
-1. [Fonctionnalités](#fonctionnalités)
-2. [Technologies](#technologies)
-3. [Installation en local](#installation-en-local)
-4. [Comptes de démonstration](#comptes-de-démonstration)
-5. [Qualité et tests](#qualité-et-tests)
-6. [Architecture](#architecture)
-7. [Rôles et droits](#rôles-et-droits)
-8. [Sécurité](#sécurité)
-9. [Données personnelles](#données-personnelles)
-10. [Tâches planifiées](#tâches-planifiées)
-11. [Contact](#contact)
-
----
+![Laravel 13](https://img.shields.io/badge/Laravel-13-red) ![Filament 5](https://img.shields.io/badge/Filament-5-orange) ![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue) ![Tests](https://img.shields.io/badge/tests-320%2B-green) ![Couverture](https://img.shields.io/badge/couverture-93%25-green)
 
 ## Fonctionnalités
 
 ### Pour les membres
 
-- **Inscription** en deux pages, adaptée au téléphone : identité, photo, cellule et commission.
-- **Parcours d'adhésion** : demande examinée par le Jewrine de la cellule, puis frais de carte (1 000 FCFA),
-  puis validation avec matricule `NDK-AAAA-NNNN`.
-- **Carte de membre virtuelle** avec QR code, consultable même **hors connexion**.
-- **Cotisations mensuelles** (1 000 FCFA) payées par **Wave** (1, 2 ou 3 mois), avec calendrier coloré.
-- **Reçus PDF** numérotés par nature (`INS-…` pour l'inscription, `COT-…` pour les cotisations).
-- **Données personnelles** : téléchargement de ses données et demande de suppression.
-- **Application installable** sur l'écran d'accueil du téléphone (PWA).
+- **Inscription en deux pages** : identité et photo (prise directement avec l'appareil ou choisie dans la galerie), puis contact, cellule et commission.
+- **Connexion par numéro de téléphone**, avec choix du pays : Sénégal par défaut, et indicatifs de la diaspora.
+- **Carte de membre virtuelle** avec QR code, consultable **hors connexion**.
+- **Cotisations** de 1, 2 ou 3 mois par Wave (liens à montant fixe), calendrier de l'année, reçus PDF numérotés (`INS-AAAA-NNNN`, `COT-AAAA-NNNN`).
+- **Mes notifications** : demande acceptée ou à corriger, paiement confirmé ou refusé, carte remplacée, connexion depuis un nouvel appareil ; copie par email.
+- **Mes participations** aux événements de la Daara.
+- **Données personnelles** : téléchargement de ses données et demande de suppression du compte.
+- **Application installable** sur le téléphone (PWA).
 
-### Pour le bureau
+### Pour le bureau (panneau `/admin`)
 
-- **Panneau d'administration** (Filament) : registre des membres, cellules, commissions, postes, tarifs.
-- **Validation des paiements** Wave et enregistrement des paiements en espèces.
-- **Relances** : message de groupe WhatsApp, bandeau dans le compte, email mensuel, relance individuelle suivie.
-- **Tableau de bord** : statistiques des membres, encaissements, taux de membres à jour, graphiques.
-- **Exports Excel** des membres et des paiements, **import CSV** des membres existants.
-
-### Pour le super administrateur
-
-- Nomination des membres du bureau, réglages (liens Wave et WhatsApp), mode maintenance.
-- Journal d'activité, historique des connexions, consultation « en tant que » un autre compte.
-- Dispenses de cotisation, traitement des demandes de suppression de données.
-
----
+- **Registre des membres** par cellule et commission, parcours d'adhésion à 8 statuts, matricule `NDK-AAAA-NNNN`.
+- **Trésorerie** : vérification des déclarations Wave (onglet « À vérifier »), paiements en espèces, rapport financier, exports Excel.
+- **Validation croisée** des paiements du bureau : Jewrine finance ↔ Secrétaire général ↔ Jewrine national, règles modifiables.
+- **Tâches et notifications** : cloche ciblée, compteurs dans le menu, bloc « Mes tâches », alerte quotidienne des tâches en retard.
+- **Relances** des retardataires par WhatsApp et par email.
+- **Événements** : contrôleurs désignés, présence enregistrée en scannant la carte, taux de participation, export Excel.
+- **Super administrateur** : comptes du bureau, réglages, journal d'activité, historique des connexions, personnes connectées, « voir en tant que », mode maintenance, demandes de suppression.
 
 ## Technologies
 
-| Domaine | Choix |
+| Composant | Choix |
 | --- | --- |
-| Langage | PHP 8.3 (8.4 en production) |
-| Cadre applicatif | Laravel 13 |
-| Panneau d'administration | Filament 5 |
+| Langage et cadre | PHP 8.3 (8.4 en production), Laravel 13 |
+| Panneau du bureau | Filament 5 |
 | Base de données | PostgreSQL 16 |
-| Interface | Blade, Tailwind CSS, Vite |
-| Droits | spatie/laravel-permission |
-| Images, QR codes, PDF | Intervention Image, endroid/qr-code, Dompdf |
-| Tests | Pest, couverture PCOV |
-| Qualité | Larastan (niveau 8), Laravel Pint |
+| Interface | Blade, Tailwind CSS, Vite, service worker (PWA) |
+| Bibliothèques | spatie/laravel-permission, Intervention Image, endroid/qr-code, Dompdf |
+| Tests | Pest 4, dont des tests dans un vrai navigateur (Playwright) |
+| Qualité | Larastan niveau 8, Laravel Pint, couverture minimale de 90 % |
 | Intégration continue | GitHub Actions, Dependabot |
 
----
+## Installation (développement)
 
-## Installation en local
-
-### Prérequis
-
-- PHP 8.3 avec les extensions `pdo_pgsql`, `intl`, `gd`, `mbstring`, `bcmath`, `zip`
-- Composer 2
-- Node.js 22
-- Docker (pour PostgreSQL)
-
-### Étapes
+Prérequis : PHP 8.3 ou plus, Composer, Node.js, PostgreSQL 16 (ou Docker).
 
 ```bash
 git clone git@github.com:BambaNdour96/dahira-laravel.git
 cd dahira-laravel
-
 composer install
-npm ci
-
+npm install && npm run build
 cp .env.example .env
 php artisan key:generate
-
-# Base de données PostgreSQL dans Docker
-docker compose -f compose.dev.yml up -d
-
-# Tables et données de démonstration
 php artisan migrate --seed
-
-# Fichiers front
-npm run build
+php artisan storage:link
 ```
 
-### Lancer l'application
-
-Dans trois terminaux :
+Renseigner dans `.env` la connexion PostgreSQL et le compte du super administrateur, puis lancer, dans trois terminaux :
 
 ```bash
-php artisan serve          # le site : http://127.0.0.1:8000
-php artisan queue:work     # les exports et les emails
-php artisan schedule:work  # les tâches planifiées
+php -d upload_max_filesize=10M -d post_max_size=12M artisan serve
+php artisan queue:work
+php artisan schedule:work
 ```
 
-- Site des membres : http://127.0.0.1:8000
-- Panneau du bureau : http://127.0.0.1:8000/admin
-
-En développement, les emails ne partent pas : ils sont écrits dans `storage/logs/laravel.log`.
-
----
-
-## Comptes de démonstration
-
-Créés uniquement en environnement local par `php artisan migrate --seed`.
-
-| Rôle | Téléphone | Mot de passe |
-| --- | --- | --- |
-| Jewrine de cellule (Kaolack) | `77 000 00 01` | `password` |
-| Jewrine finance | `77 000 00 02` | `password` |
-| Jewrine de cellule (Dakar) | `77 000 00 03` | `password` |
-
-Le compte du super administrateur est défini dans le fichier `.env`.
-
----
-
-## Qualité et tests
+En local, `php artisan migrate:fresh --seed` crée aussi des comptes de démonstration. Pour repartir avec le seul super administrateur :
 
 ```bash
-./vendor/bin/pint                       # style du code
-./vendor/bin/phpstan analyse            # analyse statique, niveau 8
-./vendor/bin/pest                       # tests
-./vendor/bin/pest --coverage --min=90   # tests et couverture minimale
-composer audit && npm audit             # failles connues des dépendances
+APP_ENV=production php artisan migrate:fresh --seed --force
 ```
 
-À chaque envoi sur GitHub, l'intégration continue vérifie le style, l'analyse statique,
-les failles connues, puis lance tous les tests avec une **couverture minimale de 90 %**.
-Les dépendances sont aussi auditées chaque lundi, et Dependabot propose les mises à jour.
+## Tests et qualité
 
-Les tests couvrent notamment :
+```bash
+./vendor/bin/pint                                   # style du code
+./vendor/bin/phpstan analyse                        # analyse statique (niveau 8)
+./vendor/bin/pest --testsuite=Unit,Feature          # tests habituels
+./vendor/bin/pest --testsuite=Unit,Feature --coverage --min=90
+./vendor/bin/pest --testsuite=Browser               # tests dans un vrai navigateur
+```
 
-- les règles métier (statuts, matricules, cotisations, reçus, dispenses) ;
-- la **matrice complète des droits** : chaque règle d'accès est vérifiée pour chaque rôle ;
-- les boutons du panneau, simulés comme de vrais clics ;
-- les mécanismes anti-fraude, la sécurité de connexion et les en-têtes de sécurité ;
-- les droits liés aux données personnelles.
+Les tests navigateur demandent une installation unique : `npx playwright install --with-deps chromium`.
 
----
+La suite comprend plus de 320 tests : règles métier, matrice des droits de chaque rôle, boutons du panneau, anti-fraude, sécurité, trois **grands parcours de bout en bout** (vie d'un membre, vie du bureau, sécurité d'un compte) et des tests dans Chrome (aucune erreur dans la console, affichage sur téléphone).
 
 ## Architecture
 
 ```
 app/
-├── Enums/               Statuts et listes de valeurs (membre, paiement, carte…)
-├── Services/            Règles métier : statuts, paiements, cotisations, cartes, reçus…
-├── Support/             Outils transverses : anti-fraude, liens Wave, messages de relance…
-├── Models/              Modèles Eloquent, avec journalisation automatique
-├── Policies/            Règles d'accès par rôle et par cellule
-├── Http/
-│   ├── Controllers/     Site des membres
-│   └── Middleware/      Maintenance, en-têtes de sécurité, mot de passe provisoire
-├── Filament/            Panneau du bureau : écrans, actions, widgets, exports
-├── Listeners/           Historique des connexions, blocage après échecs
-├── Notifications/       Emails (rappels de cotisation)
-└── Console/Commands/    Tâches planifiées
-tests/
-├── Feature/             Tests de bout en bout et matrice des droits
-└── Unit/                Tests unitaires
+├── Enums/          Statuts, sexe, niveaux…
+├── Filament/       Panneau du bureau (ressources, actions, widgets)
+├── Http/           Contrôleurs du site des membres, middlewares de sécurité
+├── Listeners/      Connexions, blocage, session unique, nouvel appareil
+├── Models/         Membre, Carte, Paiement, Cotisation, Evenement…
+├── Notifications/  Notifications des membres (compte et email)
+├── Observers/      Tâches du bureau et avis aux membres
+├── Policies/       Règles d'accès de chaque rôle
+├── Services/       Règles métier : statuts, paiements, cotisations, présences…
+└── Support/        Anti-fraude, indicatifs, tâches, liens Wave
 ```
 
-**Principes retenus :**
+Toute règle métier vit dans `app/Services` et `app/Support`, jamais dans un écran : le site, le panneau et les tests passent par les mêmes règles.
 
-- toute règle métier vit dans un **service**, jamais dans un écran ;
-- chaque droit est vérifié **deux fois** : pour afficher un bouton, puis au moment de l'action ;
-- toute action sensible est **journalisée** (auteur, date, changements).
-
----
-
-## Rôles et droits
+## Rôles
 
 | Rôle | Périmètre |
 | --- | --- |
-| Super administrateur | Tout, plus les comptes du bureau, les réglages, le journal et les données personnelles |
-| Administrateur | Registre complet, données de référence, révocation des cartes |
-| Jewrine finance | Paiements, cotisations, relances, rapport financier ; consultation des membres |
-| Jewrine de cellule | Membres de **sa seule cellule** : acceptation, correction, relances |
-| Membre | Son propre compte uniquement |
-
-Aucun paiement ne peut être supprimé, et personne ne peut confirmer **son propre** paiement.
-
----
+| `membre` | Son propre compte ; contrôleur d'un événement s'il est désigné |
+| `responsable_section` | Jewrine de cellule : les membres de sa seule cellule |
+| `tresorier` | Jewrine finance : paiements, cotisations, relances, rapport financier |
+| `administrateur` | Registre complet, données de référence, cartes |
+| `super_administrateur` | Tout, plus le bureau, les réglages, le journal et les données personnelles |
 
 ## Sécurité
 
-- **En-têtes de sécurité** : politique de sécurité du contenu stricte (nonce et `strict-dynamic`),
-  protection contre l'intégration dans une autre page, HSTS en production.
-- **Mots de passe** : 8 caractères minimum avec lettres et chiffres, refus des mots de passe
-  ayant fuité (en production), mot de passe provisoire à changer obligatoirement.
-- **Connexion** : blocage de 15 minutes après 5 échecs, avec alerte au super administrateur ;
-  double authentification du bureau (obligatoire en production).
-- **Anti-fraude des paiements** : liens Wave à montant fixe, référence unique et contrôlée,
-  numéro Wave déclaré, interdiction de valider son propre paiement, alerte après refus répétés.
-- **Photos** stockées hors du dossier public et servies après contrôle des droits.
-
----
+- Mots de passe de 8 caractères minimum, lettres et chiffres ; refus des mots de passe ayant fuité (production).
+- Blocage après 5 échecs, limite de tentatives, double authentification du bureau.
+- Déconnexion après inactivité (6 min membre, 10 min bureau, 25 min super administrateur) et une seule session par compte.
+- Politique de sécurité du contenu stricte (nonce), HTTPS et HSTS en production.
+- Photos stockées hors du dossier public, servies après contrôle des droits.
+- Anti-fraude des paiements : références Wave uniques au format imposé, interdiction de valider son propre paiement, validation croisée du bureau.
+- Journal des actions sensibles et historique des connexions.
 
 ## Données personnelles
 
-La plateforme applique la **loi sénégalaise n° 2008-12 du 25 janvier 2008** sur la protection
-des données à caractère personnel :
-
-- page « Données personnelles » détaillant finalités, destinataires et durées de conservation ;
-- **droit d'accès** : téléchargement des données au format JSON ;
-- **droit à l'effacement** : demande de suppression traitée par anonymisation,
-  la comptabilité restant intacte ;
-- **durées de conservation** appliquées automatiquement chaque nuit.
-
----
+Conforme à la loi sénégalaise n° 2008-12 (CDP) : page d'information, consentement à l'inscription, téléchargement des données, effacement par anonymisation (la comptabilité est conservée), durées de conservation appliquées chaque nuit.
 
 ## Tâches planifiées
 
-| Tâche | Fréquence | Rôle |
-| --- | --- | --- |
-| `cotisations:rappeler` | Le 5 de chaque mois | Email de rappel aux membres en retard |
-| `donnees:purger` | Chaque nuit | Application des durées de conservation |
-
-En production, une seule entrée `cron` suffit : `* * * * * php artisan schedule:run`.
-
----
+| Tâche | Fréquence |
+| --- | --- |
+| Expiration des demandes non payées | Chaque jour |
+| Rappel email des cotisations en retard | Le 5 de chaque mois |
+| Alerte des tâches du bureau en retard (plus de 3 jours) | Chaque jour à 8 h |
+| Application des durées de conservation (`donnees:purger`) | Chaque nuit à 3 h |
 
 ## Contact
 
-Responsable technique : **Cheikh Ahmadou Bamba Ndour**
-
-Projet développé pour la Daara Nouroud Daareyni Kaolack. Tous droits réservés.
+Daara Nouroud Daareyni Kaolack · Cheikh Ahmadou Bamba Ndour
