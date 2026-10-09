@@ -7,6 +7,7 @@ use App\Services\PaiementService;
 use Database\Seeders\RolesSeeder;
 use Database\Seeders\TarifsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -42,6 +43,8 @@ it('liste tous les reçus du membre', function () {
 });
 
 it('filtre les reçus par nature', function () {
+    DB::table('notifications')->delete();
+
     $this->actingAs($this->user)->get('/mes-recus?type=cotisation')
         ->assertOk()
         ->assertSee($this->cotisation->numero_recu)

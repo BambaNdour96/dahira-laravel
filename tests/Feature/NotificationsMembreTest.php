@@ -91,9 +91,21 @@ it('affiche les notifications du membre, puis les marque comme lues', function (
     Membre::factory()->for($this->compte)->valide()->create();
     $this->compte->notify(new NotificationMembre('Message de test', 'Contenu du message.'));
 
-    $this->actingAs($this->compte)->get('/mon-espace')->assertSee('Vous avez 1 nouvelle(s) notification(s)');
+    $this->actingAs($this->compte)->get('/mon-espace')->assertSee('Notifications (1 nouvelle(s))');
 
     $this->actingAs($this->compte)->get('/mes-notifications')->assertOk()->assertSee('Message de test');
+
+    expect($this->compte->unreadNotifications()->count())->toBe(0);
+});
+
+it('montre les notifications dans le tiroir, sur toutes les pages, et les marque lues à l\'ouverture', function () {
+    Membre::factory()->for($this->compte)->valide()->create();
+    $this->compte->notify(new NotificationMembre('Avis du tiroir', 'Visible partout.'));
+
+    $this->actingAs($this->compte)->get('/mon-espace')->assertSee('tiroir-notifications', false)
+        ->assertSee('Avis du tiroir');
+
+    $this->actingAs($this->compte)->post(route('notifications.lues'))->assertNoContent();
 
     expect($this->compte->unreadNotifications()->count())->toBe(0);
 });

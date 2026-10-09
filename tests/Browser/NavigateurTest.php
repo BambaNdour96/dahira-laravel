@@ -5,6 +5,7 @@ use App\Models\Commission;
 use App\Models\Membre;
 use App\Models\Parametre;
 use App\Models\User;
+use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
@@ -88,7 +89,7 @@ it('n\'oblige jamais à faire défiler la page de côté sur un téléphone', fu
 
     $page = visit($adresse)->on()->mobile();
 
-    $mesure = $page->script('JSON.stringify({ origine: location.origin, styles: [...document.querySelectorAll("link[rel=stylesheet]")].map((l) => l.href + (l.sheet ? " CHARGEE" : " NON CHARGEE")), ecran: document.documentElement.clientWidth, page: document.documentElement.scrollWidth, depassent: [...document.querySelectorAll("body *")].filter((e) => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 6).map((e) => e.tagName.toLowerCase() + " " + String(e.className).slice(0, 70) + " => " + Math.round(e.getBoundingClientRect().right)) })');
+    $mesure = $page->script('JSON.stringify({ origine: location.origin, styles: [...document.querySelectorAll("link[rel=stylesheet]")].map((l) => l.href + (l.sheet ? " CHARGEE" : " NON CHARGEE")), ecran: document.documentElement.clientWidth, page: document.documentElement.scrollWidth, depassent: [...document.querySelectorAll("body *")].filter((e) => !e.closest("[aria-hidden=true]") && e.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 6).map((e) => e.tagName.toLowerCase() + " " + String(e.className).slice(0, 70) + " => " + Math.round(e.getBoundingClientRect().right)) })');
 
     expect($mesure)->toContain('"depassent":[]');
 })->with([
@@ -126,4 +127,22 @@ it('laisse le membre choisir le thème avec le bouton', function () {
         ->click('#bouton-theme')
         ->assertSee('Thème : sombre')
         ->assertNoJavascriptErrors();
+});
+
+it('déploie le tiroir des notifications, puis le replie en touchant la page', function () {
+    $this->compte->notify(new NotificationMembre('Avis de test', 'Contenu du test.'));
+    $this->actingAs($this->compte);
+
+    $page = visit('/mon-espace');
+    $ferme = 'document.getElementById("tiroir-notifications").classList.contains("translate-x-full")';
+
+    expect($page->script($ferme))->toBeTrue();
+
+    $page->click('#ouvrir-notifications')->assertSee('Avis de test');
+    expect($page->script($ferme))->toBeFalse();
+
+    $page->click('#voile-notifications');
+    expect($page->script($ferme))->toBeTrue();
+
+    $page->assertNoJavascriptErrors();
 });

@@ -51,6 +51,22 @@
     </header>
 
     <main class="mx-auto w-full max-w-xl flex-1 px-4 py-8">
+        @auth
+            @php
+                $notificationsMembre = auth()->user()->notifications()->where('type', \App\Notifications\NotificationMembre::class)->latest()->limit(10)->get();
+                $nouvellesNotifications = $notificationsMembre->whereNull('read_at')->count();
+            @endphp
+            <div class="mb-4 flex justify-end">
+                <button type="button" id="ouvrir-notifications" aria-controls="tiroir-notifications" aria-expanded="false"
+                        aria-label="Notifications ({{ $nouvellesNotifications }} nouvelle(s))"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-emerald-900 ring-1 ring-stone-200 hover:bg-stone-100">
+                    🔔 Notifications
+                    @if ($nouvellesNotifications > 0)
+                        <span id="badge-notifications" class="rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white">{{ $nouvellesNotifications }}</span>
+                    @endif
+                </button>
+            </div>
+        @endauth
         <div id="installer-app" hidden class="mb-4 flex justify-end">
             <button type="button" id="bouton-installer" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100">📲 Installer l'application</button>
         </div>
@@ -145,5 +161,6 @@
         media.addEventListener('change', () => appliquer(lire()));
     })();
 </script>
+@include('partials.tiroir-notifications')
 </body>
 </html>
