@@ -20,7 +20,7 @@
                     </div>
                     <p class="mt-1 text-sm text-stone-700">{{ $notification->data['message'] ?? '' }}</p>
                     @if (! empty($notification->data['lien']))
-                        <a href="{{ $notification->data['lien'] }}"
+                        <a href="{{ \App\Notifications\NotificationMembre::chemin($notification->data['lien']) }}"
                            class="mt-3 inline-block rounded-lg bg-emerald-800 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-900">
                             {{ $notification->data['libelle_lien'] ?? 'Ouvrir' }}
                         </a>

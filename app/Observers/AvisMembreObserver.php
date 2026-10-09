@@ -25,6 +25,11 @@ class AvisMembreObserver
 
     public function updated(Model $modele): void
     {
+        // Bienvenue : envoyée quand le matricule est attribué, pour pouvoir l'indiquer.
+        if ($modele instanceof Membre && $modele->wasChanged('matricule') && $modele->getOriginal('matricule') === null && $modele->matricule !== null) {
+            self::avertir($modele, 'Bienvenue dans la Daara !', 'Votre adhésion est validée. Votre matricule est '.$modele->matricule.', et votre carte de membre est disponible.', route('carte'), 'Voir ma carte');
+        }
+
         if ($modele instanceof Membre && $modele->wasChanged('statut')) {
             self::changementDeStatut($modele);
         }
@@ -73,7 +78,7 @@ class AvisMembreObserver
                 'Votre carte n\'est plus valide pour le moment. Contactez votre Jewrine de cellule pour plus d\'informations.', route('espace'), 'Ouvrir mon compte'],
             StatutMembre::Valide => $avant === StatutMembre::Suspendu
                 ? ['Votre adhésion est réactivée', 'Votre carte de membre est de nouveau valide.', route('carte'), 'Voir ma carte']
-                : ['Bienvenue dans la Daara !', 'Votre adhésion est validée. Votre matricule est '.$membre->matricule.', et votre carte de membre est disponible.', route('carte'), 'Voir ma carte'],
+                : null,
             default => null,
         };
 

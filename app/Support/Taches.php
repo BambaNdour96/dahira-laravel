@@ -6,6 +6,7 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\RegleValidation;
 use App\Models\User;
+use App\Notifications\NotificationMembre;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
@@ -64,6 +65,8 @@ final class Taches
     /** @param  Collection<int, User>  $destinataires */
     public static function envoyer(Collection $destinataires, string $titre, string $corps, string $lien): void
     {
+        $lien = NotificationMembre::chemin($lien) ?? $lien;
+
         if ($destinataires->isEmpty()) {
             return;
         }

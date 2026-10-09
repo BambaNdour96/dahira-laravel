@@ -34,7 +34,7 @@ class NotificationMembre extends Notification implements ShouldQueue
         return [
             'titre' => $this->titre,
             'message' => $this->message,
-            'lien' => $this->lien,
+            'lien' => self::chemin($this->lien),
             'libelle_lien' => $this->libelleLien,
         ];
     }
@@ -47,9 +47,23 @@ class NotificationMembre extends Notification implements ShouldQueue
             ->line($this->message);
 
         if ($this->lien !== null) {
-            $email->action($this->libelleLien ?? 'Ouvrir mon compte', $this->lien);
+            $email->action($this->libelleLien ?? 'Ouvrir mon compte', url((string) self::chemin($this->lien)));
         }
 
         return $email->salutation('Jërëjëf, le bureau de la Daara');
+    }
+
+    /** Chemin relatif d'un lien (par exemple /ma-carte), pour fonctionner quelle que soit l'adresse du site. */
+    public static function chemin(?string $lien): ?string
+    {
+        if ($lien === null || $lien === '') {
+            return null;
+        }
+
+        $chemin = parse_url($lien, PHP_URL_PATH);
+        $requete = parse_url($lien, PHP_URL_QUERY);
+
+        return (is_string($chemin) && $chemin !== '' ? $chemin : '/')
+            .(is_string($requete) && $requete !== '' ? '?'.$requete : '');
     }
 }
