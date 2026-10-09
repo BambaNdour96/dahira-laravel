@@ -27,7 +27,11 @@ const expliquer = (erreur, annule) => (erreur && erreur.name === 'NotAllowedErro
 
 document.addEventListener('DOMContentLoaded', () => {
     const compatible = browserSupportsWebAuthn();
-    document.querySelectorAll('[data-empreinte]').forEach((bloc) => bloc.classList.toggle('hidden', !compatible));
+    const activee = (() => { try { return localStorage.getItem('ndk-empreinte') === '1'; } catch (e) { return false; } })();
+    document.querySelectorAll('[data-empreinte]').forEach((bloc) => {
+        const pourConnexion = bloc.querySelector('[data-connexion-empreinte]') !== null;
+        bloc.classList.toggle('hidden', !compatible || (pourConnexion && !activee));
+    });
 
     document.querySelectorAll('[data-activer-empreinte]').forEach((bouton) => {
         bouton.addEventListener('click', async () => {
@@ -35,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cle = await startRegistration({ optionsJSON: await options(bouton.dataset.options) });
                 const corps = await envoyer(bouton.dataset.enregistrer, bouton.dataset.jeton, { cle: JSON.stringify(cle) });
                 afficher(bouton, corps.message, false);
+                try { localStorage.setItem('ndk-empreinte', '1'); } catch (e) {}
                 setTimeout(() => location.reload(), 1000);
             } catch (erreur) {
                 afficher(bouton, expliquer(erreur, 'Activation annulée.'));
