@@ -162,7 +162,7 @@ it('donne au membre le reçu de son inscription', function () {
     $this->actingAs($this->user)->get('/mon-espace')
         ->assertOk()
         ->assertSee("Mon reçu d'inscription", false)
-        ->assertSee('Tous mes reçus');
+        ->assertSee('Mes reçus');
 });
 
 it('affiche le bouton Wave des frais de carte avec le lien « frais de carte » des réglages', function () {

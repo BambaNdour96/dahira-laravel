@@ -120,6 +120,6 @@ it('distingue les notifications nouvelles des notifications lues', function () {
         ->assertSee('Nouveau')
         ->assertSee('opacity-75', false)
         ->assertSee('tiroir-menu', false)
-        ->assertSee('Changer mon mot de passe')
+        ->assertSee('Paramètres')
         ->assertSee('Se déconnecter');
 });

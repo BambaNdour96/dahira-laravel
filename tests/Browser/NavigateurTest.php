@@ -155,7 +155,7 @@ it('déploie le menu depuis la gauche, puis le replie en touchant la page', func
 
     expect($page->script($ferme))->toBeTrue();
 
-    $page->click('#ouvrir-menu')->assertSee('Changer mon mot de passe');
+    $page->click('#ouvrir-menu')->assertSee('Paramètres');
     expect($page->script($ferme))->toBeFalse();
 
     $page->click('#voile-menu');

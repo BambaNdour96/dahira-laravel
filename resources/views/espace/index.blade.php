@@ -3,8 +3,6 @@
 @section('titre', 'Mon compte')
 
 @section('contenu')
-
-
     @if (! $membre)
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
             <p>Ce compte n'est rattaché à aucune fiche de membre.</p>
@@ -23,143 +21,101 @@
             };
             $groupeCellule = $membre->cellule->whatsapp_lien;
             $montant = number_format($montantFraisCarte, 0, ',', ' ');
+            $etapes = ['Demande envoyée', 'Demande acceptée', 'Frais de carte', 'Membre validé'];
+            $etapeActuelle = match ($membre->statut) {
+                \App\Enums\StatutMembre::EnAttente, \App\Enums\StatutMembre::ACorriger => 1,
+                \App\Enums\StatutMembre::Accepte => $paiementEnCours ? 3 : 2,
+                default => 0,
+            };
         @endphp
 
-        {{-- En-tête --}}
-        <div class="flex items-center gap-4">
+        {{-- Salutation --}}
+        <div class="flex items-center gap-3">
             @if ($membre->photo_path)
-                <img src="{{ route('photos.show', $membre) }}" alt="Photo de {{ $membre->prenom }}"
-                     class="h-20 w-20 rounded-full object-cover shadow ring-2 ring-or-400">
+                <a href="{{ route('espace.profil') }}" class="shrink-0" title="Modifier mon profil et ma photo">
+                    <img src="{{ route('photos.show', $membre) }}" alt="Photo de {{ $membre->prenom }}"
+                         class="h-14 w-14 rounded-full object-cover shadow ring-2 ring-or-400">
+                </a>
             @endif
-            <div>
-                <h1 class="text-2xl font-semibold text-emerald-950">{{ $membre->prenom }} {{ $membre->nom }}</h1>
-                <span class="mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-semibold {{ $classes }}">{{ $membre->statut->getLabel() }}</span>
+            <div class="min-w-0">
+                <p class="text-sm text-stone-500">Assalamou aleykoum,</p>
+                <h1 class="truncate text-2xl font-semibold text-emerald-950">{{ $membre->prenom }} {{ $membre->nom }}</h1>
+                <span class="mt-1 inline-block rounded-full px-3 py-0.5 text-xs font-semibold {{ $classes }}">{{ $membre->statut->getLabel() }}</span>
             </div>
-        </div>
-        {{-- Cotisations en retard --}}
-        @if ($estValide && $retardCotisation > 0)
-            <a href="{{ route('cotisations') }}" class="mt-6 block rounded-xl bg-red-50 p-4 ring-1 ring-red-200 hover:bg-red-100">
-                <p class="font-semibold text-red-900">Cotisation en retard de {{ $retardCotisation }} mois</p>
-                <p class="mt-1 text-sm text-red-800">Réglez vos mois en attente avec Wave : appuyez ici.</p>
-            </a>
-        @endif
-
-
-        {{-- Compléter mon profil : seulement pour les membres validés --}}
-        @if ($estValide && $membre->completude() < 100)
-            <a href="{{ route('espace.profil') }}" class="mt-6 block rounded-xl bg-or-100 p-4 ring-1 ring-or-400 hover:bg-or-200">
-                <div class="flex items-center justify-between text-sm font-semibold text-emerald-950">
-                    <span>Compléter mon profil</span>
-                    <span>{{ $membre->completude() }} %</span>
-                </div>
-                <div class="mt-2 h-2 rounded-full bg-white">
-                    <div class="h-2 rounded-full bg-emerald-700" style="width: {{ $membre->completude() }}%"></div>
-                </div>
-                <p class="mt-2 text-xs text-emerald-900">Formation et situation professionnelle : quelques minutes suffisent.</p>
-            </a>
-        @endif
-
-        {{-- Mon adhésion --}}
-        <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
-            <h2 class="font-semibold text-emerald-900">Mon adhésion</h2>
-
-            @if ($membre->statut === \App\Enums\StatutMembre::EnAttente)
-                <p class="mt-2 text-sm text-stone-700">
-                    Votre demande est en cours de vérification par votre Jewrine de cellule.
-                    Vous serez informé dès qu'elle sera acceptée.
-                </p>
-
-            @elseif ($membre->statut === \App\Enums\StatutMembre::Accepte)
-                <p class="mt-2 text-sm text-stone-700">
-                    Votre demande est <strong>acceptée</strong>. Dernière étape pour devenir membre et recevoir votre carte :
-                    réglez les <strong>frais de carte de {{ $montant }} FCFA</strong>
-                    avant le <strong>{{ $membre->dateLimitePaiement()?->format('d/m/Y') }}</strong>.
-                </p>
-
-                @if ($paiementEnCours)
-                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-                        Paiement déclaré le {{ $paiementEnCours->declare_le->format('d/m/Y à H:i') }}
-                        (référence <span class="font-mono">{{ $paiementEnCours->reference }}</span>).
-                        Il est en cours de vérification par le Jewrine finance.
-                    </p>
-                @else
-                    @if ($dernierRefus)
-                        <p class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-900">
-                            Votre déclaration précédente a été refusée : {{ $dernierRefus->motif_refus }}
-                        </p>
-                    @endif
-
-                    <ol class="mt-4 space-y-4 text-sm">
-                        <li>
-                            <p class="font-semibold text-emerald-900">1. Payez {{ $montant }} FCFA avec Wave</p>
-                            @if ($lienWave)
-                                <a href="{{ $lienWave }}" target="_blank" rel="noopener"
-                                   class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
-                                    Payer avec Wave
-                                </a>
-                            @else
-                                <p class="mt-1 text-stone-600">Le lien de paiement Wave sera bientôt disponible. Vous pouvez payer en espèces auprès du Jewrine finance.</p>
-                            @endif
-                        </li>
-                        <li>
-                            <p class="font-semibold text-emerald-900">2. Indiquez la référence de votre reçu Wave</p>
-                            <p class="mt-1 text-xs text-stone-500">Dans l'application Wave : historique, puis le détail de ce paiement.</p>
-                            <form method="POST" action="{{ route('espace.paiement') }}" class="mt-2 flex flex-col gap-2 sm:flex-row">
-                                @csrf
-                                <input type="tel" name="numero_wave" value="{{ old('numero_wave', $membre->telephone) }}" inputmode="tel" autocomplete="tel"
-                                       placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
-                                       class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
-                                <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
-                                       placeholder="Exemple : T_CN535JQDN4VAPI5R"
-                                       class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
-                                <button type="submit" class="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">
-                                    J'ai payé
-                                </button>
-                            </form>
-                            @error('numero_wave')
-                                <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
-                            @enderror
-                            @error('reference')
-                                <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
-                            @enderror
-                        </li>
-                    </ol>
-                    <p class="mt-4 text-xs text-stone-500">Vous pouvez aussi régler en espèces auprès du Jewrine finance de la Daara.</p>
-                @endif
-
-            @elseif ($membre->statut === \App\Enums\StatutMembre::Expire)
-                <p class="mt-2 text-sm text-stone-700">
-                    Le délai de {{ \App\Models\Membre::DELAI_PAIEMENT_JOURS }} jours pour régler les frais de carte est dépassé.
-                    Vous pouvez renvoyer votre demande à votre Jewrine de cellule.
-                </p>
-                <form method="POST" action="{{ route('espace.relancer') }}" class="mt-4">
-                    @csrf
-                    <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">
-                        Refaire ma demande
-                    </button>
-                </form>
-
-            @elseif ($membre->statut === \App\Enums\StatutMembre::ACorriger)
-                <p class="mt-2 text-sm text-stone-700">Votre Jewrine de cellule vous demande de corriger votre fiche :</p>
-                <p class="mt-2 rounded-lg bg-sky-50 p-3 text-sm italic text-sky-900">{{ $membre->motif_statut }}</p>
-                <a href="{{ route('espace.profil') }}" class="mt-4 inline-block rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Corriger ma fiche</a>
-
-            @elseif ($membre->statut === \App\Enums\StatutMembre::Rejete)
-                <p class="mt-2 text-sm text-stone-700">Votre demande n'a pas été retenue :</p>
-                <p class="mt-2 rounded-lg bg-red-50 p-3 text-sm italic text-red-900">{{ $membre->motif_statut }}</p>
-
-            @elseif ($estValide)
-                <p class="mt-2 text-sm text-stone-700">Bienvenue parmi les membres de la Daara.</p>
-
-            @else
-                <p class="mt-2 text-sm text-stone-700">Pour toute question, contactez le bureau de la Daara.</p>
-            @endif
         </div>
 
         @if ($estValide)
+            {{-- Carte de membre en miniature --}}
+            <a href="{{ route('carte') }}" class="mt-5 flex items-center gap-4 rounded-2xl bg-emerald-900 p-4 text-white shadow-sm hover:bg-emerald-950">
+                @if ($membre->photo_path)
+                    <img src="{{ route('photos.show', $membre) }}" alt="" class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-or-400">
+                @endif
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold">Ma carte de membre</p>
+                    <p class="truncate text-sm text-emerald-100">{{ $membre->matricule }} · {{ $membre->cellule->nom }}</p>
+                </div>
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-900" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm9-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h3v2h-3v-2zm-4 4h2v3h-2v-3zm4 0h3v3h-3v-1h1v-1h-1v-1zm-2 2h2v1h-2v-1z"/></svg>
+                </span>
+            </a>
+            <p class="mt-1 text-xs text-stone-500">Touchez la carte pour l'afficher en grand.</p>
+
+            {{-- État des cotisations --}}
+            @if ($retardCotisation > 0)
+                <a href="{{ route('cotisations') }}" class="mt-4 block rounded-xl bg-red-50 p-4 ring-1 ring-red-200 hover:bg-red-100">
+                    <p class="font-semibold text-red-900">Cotisation en retard de {{ $retardCotisation }} mois</p>
+                    <p class="mt-1 text-sm text-red-800">Réglez vos mois en attente avec Wave : appuyez ici.</p>
+                    <span class="mt-3 inline-block rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white">Payer maintenant</span>
+                </a>
+            @else
+                <div class="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white" aria-hidden="true">✓</span>
+                    <div>
+                        <p class="font-semibold text-emerald-900">Cotisations à jour</p>
+                        <p class="text-sm text-stone-600">Merci pour votre engagement envers la Daara.</p>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Raccourcis --}}
+            <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <a href="{{ route('cotisations') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                    <span class="block text-2xl" aria-hidden="true">💳</span> Payer
+                </a>
+                <a href="{{ route('recus.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                    <span class="block text-2xl" aria-hidden="true">🧾</span> Mes reçus
+                </a>
+                <a href="{{ route('evenements.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                    <span class="block text-2xl" aria-hidden="true">📅</span> Participations
+                </a>
+                @if ($groupeCellule || $whatsappNational)
+                    <a href="#groupes" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                        <span class="block text-2xl" aria-hidden="true">💬</span> Groupes
+                    </a>
+                @else
+                    <a href="{{ route('notifications.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                        <span class="block text-2xl" aria-hidden="true">🔔</span> Notifications
+                    </a>
+                @endif
+            </div>
+
+            {{-- Profil incomplet : la barre disparaît quand tout est rempli --}}
+            @if ($membre->completude() < 100)
+                <a href="{{ route('espace.profil') }}" class="mt-5 block rounded-xl bg-or-100 p-4 ring-1 ring-or-400 hover:bg-or-200">
+                    <div class="flex items-center justify-between text-sm font-semibold text-emerald-950">
+                        <span>Compléter mon profil</span>
+                        <span>{{ $membre->completude() }} %</span>
+                    </div>
+                    <div class="mt-2 h-2 rounded-full bg-white">
+                        <div class="h-2 rounded-full bg-emerald-700" style="width: {{ $membre->completude() }}%"></div>
+                    </div>
+                    <p class="mt-2 text-xs text-emerald-900">Formation et situation professionnelle : quelques minutes suffisent.</p>
+                </a>
+            @endif
+
             {{-- Groupes WhatsApp --}}
             @if ($groupeCellule || $whatsappNational)
-                <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+                <div id="groupes" class="mt-5 scroll-mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                     <h2 class="font-semibold text-emerald-900">Groupes WhatsApp</h2>
                     <div class="mt-3 flex flex-col gap-3 sm:flex-row">
                         @if ($groupeCellule)
@@ -179,9 +135,9 @@
             @endif
 
             {{-- Mes affectations --}}
-            <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+            <div class="mt-5 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 <h2 class="font-semibold text-emerald-900">Mes affectations</h2>
-                <dl class="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
                     <div>
                         <dt class="text-stone-500">Cellule</dt>
                         <dd class="font-medium">{{ $membre->cellule->nom }}</dd>
@@ -195,10 +151,6 @@
                         <dd class="font-medium">{{ $membre->commissions->pluck('nom')->join(', ') ?: '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-stone-500">Matricule</dt>
-                        <dd class="font-mono font-medium">{{ $membre->matricule }}</dd>
-                    </div>
-                    <div>
                         <dt class="text-stone-500">Date d'adhésion</dt>
                         <dd class="font-medium">{{ $membre->date_adhesion?->format('d/m/Y') ?? '—' }}</dd>
                     </div>
@@ -207,22 +159,116 @@
                 @if ($recuFraisCarte)
                     <a href="{{ route('recus.show', $recuFraisCarte) }}" target="_blank" class="mt-2 inline-block text-sm font-medium text-emerald-800 underline">Mon reçu d'inscription</a>
                 @endif
-                <a href="{{ route('recus.index') }}" class="mt-2 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Tous mes reçus</a>
             </div>
+        @else
+            {{-- Suivi de la demande, étape par étape --}}
+            @if ($etapeActuelle > 0)
+                <ol class="mt-6 grid grid-cols-4 gap-2 text-center text-[11px] leading-tight">
+                    @foreach ($etapes as $index => $etape)
+                        @php($numero = $index + 1)
+                        <li>
+                            <span class="mx-auto flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold {{ $numero < $etapeActuelle ? 'bg-emerald-700 text-white' : ($numero === $etapeActuelle ? 'bg-or-100 text-emerald-950 ring-2 ring-or-400' : 'bg-stone-100 text-stone-500') }}">
+                                {{ $numero < $etapeActuelle ? '✓' : $numero }}
+                            </span>
+                            <span class="mt-1 block text-stone-600">{{ $etape }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
 
-            {{-- Ma carte et mes cotisations --}}
-            <div class="mt-6 grid gap-4 sm:grid-cols-2">
-                <a href="{{ route('carte') }}" class="block rounded-xl bg-emerald-800 p-5 text-sm text-white shadow-sm hover:bg-emerald-900">
-                    <h2 class="font-semibold">Ma carte de membre</h2>
-                    <p class="mt-2 text-emerald-100">Afficher ma carte avec son QR code.</p>
-                </a>
-                <a href="{{ route('cotisations') }}" class="block rounded-xl bg-white p-5 text-sm shadow-sm ring-1 ring-stone-200 hover:ring-emerald-700">
-                    <h2 class="font-semibold text-emerald-900">Mes cotisations</h2>
-                    <p class="mt-2 text-stone-500">Voir mes mois réglés et payer avec Wave.</p>
-                </a>
+            {{-- Mon adhésion --}}
+            <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+                <h2 class="font-semibold text-emerald-900">Mon adhésion</h2>
+
+                @if ($membre->statut === \App\Enums\StatutMembre::EnAttente)
+                    <p class="mt-2 text-sm text-stone-700">
+                        Votre demande est en cours de vérification par votre Jewrine de cellule.
+                        Vous serez informé dès qu'elle sera acceptée.
+                    </p>
+
+                @elseif ($membre->statut === \App\Enums\StatutMembre::Accepte)
+                    <p class="mt-2 text-sm text-stone-700">
+                        Votre demande est <strong>acceptée</strong>. Dernière étape pour devenir membre et recevoir votre carte :
+                        réglez les <strong>frais de carte de {{ $montant }} FCFA</strong>
+                        avant le <strong>{{ $membre->dateLimitePaiement()?->format('d/m/Y') }}</strong>.
+                    </p>
+
+                    @if ($paiementEnCours)
+                        <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                            Paiement déclaré le {{ $paiementEnCours->declare_le->format('d/m/Y à H:i') }}
+                            (référence <span class="font-mono">{{ $paiementEnCours->reference }}</span>).
+                            Il est en cours de vérification par le Jewrine finance.
+                        </p>
+                    @else
+                        @if ($dernierRefus)
+                            <p class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-900">
+                                Votre déclaration précédente a été refusée : {{ $dernierRefus->motif_refus }}
+                            </p>
+                        @endif
+
+                        <ol class="mt-4 space-y-4 text-sm">
+                            <li>
+                                <p class="font-semibold text-emerald-900">1. Payez {{ $montant }} FCFA avec Wave</p>
+                                @if ($lienWave)
+                                    <a href="{{ $lienWave }}" target="_blank" rel="noopener"
+                                       class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
+                                        Payer avec Wave
+                                    </a>
+                                @else
+                                    <p class="mt-1 text-stone-600">Le lien de paiement Wave sera bientôt disponible. Vous pouvez payer en espèces auprès du Jewrine finance.</p>
+                                @endif
+                            </li>
+                            <li>
+                                <p class="font-semibold text-emerald-900">2. Indiquez la référence de votre reçu Wave</p>
+                                <p class="mt-1 text-xs text-stone-500">Dans l'application Wave : historique, puis le détail de ce paiement.</p>
+                                <form method="POST" action="{{ route('espace.paiement') }}" class="mt-2 flex flex-col gap-2 sm:flex-row">
+                                    @csrf
+                                    <input type="tel" name="numero_wave" value="{{ old('numero_wave', $membre->telephone) }}" inputmode="tel" autocomplete="tel"
+                                           placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
+                                           class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
+                                    <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
+                                           placeholder="Exemple : T_CN535JQDN4VAPI5R"
+                                           class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
+                                    <button type="submit" class="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">
+                                        J'ai payé
+                                    </button>
+                                </form>
+                                @error('numero_wave')
+                                    <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                                @enderror
+                                @error('reference')
+                                    <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                                @enderror
+                            </li>
+                        </ol>
+                        <p class="mt-4 text-xs text-stone-500">Vous pouvez aussi régler en espèces auprès du Jewrine finance de la Daara.</p>
+                    @endif
+
+                @elseif ($membre->statut === \App\Enums\StatutMembre::Expire)
+                    <p class="mt-2 text-sm text-stone-700">
+                        Le délai de {{ \App\Models\Membre::DELAI_PAIEMENT_JOURS }} jours pour régler les frais de carte est dépassé.
+                        Vous pouvez renvoyer votre demande à votre Jewrine de cellule.
+                    </p>
+                    <form method="POST" action="{{ route('espace.relancer') }}" class="mt-4">
+                        @csrf
+                        <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">
+                            Refaire ma demande
+                        </button>
+                    </form>
+
+                @elseif ($membre->statut === \App\Enums\StatutMembre::ACorriger)
+                    <p class="mt-2 text-sm text-stone-700">Votre Jewrine de cellule vous demande de corriger votre fiche :</p>
+                    <p class="mt-2 rounded-lg bg-sky-50 p-3 text-sm italic text-sky-900">{{ $membre->motif_statut }}</p>
+                    <a href="{{ route('espace.profil') }}" class="mt-4 inline-block rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Corriger ma fiche</a>
+
+                @elseif ($membre->statut === \App\Enums\StatutMembre::Rejete)
+                    <p class="mt-2 text-sm text-stone-700">Votre demande n'a pas été retenue :</p>
+                    <p class="mt-2 rounded-lg bg-red-50 p-3 text-sm italic text-red-900">{{ $membre->motif_statut }}</p>
+
+                @else
+                    <p class="mt-2 text-sm text-stone-700">Pour toute question, contactez le bureau de la Daara.</p>
+                @endif
             </div>
-
-            <a href="{{ route('espace.profil') }}" class="mt-6 inline-block text-sm font-medium text-emerald-800 underline">Modifier mon profil</a>
         @endif
     @endif
 @endsection
