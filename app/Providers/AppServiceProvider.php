@@ -6,6 +6,7 @@ use App\Models\Carte;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Observers\AvisMembreObserver;
+use App\Observers\CoherenceProfilObserver;
 use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Fiches cohérentes : les champs sans objet sont vidés.
+        Membre::observe(CoherenceProfilObserver::class);
 
         // Notifications adressées aux membres.
         Membre::observe(AvisMembreObserver::class);

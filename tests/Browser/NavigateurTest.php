@@ -163,3 +163,42 @@ it('déploie le menu depuis la gauche, puis le replie en touchant la page', func
 
     $page->assertNoJavascriptErrors();
 });
+
+it('garde « Se connecter » grisé tant que le mot de passe est vide, et sait l\'afficher', function () {
+    $page = visit('/connexion');
+    $bloque = 'document.querySelector(\'form[action$="/connexion"] button[type="submit"]\').disabled';
+
+    expect($page->script($bloque))->toBeTrue();
+
+    $page->fill('telephone', '77 123 45 67')->fill('password', 'secret12');
+    expect($page->script($bloque))->toBeFalse();
+
+    $page->click('#afficher-mdp-0');
+    expect($page->script('document.querySelector(\'input[name="password"]\').type'))->toBe('text');
+
+    $page->assertNoJavascriptErrors();
+});
+
+it('met la référence Wave en majuscules et contrôle son format', function () {
+    $this->actingAs($this->compte);
+
+    $page = visit('/mes-cotisations');
+    $bouton = 'document.querySelector(\'input[name="reference"]\').form.querySelector(\'button[type="submit"]\').disabled';
+
+    expect($page->script($bouton))->toBeTrue();
+
+    $page->fill('reference', 't_cn535jqdn4vapi5r');
+    expect($page->script('document.querySelector(\'input[name="reference"]\').value'))->toBe('T_CN535JQDN4VAPI5R')
+        ->and($page->script($bouton))->toBeFalse();
+
+    $page->assertNoJavascriptErrors();
+});
+
+it('grise « Continuer » et affiche les règles du mot de passe à l\'inscription', function () {
+    $page = visit('/inscription');
+
+    expect($page->script('document.querySelector("[data-suivant]").dataset.incomplet'))->toBe('oui')
+        ->and($page->script('document.querySelector("[data-regles-mdp]") !== null'))->toBeTrue();
+
+    $page->assertNoJavascriptErrors();
+});

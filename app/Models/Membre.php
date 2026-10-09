@@ -131,11 +131,21 @@ class Membre extends Model
     /** Pourcentage du profil renseigné, pour la barre de progression. */
     public function completude(): int
     {
-        $remplis = collect(self::CHAMPS_PROFIL)
-            ->filter(fn (string $champ): bool => filled($this->getAttribute($champ)))
-            ->count();
+        $champs = array_values(array_filter(self::CHAMPS_PROFIL, fn (string $champ): bool => $this->champApplicable($champ)));
+        $remplis = collect($champs)->filter(fn (string $champ): bool => filled($this->getAttribute($champ)))->count();
 
-        return (int) round($remplis / count(self::CHAMPS_PROFIL) * 100);
+        return (int) round($remplis / count($champs) * 100);
+    }
+
+    /** Un champ sans objet (diplôme sans études, profession d'un retraité) ne compte pas dans le profil. */
+    public function champApplicable(string $champ): bool
+    {
+        return match ($champ) {
+            'diplome', 'domaine_etudes' => $this->niveau_etudes !== NiveauEtudes::Aucun,
+            'secteur_activite' => $this->situation_professionnelle !== SituationProfessionnelle::Retraite,
+            'profession' => ! in_array($this->situation_professionnelle, [SituationProfessionnelle::Retraite, SituationProfessionnelle::EleveEtudiant], true),
+            default => true,
+        };
     }
 
     /** Date limite pour régler les frais de carte. */

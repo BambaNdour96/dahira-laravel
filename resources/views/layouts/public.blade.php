@@ -211,5 +211,6 @@
 </script>
 @include('partials.tiroir-menu')
 @include('partials.tiroir-notifications')
+@include('partials.formulaires')
 </body>
 </html>
