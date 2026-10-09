@@ -11,6 +11,14 @@
     <title>@yield('titre', 'Accueil') – Daara Nouroud Daareyni Kaolack</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ndk.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
+        (() => {
+            let choix = 'auto';
+            try { choix = localStorage.getItem('ndk-theme') || 'auto'; } catch (e) {}
+            const sombre = choix === 'sombre' || (choix === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList.toggle('dark', sombre);
+        })();
+    </script>
 </head>
 <body class="flex min-h-screen flex-col bg-stone-50 text-stone-800 antialiased">
     @include('partials.bandeau-en-tant-que')
@@ -57,6 +65,7 @@
 
     <footer class="border-t border-stone-200 bg-white">
         <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-6 text-center text-xs text-stone-500">
+            <button type="button" id="bouton-theme" class="rounded-full px-3 py-1 text-xs font-medium text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100">Thème : automatique</button>
             <p class="font-medium text-stone-700">Daara Nouroud Daareyni Kaolack</p>
             <a href="{{ route('confidentialite') }}" class="underline hover:text-emerald-800">Données personnelles</a>
         </div>
@@ -115,5 +124,26 @@
         })();
     </script>
 @endauth
+<script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" id="changer-theme">
+    (() => {
+        const bouton = document.getElementById('bouton-theme');
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const libelles = { auto: 'automatique', clair: 'clair', sombre: 'sombre' };
+        const suivant = { auto: 'clair', clair: 'sombre', sombre: 'auto' };
+        const lire = () => { try { return localStorage.getItem('ndk-theme') || 'auto'; } catch (e) { return 'auto'; } };
+        const appliquer = (choix) => {
+            const sombre = choix === 'sombre' || (choix === 'auto' && media.matches);
+            document.documentElement.classList.toggle('dark', sombre);
+            if (bouton) { bouton.textContent = 'Thème : ' + libelles[choix]; }
+        };
+        appliquer(lire());
+        bouton?.addEventListener('click', () => {
+            const choix = suivant[lire()] || 'auto';
+            try { localStorage.setItem('ndk-theme', choix); } catch (e) {}
+            appliquer(choix);
+        });
+        media.addEventListener('change', () => appliquer(lire()));
+    })();
+</script>
 </body>
 </html>

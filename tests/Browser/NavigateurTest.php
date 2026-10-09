@@ -108,3 +108,22 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
         '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression',
     ])->assertNoJavascriptErrors();
 });
+
+it('suit le thème sombre du téléphone, sans erreur', function () {
+    $page = visit('/')->inDarkMode();
+
+    expect($page->script('document.documentElement.classList.contains("dark")'))->toBeTrue()
+        ->and($page->script('getComputedStyle(document.body).backgroundColor'))->toBe('rgb(12, 18, 16)');
+
+    $page->assertNoJavascriptErrors();
+});
+
+it('laisse le membre choisir le thème avec le bouton', function () {
+    visit('/connexion')
+        ->assertSee('Thème : automatique')
+        ->click('#bouton-theme')
+        ->assertSee('Thème : clair')
+        ->click('#bouton-theme')
+        ->assertSee('Thème : sombre')
+        ->assertNoJavascriptErrors();
+});

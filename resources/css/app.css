@@ -25,3 +25,61 @@
     --color-or-500: #d4a017;
     --color-or-600: #b3850f;
 }
+
+/* ------------------------------------------------------------------
+   Mode sombre du site des membres : actif quand <html> porte la classe « dark »
+   (thème du téléphone, ou choix du membre). Les couleurs claires restent la référence.
+   ------------------------------------------------------------------ */
+html.dark {
+    color-scheme: dark;
+}
+
+html.dark body {
+    background-color: #0c1210;
+    color: #e7e5e4;
+}
+
+/* Surfaces */
+html.dark .bg-white { background-color: #16201b; }
+html.dark .bg-stone-50 { background-color: #0c1210; }
+html.dark .bg-stone-100 { background-color: #1d2a23; }
+html.dark .bg-emerald-50 { background-color: #12261c; }
+html.dark .bg-emerald-100 { background-color: #173324; }
+html.dark .bg-or-100 { background-color: #2a2410; }
+html.dark .bg-red-50 { background-color: #2a1414; }
+html.dark .hover\:bg-emerald-100:hover { background-color: #1b3a29; }
+
+/* Textes */
+html.dark .text-stone-900,
+html.dark .text-stone-800 { color: #f5f5f4; }
+html.dark .text-stone-700 { color: #d6d3d1; }
+html.dark .text-stone-600 { color: #b8b2ad; }
+html.dark .text-stone-500 { color: #a8a29e; }
+html.dark .text-emerald-950,
+html.dark .text-emerald-900 { color: #d1fae5; }
+html.dark .text-emerald-800 { color: #6ee7b7; }
+html.dark .text-red-900,
+html.dark .text-red-800 { color: #fca5a5; }
+
+/* Bordures et cadres */
+html.dark .border-stone-200,
+html.dark .border-stone-300 { border-color: #2c3a33; }
+html.dark .border-emerald-200 { border-color: #1f4d36; }
+html.dark .divide-stone-100 > :not(:last-child) { border-color: #2c3a33; }
+html.dark .ring-stone-200 { --tw-ring-color: #2c3a33; }
+html.dark .ring-emerald-200 { --tw-ring-color: #1f4d36; }
+html.dark .ring-or-400 { --tw-ring-color: #a17a10; }
+
+/* Champs de formulaire */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+html.dark select,
+html.dark textarea {
+    background-color: #111a16;
+    color: #f5f5f4;
+    border-color: #2c3a33;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #78716c;
+}
