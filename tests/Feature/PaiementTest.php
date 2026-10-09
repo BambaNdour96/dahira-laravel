@@ -166,8 +166,8 @@ it('donne au membre le reçu de son inscription', function () {
 });
 
 it('affiche le bouton Wave des frais de carte avec le lien « frais de carte » des réglages', function () {
-    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_frais_carte'], ['valeur' => 'https://pay.wave.com/m/FRAISCARTE']);
-    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_paiement'], ['valeur' => null]);
+    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_frais_carte'], ['valeur' => 'https://pay.wave.com/m/FRAISCARTE', 'libelle' => 'Lien Wave : frais de carte']);
+    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_paiement'], ['valeur' => null, 'libelle' => 'Ancien lien Wave']);
 
     $this->actingAs($this->user)->get('/mon-espace')
         ->assertSee('Payer avec Wave')
