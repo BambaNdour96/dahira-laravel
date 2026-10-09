@@ -43,9 +43,8 @@
     </header>
 
     <main class="mx-auto w-full max-w-xl flex-1 px-4 py-8">
-        <div id="installer-app" hidden class="mb-6 flex items-center justify-between gap-3 rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-200">
-            <p class="text-sm text-emerald-900">Installez l'application de la Daara sur votre téléphone.</p>
-            <button type="button" id="bouton-installer" class="shrink-0 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Installer</button>
+        <div id="installer-app" hidden class="mb-4 flex justify-end">
+            <button type="button" id="bouton-installer" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100">📲 Installer l'application</button>
         </div>
         @if (session('succes'))
             <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
