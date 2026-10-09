@@ -51,8 +51,13 @@
 
             <div>
                 <label for="photo" class="block text-sm font-medium">Photo d'identité <span class="text-red-700">*</span></label>
-                <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required
-                       class="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-medium file:text-emerald-900">
+                <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required class="sr-only">
+                <input id="photo-appareil" type="file" accept="image/*" capture="user" class="sr-only">
+                <div class="mt-2 grid grid-cols-2 gap-3">
+                    <label for="photo-appareil" class="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-emerald-800 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-900">📷 Prendre une photo</label>
+                    <label for="photo" class="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100">🖼️ Choisir une photo</label>
+                </div>
+                <p id="photo-choisie" class="mt-2 hidden text-sm font-medium text-emerald-800"></p>
                 <p class="mt-1 text-xs text-stone-500">Photo de face, visage bien visible. 5 Mo maximum.</p>
             </div>
 
@@ -156,6 +161,33 @@
             });
 
             formulaire.querySelector('[data-precedent]').addEventListener('click', () => afficher(1));
+
+            // La photo prise avec l'appareil devient la photo envoyée.
+            const photo = formulaire.querySelector('#photo');
+            const appareil = formulaire.querySelector('#photo-appareil');
+            const choisie = formulaire.querySelector('#photo-choisie');
+            const montrerPhoto = () => {
+                if (photo.files.length > 0) {
+                    choisie.textContent = '✓ Photo choisie : ' + photo.files[0].name;
+                    choisie.classList.remove('hidden');
+                }
+            };
+            appareil.addEventListener('change', () => {
+                if (appareil.files.length > 0) {
+                    photo.files = appareil.files;
+                    montrerPhoto();
+                }
+            });
+            photo.addEventListener('change', montrerPhoto);
+
+            // Une date impossible est signalée dès qu'on quitte le champ.
+            formulaire.querySelectorAll('input[type="date"]').forEach((champ) => {
+                champ.addEventListener('blur', () => {
+                    if (!champ.checkValidity()) {
+                        champ.reportValidity();
+                    }
+                });
+            });
         })();
     </script>
 @endsection
