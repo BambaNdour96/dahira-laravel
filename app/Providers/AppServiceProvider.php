@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Models\Carte;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\User;
 use App\Observers\AvisMembreObserver;
 use App\Observers\CoherenceProfilObserver;
+use App\Observers\EmailUtilisateurObserver;
 use App\Observers\TachesObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -26,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Adresses email en minuscules, confirmées avant les envois importants.
+        User::observe(EmailUtilisateurObserver::class);
+
         // Fiches cohérentes : les champs sans objet sont vidés.
         Membre::observe(CoherenceProfilObserver::class);
 

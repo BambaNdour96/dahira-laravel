@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CarteController;
+use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EnTantQueController;
@@ -103,3 +104,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/photos/{membre}', PhotoController::class)->name('photos.show');
 });
+
+// Confirmation de l'adresse email : lien signé reçu par email, et renvoi depuis le compte.
+Route::get('/email/confirmer/{user}/{hash}', [ConfirmationEmailController::class, 'confirmer'])
+    ->middleware('signed')->name('email.confirmer');
+Route::post('/mon-compte/email/renvoyer', [ConfirmationEmailController::class, 'renvoyer'])
+    ->middleware(['auth', 'throttle:3,10'])->name('email.renvoyer');

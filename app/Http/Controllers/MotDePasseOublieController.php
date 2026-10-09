@@ -31,7 +31,7 @@ class MotDePasseOublieController extends Controller
         $telephone = TelephoneNormalizer::normaliser((string) $request->input('telephone'));
         $utilisateur = $telephone !== null ? User::query()->where('telephone', $telephone)->first() : null;
 
-        if ($utilisateur !== null && filled($utilisateur->email) && (bool) $utilisateur->actif) {
+        if ($utilisateur !== null && filled($utilisateur->email) && $utilisateur->email_verified_at !== null && (bool) $utilisateur->actif) {
             Password::sendResetLink(['email' => $utilisateur->email]);
         }
 

@@ -44,6 +44,18 @@
             </div>
         </div>
 
+        @php($compte = auth()->user())
+        @if ($compte !== null && filled($compte->email) && $compte->email_verified_at === null)
+            <div class="mt-5 rounded-xl bg-amber-50 p-4 text-sm ring-1 ring-amber-200">
+                <p class="font-semibold text-amber-900">Confirmez votre adresse email</p>
+                <p class="mt-1 text-amber-900">Un lien a été envoyé à {{ $compte->email }}. Tant qu'elle n'est pas confirmée, vous ne recevrez ni reçus ni lien de mot de passe oublié par email.</p>
+                <form method="POST" action="{{ route('email.renvoyer') }}" class="mt-3">
+                    @csrf
+                    <button type="submit" class="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800">Renvoyer le lien</button>
+                </form>
+            </div>
+        @endif
+
         @if ($estValide)
             {{-- Carte de membre en miniature --}}
             <a href="{{ route('carte') }}" class="mt-5 flex items-center gap-4 rounded-2xl bg-emerald-900 p-4 text-white shadow-sm hover:bg-emerald-950">

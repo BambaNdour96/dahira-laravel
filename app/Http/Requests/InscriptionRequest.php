@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Sexe;
 use App\Models\Commission;
+use App\Rules\EmailFiable;
 use App\Services\TelephoneNormalizer;
 use App\Support\MessagesValidation;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,7 +46,7 @@ class InscriptionRequest extends FormRequest
 
             // Page 2 : contact, résidence et Daara
             'telephone' => ['required', 'string', 'regex:/^\+\d{8,15}$/', 'unique:membres,telephone', 'unique:users,telephone'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email', new EmailFiable],
             'adresse' => ['required', 'string', 'max:255'],
             'ville' => ['required', 'string', 'max:100'],
             'pays_residence' => ['required', 'string', 'max:100'],

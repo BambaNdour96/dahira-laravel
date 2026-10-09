@@ -10,6 +10,7 @@ use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\User;
+use App\Rules\EmailFiable;
 use App\Services\StatutMembreService;
 use App\Support\Langues;
 use App\Support\MessagesValidation;
@@ -43,7 +44,7 @@ class ProfilController extends Controller
         $correction = $membre->statut === StatutMembre::ACorriger;
 
         $regles = [
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($membre->user_id)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($membre->user_id), new EmailFiable($membre->user_id)],
             'adresse' => ['required', 'string', 'max:255'],
             'ville' => ['required', 'string', 'max:100'],
             'pays_residence' => ['required', 'string', 'max:100'],

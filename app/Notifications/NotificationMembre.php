@@ -25,7 +25,7 @@ class NotificationMembre extends Notification implements ShouldQueue
     /** @return list<string> */
     public function via(object $notifiable): array
     {
-        return $notifiable instanceof User && filled($notifiable->email) ? ['database', 'mail'] : ['database'];
+        return $notifiable instanceof User && $notifiable->email_verified_at !== null && filled($notifiable->email) ? ['database', 'mail'] : ['database'];
     }
 
     /** @return array<string, string|null> */
