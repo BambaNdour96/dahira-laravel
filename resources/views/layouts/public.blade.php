@@ -105,5 +105,16 @@
             }
         })();
     </script>
+@auth
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" id="inactivite-retour">
+        (() => {
+            const limite = {{ \App\Http\Middleware\ExpirationInactivite::minutesPour(auth()->user()) }} * 60 * 1000;
+            const ouverture = Date.now();
+            const verifier = () => { if (Date.now() - ouverture > limite) { location.reload(); } };
+            document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { verifier(); } });
+            setInterval(verifier, 30000);
+        })();
+    </script>
+@endauth
 </body>
 </html>

@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Middleware\ExpirationInactivite;
 use App\Listeners\UneSeuleSessionParCompte;
 use App\Models\Membre;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
@@ -39,17 +41,17 @@ it('laisse 25 minutes au super administrateur', function () {
     $this->get('/admin')->assertRedirect(route('login'));
 });
 
-it('déconnecte un membre après 6 minutes sans activité', function () {
+it('déconnecte un membre après 2 minutes sans activité', function () {
     $compte = User::factory()->create();
     $compte->assignRole('membre');
     Membre::factory()->for($compte)->valide()->create();
 
     $this->actingAs($compte)->get('/mon-espace')->assertOk();
 
-    $this->travel(5)->minutes();
+    $this->travel(1)->minutes();
     $this->get('/mon-espace')->assertOk();
 
-    $this->travel(7)->minutes();
+    $this->travel(3)->minutes();
     $this->get('/mon-espace')->assertRedirect(route('login'));
 });
 
@@ -82,4 +84,16 @@ it('montre les personnes connectées au seul super administrateur', function () 
     $tresorier = User::factory()->create();
     $tresorier->assignRole('tresorier');
     $this->actingAs($tresorier)->get('/admin/connectes')->assertForbidden();
+});
+
+it('ne compte pas la mise à jour automatique des notifications comme une activité', function () {
+    $rafraichissement = Request::create('/livewire-abc/update', 'POST', [
+        'components' => [['updates' => [], 'calls' => [['method' => '$refresh', 'params' => []]]]],
+    ]);
+    $clic = Request::create('/livewire-abc/update', 'POST', [
+        'components' => [['updates' => [], 'calls' => [['method' => 'mountAction', 'params' => ['confirmer']]]]],
+    ]);
+
+    expect(ExpirationInactivite::enArrierePlan($rafraichissement))->toBeTrue()
+        ->and(ExpirationInactivite::enArrierePlan($clic))->toBeFalse();
 });

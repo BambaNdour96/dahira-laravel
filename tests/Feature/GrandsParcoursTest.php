@@ -205,6 +205,6 @@ it('protège un compte : blocage, mot de passe provisoire, changement obligatoir
     $this->assertAuthenticatedAs($compte);
     $this->get('/mon-espace')->assertOk();
 
-    $this->travel(7)->minutes();
+    $this->travel(3)->minutes();
     $this->get('/mon-espace')->assertRedirect(route('login'));
 });

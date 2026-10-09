@@ -22,11 +22,7 @@ class ExpirationInactivite
             return $next($request);
         }
 
-        $minutes = match (true) {
-            $utilisateur->hasRole('super_administrateur') => (int) config('dahira.inactivite_super_admin', 25),
-            $utilisateur->hasAnyRole(CompteBureauService::ROLES_BUREAU) => (int) config('dahira.inactivite_bureau', 10),
-            default => (int) config('dahira.inactivite_membres', 6),
-        };
+        $minutes = self::minutesPour($utilisateur);
 
         $maintenant = now()->getTimestamp();
         $derniere = (int) $request->session()->get('derniere_activite', $maintenant);
@@ -43,8 +39,45 @@ class ExpirationInactivite
                 ->with('succes', 'Vous avez été déconnecté après '.$minutes.' minutes sans activité. Reconnectez-vous.');
         }
 
-        $request->session()->put('derniere_activite', $maintenant);
+        // La mise à jour automatique (notifications, compteurs) ne compte pas comme une activité.
+        if (! self::enArrierePlan($request)) {
+            $request->session()->put('derniere_activite', $maintenant);
+        }
 
         return $next($request);
+    }
+
+    /** Durée d'inactivité autorisée, en minutes, selon le profil. */
+    public static function minutesPour(User $utilisateur): int
+    {
+        return match (true) {
+            $utilisateur->hasRole('super_administrateur') => (int) config('dahira.inactivite_super_admin', 25),
+            $utilisateur->hasAnyRole(CompteBureauService::ROLES_BUREAU) => (int) config('dahira.inactivite_bureau', 10),
+            default => (int) config('dahira.inactivite_membres', 2),
+        };
+    }
+
+    /** Une requête Livewire qui ne fait que rafraîchir l'écran, sans action de la personne. */
+    public static function enArrierePlan(Request $request): bool
+    {
+        $composants = $request->input('components');
+
+        if (! $request->is('livewire*') || ! is_array($composants) || $composants === []) {
+            return false;
+        }
+
+        foreach ($composants as $composant) {
+            if (! is_array($composant) || ! empty($composant['updates'] ?? [])) {
+                return false;
+            }
+
+            foreach ((array) ($composant['calls'] ?? []) as $appel) {
+                if (! is_array($appel) || ($appel['method'] ?? null) !== '$refresh') {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

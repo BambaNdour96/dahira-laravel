@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo-ndk.png'))
             ->databaseNotifications()
-            ->databaseNotificationsPolling(null)
+            ->databaseNotificationsPolling('30s')
             ->colors([
                 'primary' => Color::Green,
             ])

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class MesTaches extends StatsOverviewWidget
 {
-    protected ?string $pollingInterval = null;
+    protected ?string $pollingInterval = '30s';
 
     protected static ?int $sort = 0;
 
