@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
     Route::view('/mon-compte/parametres', 'espace.parametres')->name('parametres');
     Route::post('/mes-notifications/lues', [MesNotificationsController::class, 'marquerLues'])->name('notifications.lues');
+    Route::post('/session/activite', fn () => response()->noContent())->name('session.activite');
     Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
     Route::post('/v/{jeton}/presence/{evenement}', [PresenceController::class, 'store'])->name('presences.store');
     Route::get('/exports/evenements/{evenement}/presences', ExportPresencesController::class)->name('evenements.presences.export');

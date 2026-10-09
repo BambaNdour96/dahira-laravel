@@ -19,4 +19,5 @@ return [
     'inactivite_bureau' => (int) env('DAHIRA_INACTIVITE_BUREAU', 10),
     'inactivite_super_admin' => (int) env('DAHIRA_INACTIVITE_SUPER_ADMIN', 25),
     'inactivite_membres' => (int) env('DAHIRA_INACTIVITE_MEMBRES', 2),
+    'session_max_membres' => (int) env('DAHIRA_SESSION_MAX_MEMBRES', 10),
 ];

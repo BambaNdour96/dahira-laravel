@@ -137,10 +137,54 @@
     <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}" id="inactivite-retour">
         (() => {
             const limite = {{ \App\Http\Middleware\ExpirationInactivite::minutesPour(auth()->user()) }} * 60 * 1000;
-            const ouverture = Date.now();
-            const verifier = () => { if (Date.now() - ouverture > limite) { location.reload(); } };
-            document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { verifier(); } });
-            setInterval(verifier, 30000);
+            const finSession = {{ \Illuminate\Support\Js::from(\App\Http\Middleware\ExpirationInactivite::finSessionPour(auth()->user())) }};
+            let derniereActivite = Date.now();
+            let dernierSignal = Date.now();
+
+            const signaler = () => fetch(@js(route('session.activite')), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': @js(csrf_token()), 'Accept': 'application/json' },
+            }).catch(() => {});
+
+            ['touchstart', 'click', 'keydown', 'scroll'].forEach((type) => {
+                document.addEventListener(type, () => {
+                    derniereActivite = Date.now();
+                    if (Date.now() - dernierSignal > 30000) {
+                        dernierSignal = Date.now();
+                        signaler();
+                    }
+                }, { passive: true });
+            });
+
+            const avertir = () => {
+                if (document.getElementById('avertissement-session')) {
+                    return;
+                }
+                const bandeau = document.createElement('div');
+                bandeau.id = 'avertissement-session';
+                bandeau.setAttribute('role', 'status');
+                bandeau.className = 'fixed inset-x-3 bottom-3 z-50 rounded-xl bg-emerald-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg';
+                bandeau.textContent = 'Votre session se termine dans 1 minute. Vous devrez vous reconnecter.';
+                document.body.appendChild(bandeau);
+            };
+
+            const verifier = () => {
+                const maintenant = Date.now();
+                if (maintenant - derniereActivite > limite || (finSession && maintenant >= finSession * 1000)) {
+                    location.reload();
+                    return;
+                }
+                if (finSession && finSession * 1000 - maintenant <= 60000) {
+                    avertir();
+                }
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    verifier();
+                }
+            });
+            setInterval(verifier, 10000);
         })();
     </script>
 @endauth

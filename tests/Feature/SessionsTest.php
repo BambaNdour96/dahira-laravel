@@ -6,9 +6,11 @@ use App\Models\Membre;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
 
@@ -96,4 +98,61 @@ it('ne compte pas la mise à jour automatique des notifications comme une activi
 
     expect(ExpirationInactivite::enArrierePlan($rafraichissement))->toBeTrue()
         ->and(ExpirationInactivite::enArrierePlan($clic))->toBeFalse();
+});
+
+describe('les sessions des membres', function () {
+    beforeEach(function () {
+        $this->membre = User::factory()->create(['telephone' => '+221770001234', 'password' => 'motdepasse1']);
+        $this->membre->assignRole('membre');
+        Membre::factory()->for($this->membre)->valide()->create();
+        RateLimiter::for('connexion', fn () => Limit::none());
+    });
+
+    it('ramène le membre sur la même page après 2 minutes sans activité', function () {
+        $this->actingAs($this->membre)->get('/mes-recus')->assertOk();
+
+        $this->travel(3)->minutes();
+        $this->get('/mes-recus')->assertRedirect(route('login'));
+        $this->assertGuest();
+
+        $this->post('/connexion', ['telephone' => '77 000 12 34', 'password' => 'motdepasse1'])
+            ->assertRedirect(url('/mes-recus'));
+    });
+
+    it('ferme la session au bout de 10 minutes, même actif, et ramène à l\'accueil', function () {
+        $this->actingAs($this->membre)->get('/mes-recus')->assertOk();
+
+        foreach (range(1, 9) as $minute) {
+            $this->travel(1)->minutes();
+            $this->get('/mes-recus')->assertOk();
+        }
+
+        $this->travel(1)->minutes();
+        $this->get('/mes-recus')->assertRedirect(route('login'));
+
+        $this->post('/connexion', ['telephone' => '77 000 12 34', 'password' => 'motdepasse1'])
+            ->assertRedirect(route('espace'));
+    });
+
+    it('compte un toucher de l\'écran comme une activité', function () {
+        $this->actingAs($this->membre)->get('/mes-recus')->assertOk();
+
+        $this->travel(90)->seconds();
+        $this->post(route('session.activite'))->assertNoContent();
+
+        $this->travel(90)->seconds();
+        $this->get('/mes-recus')->assertOk();
+    });
+
+    it('ne limite pas la durée de session du bureau', function () {
+        $tresorier = User::factory()->create();
+        $tresorier->assignRole('tresorier');
+
+        $this->actingAs($tresorier)->get('/admin')->assertOk();
+
+        foreach (range(1, 11) as $minute) {
+            $this->travel(1)->minutes();
+            $this->get('/admin')->assertOk();
+        }
+    });
 });
