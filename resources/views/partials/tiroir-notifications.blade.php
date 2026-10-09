@@ -11,8 +11,11 @@
 
         <div class="flex-1 space-y-3 overflow-y-auto p-3">
             @forelse ($notificationsMembre ?? [] as $notification)
-                <div class="rounded-xl p-3 text-sm {{ $notification->read_at === null ? 'bg-or-100 ring-1 ring-or-400' : 'bg-stone-50 ring-1 ring-stone-200' }}">
-                    <p class="font-semibold text-emerald-950">{{ $notification->data['titre'] ?? '' }}</p>
+                <div class="rounded-xl p-3 text-sm {{ $notification->read_at === null ? 'border-l-4 border-or-400 bg-or-100 ring-1 ring-or-400' : 'bg-white opacity-75 ring-1 ring-stone-200' }}">
+                    @if ($notification->read_at === null || (isset($nouvelles) && in_array($notification->id, $nouvelles, true)))
+                    <span class="mb-1 inline-block rounded-full bg-emerald-800 px-2 py-0.5 text-[11px] font-semibold text-white">Nouveau</span>
+                @endif
+                <p class="font-semibold text-emerald-950">{{ $notification->data['titre'] ?? '' }}</p>
                     <p class="mt-1 text-stone-700">{{ $notification->data['message'] ?? '' }}</p>
                     <div class="mt-2 flex items-center justify-between gap-2">
                         <span class="text-xs text-stone-500">{{ $notification->created_at?->diffForHumans() }}</span>

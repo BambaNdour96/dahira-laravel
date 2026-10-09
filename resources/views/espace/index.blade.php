@@ -3,14 +3,6 @@
 @section('titre', 'Mon compte')
 
 @section('contenu')
-    @php
-        $nonLues = auth()->user()?->unreadNotifications()->where('type', \App\Notifications\NotificationMembre::class)->count() ?? 0;
-    @endphp
-    <a href="{{ route('notifications.index') }}"
-       class="mb-6 flex items-center justify-between rounded-xl px-4 py-3 text-sm {{ $nonLues > 0 ? 'bg-or-100 font-semibold text-emerald-950 ring-1 ring-or-400' : 'bg-white text-stone-600 ring-1 ring-stone-200' }}">
-        <span>🔔 {{ $nonLues > 0 ? 'Vous avez '.$nonLues.' nouvelle(s) notification(s)' : 'Mes notifications' }}</span>
-        <span class="underline">Voir</span>
-    </a>
 
 
     @if (! $membre)
@@ -231,10 +223,6 @@
             </div>
 
             <a href="{{ route('espace.profil') }}" class="mt-6 inline-block text-sm font-medium text-emerald-800 underline">Modifier mon profil</a>
-            <a href="{{ route('mot-de-passe.edit') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Changer mon mot de passe</a>
-                <a href="{{ route('donnees.export') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Télécharger mes données</a>
-                <a href="{{ route('evenements.index') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-emerald-800 underline">Mes participations</a>
-                <a href="{{ route('suppression.create') }}" class="mt-6 ml-4 inline-block text-sm font-medium text-red-700 underline">Supprimer mon compte</a>
         @endif
     @endif
 @endsection

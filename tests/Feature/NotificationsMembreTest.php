@@ -109,3 +109,17 @@ it('montre les notifications dans le tiroir, sur toutes les pages, et les marque
 
     expect($this->compte->unreadNotifications()->count())->toBe(0);
 });
+
+it('distingue les notifications nouvelles des notifications lues', function () {
+    Membre::factory()->for($this->compte)->valide()->create();
+    $this->compte->notify(new NotificationMembre('Avis déjà lu', 'Ancien.'));
+    $this->compte->unreadNotifications()->update(['read_at' => now()]);
+    $this->compte->notify(new NotificationMembre('Avis tout neuf', 'Récent.'));
+
+    $this->actingAs($this->compte)->get('/mon-espace')
+        ->assertSee('Nouveau')
+        ->assertSee('opacity-75', false)
+        ->assertSee('tiroir-menu', false)
+        ->assertSee('Changer mon mot de passe')
+        ->assertSee('Se déconnecter');
+});

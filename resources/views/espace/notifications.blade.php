@@ -13,9 +13,12 @@
         <ul class="mt-6 space-y-3">
             @foreach ($notifications as $notification)
                 @php($nouvelle = in_array($notification->id, $nouvelles, true))
-                <li class="rounded-xl p-4 shadow-sm {{ $nouvelle ? 'bg-or-100 ring-1 ring-or-400' : 'bg-white ring-1 ring-stone-200' }}">
+                <li class="rounded-xl p-4 shadow-sm {{ $nouvelle ? 'border-l-4 border-or-400 bg-or-100 ring-1 ring-or-400' : 'bg-white opacity-75 ring-1 ring-stone-200' }}">
                     <div class="flex items-start justify-between gap-3">
-                        <p class="font-semibold text-emerald-950">{{ $notification->data['titre'] ?? '' }}</p>
+                        @if ($notification->read_at === null || (isset($nouvelles) && in_array($notification->id, $nouvelles, true)))
+                    <span class="mb-1 inline-block rounded-full bg-emerald-800 px-2 py-0.5 text-[11px] font-semibold text-white">Nouveau</span>
+                @endif
+                <p class="font-semibold text-emerald-950">{{ $notification->data['titre'] ?? '' }}</p>
                         <span class="shrink-0 text-xs text-stone-500">{{ $notification->created_at?->diffForHumans() }}</span>
                     </div>
                     <p class="mt-1 text-sm text-stone-700">{{ $notification->data['message'] ?? '' }}</p>

@@ -146,3 +146,20 @@ it('déploie le tiroir des notifications, puis le replie en touchant la page', f
 
     $page->assertNoJavascriptErrors();
 });
+
+it('déploie le menu depuis la gauche, puis le replie en touchant la page', function () {
+    $this->actingAs($this->compte);
+
+    $page = visit('/mon-espace');
+    $ferme = 'document.getElementById("tiroir-menu").classList.contains("-translate-x-full")';
+
+    expect($page->script($ferme))->toBeTrue();
+
+    $page->click('#ouvrir-menu')->assertSee('Changer mon mot de passe');
+    expect($page->script($ferme))->toBeFalse();
+
+    $page->click('#voile-menu');
+    expect($page->script($ferme))->toBeTrue();
+
+    $page->assertNoJavascriptErrors();
+});

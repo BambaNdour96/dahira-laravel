@@ -56,7 +56,11 @@
                 $notificationsMembre = auth()->user()->notifications()->where('type', \App\Notifications\NotificationMembre::class)->latest()->limit(10)->get();
                 $nouvellesNotifications = $notificationsMembre->whereNull('read_at')->count();
             @endphp
-            <div class="mb-4 flex justify-end">
+            <div class="mb-4 flex items-center justify-between">
+                <button type="button" id="ouvrir-menu" aria-controls="tiroir-menu" aria-expanded="false" aria-label="Menu"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-emerald-900 ring-1 ring-stone-200 hover:bg-stone-100">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
                 <button type="button" id="ouvrir-notifications" aria-controls="tiroir-notifications" aria-expanded="false"
                         aria-label="Notifications ({{ $nouvellesNotifications }} nouvelle(s))"
                         class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-emerald-900 ring-1 ring-stone-200 hover:bg-stone-100">
@@ -161,6 +165,7 @@
         media.addEventListener('change', () => appliquer(lire()));
     })();
 </script>
+@include('partials.tiroir-menu')
 @include('partials.tiroir-notifications')
 </body>
 </html>
