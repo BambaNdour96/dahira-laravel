@@ -5,6 +5,7 @@ use App\Http\Middleware\ChangementMotDePasseObligatoire;
 use App\Http\Middleware\EnTetesSecurite;
 use App\Http\Middleware\ExpirationInactivite;
 use App\Http\Middleware\ModeMaintenance;
+use App\Http\Middleware\UtiliserNumeroMemorise;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->web(append: [UtiliserNumeroMemorise::class]);
         $middleware->web(append: [ExpirationInactivite::class]);
         $middleware->web(append: [AppliquerIndicatif::class]);
         $middleware->web(append: [EnTetesSecurite::class]);

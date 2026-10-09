@@ -21,6 +21,7 @@ use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\SuppressionCompteController;
 use App\Http\Controllers\VerificationController;
+use App\Listeners\MemoriserNumero;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.accueil')->name('accueil');
@@ -42,6 +43,7 @@ Route::middleware('guest')->group(function () {
         ->name('inscription.store');
 
     Route::get('/connexion', [ConnexionController::class, 'create'])->name('login');
+    Route::get('/connexion/autre-numero', fn () => redirect()->route('login')->withoutCookie(MemoriserNumero::COOKIE))->name('connexion.autre-numero');
     Route::post('/connexion', [ConnexionController::class, 'store'])
         ->middleware('throttle:connexion')
         ->name('login.store');

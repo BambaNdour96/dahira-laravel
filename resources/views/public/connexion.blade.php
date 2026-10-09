@@ -8,9 +8,29 @@
     <form method="POST" action="{{ route('login.store') }}" class="mt-6 space-y-5 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
         @csrf
 
+        @php($numeroMemorise = request()->cookie(\App\Listeners\MemoriserNumero::COOKIE))
+
+        @if (is_string($numeroMemorise) && $numeroMemorise !== '' && ! $errors->has('telephone'))
+
+            <input type="hidden" name="numero_memorise" value="1">
+
+            <div class="rounded-lg bg-emerald-50 px-4 py-3 ring-1 ring-emerald-200">
+
+                <p class="text-xs text-stone-500">Numéro</p>
+
+                <p class="text-lg font-semibold tracking-wider text-emerald-950">****{{ substr($numeroMemorise, -3) }}</p>
+
+                <a href="{{ route('connexion.autre-numero') }}" class="mt-1 inline-block text-sm text-emerald-800 underline">Utiliser un autre numéro</a>
+
+            </div>
+
+        @else
+
         <x-indicatif />
 
         <x-champ nom="telephone" libelle="Téléphone" type="tel" requis inputmode="tel" autocomplete="tel" placeholder="77 123 45 67" />
+
+        @endif
         <x-champ nom="password" libelle="Mot de passe" type="password" requis autocomplete="current-password" />
 
         <label class="flex items-center gap-2 text-sm">
