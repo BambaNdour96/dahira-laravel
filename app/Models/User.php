@@ -11,16 +11,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\LaravelPasskeys\Models\Concerns\HasPasskeys;
+use Spatie\LaravelPasskeys\Models\Concerns\InteractsWithPasskeys;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property string|null $app_authentication_secret
  * @property list<string>|null $app_authentication_recovery_codes
  */
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasPasskeys
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    use InteractsWithPasskeys;
 
     protected $fillable = [
         'name', 'telephone', 'email', 'password', 'actif', 'derniere_connexion_at',
@@ -86,5 +90,21 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     {
         $this->app_authentication_recovery_codes = $codes === null ? null : array_values($codes);
         $this->save();
+    }
+
+    /** Nom proposé par le téléphone au moment de choisir la clé : le numéro, toujours présent. */
+    public function getPassKeyName(): string
+    {
+        return (string) $this->telephone;
+    }
+
+    public function getPassKeyId(): string
+    {
+        return (string) $this->getKey();
+    }
+
+    public function getPassKeyDisplayName(): string
+    {
+        return (string) $this->name;
     }
 }

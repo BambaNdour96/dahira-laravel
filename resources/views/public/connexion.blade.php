@@ -47,4 +47,16 @@
         <a href="{{ route('password.request') }}" class="text-emerald-800 underline">Mot de passe oublié ?</a>
         <a href="{{ route('inscription') }}" class="text-emerald-800 underline">S'inscrire</a>
     </div>
+    <div data-empreinte class="mt-6 hidden">
+        <div class="flex items-center gap-3 text-xs text-stone-500">
+            <span class="h-px flex-1 bg-stone-200"></span> ou <span class="h-px flex-1 bg-stone-200"></span>
+        </div>
+        <button type="button" data-connexion-empreinte data-options="{{ route('empreinte.options-connexion') }}" data-connecter="{{ route('empreinte.connexion') }}"
+                data-jeton="{{ csrf_token() }}" data-message="message-connexion-empreinte"
+                class="mt-4 w-full rounded-lg bg-white px-4 py-3 font-semibold text-emerald-900 ring-1 ring-stone-300 hover:bg-stone-100">
+            🔐 Se connecter avec l'empreinte
+        </button>
+        <p id="message-connexion-empreinte" class="mt-2 text-sm"></p>
+    </div>
+
 @endsection
