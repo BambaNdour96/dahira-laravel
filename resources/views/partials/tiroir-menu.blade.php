@@ -9,7 +9,7 @@
             ['Mes reçus', 'recus.index', $valide],
             ['Mes participations', 'evenements.index', $valide],
             ['Mes notifications', 'notifications.index', true],
-            ['Modifier mon profil et ma photo', 'profil.edit', $membreDuMenu !== null],
+            ['Modifier mon profil et ma photo', 'espace.profil', $membreDuMenu !== null],
             ['Changer mon mot de passe', 'mot-de-passe.edit', true],
             ['Télécharger mes données', 'donnees.export', true],
             ['Données personnelles', 'confidentialite', true],

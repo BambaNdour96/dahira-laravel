@@ -23,7 +23,7 @@ class EspaceController extends Controller
         return view('espace.index', [
             'membre' => $membre,
             'whatsappNational' => Parametre::valeur('whatsapp_national'),
-            'lienWave' => Parametre::valeur('wave_lien_paiement'),
+            'lienWave' => Parametre::valeur('wave_lien_frais_carte') ?: Parametre::valeur('wave_lien_paiement'),
             'montantFraisCarte' => $paiements->montantFraisCarte(),
             'recuFraisCarte' => $membre?->paiements()->where('objet', 'frais_carte')->where('statut', StatutPaiement::Confirme->value)->whereNotNull('numero_recu')->latest('traite_le')->first(),
             'paiementEnCours' => $membre ? $paiements->enCours($membre) : null,

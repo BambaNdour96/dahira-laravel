@@ -4,6 +4,7 @@ use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\Parametre;
 use App\Models\User;
 use App\Services\PaiementService;
 use App\Services\StatutMembreService;
@@ -162,4 +163,13 @@ it('donne au membre le reçu de son inscription', function () {
         ->assertOk()
         ->assertSee("Mon reçu d'inscription", false)
         ->assertSee('Tous mes reçus');
+});
+
+it('affiche le bouton Wave des frais de carte avec le lien « frais de carte » des réglages', function () {
+    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_frais_carte'], ['valeur' => 'https://pay.wave.com/m/FRAISCARTE']);
+    Parametre::query()->updateOrCreate(['cle' => 'wave_lien_paiement'], ['valeur' => null]);
+
+    $this->actingAs($this->user)->get('/mon-espace')
+        ->assertSee('Payer avec Wave')
+        ->assertSee('https://pay.wave.com/m/FRAISCARTE', false);
 });
