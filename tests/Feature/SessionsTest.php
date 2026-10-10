@@ -156,3 +156,22 @@ describe('les sessions des membres', function () {
         }
     });
 });
+
+it('ne ferme jamais les sessions des autres comptes à une connexion', function () {
+    config(['session.driver' => 'database']);
+
+    $awa = User::factory()->create(['telephone' => '+221770000101', 'password' => 'motdepasse1']);
+    $awa->assignRole('membre');
+    Membre::factory()->for($awa)->valide()->create();
+    $moussa = User::factory()->create();
+
+    DB::table('sessions')->insert([
+        ['id' => 'session-awa-ailleurs', 'user_id' => $awa->id, 'ip_address' => null, 'user_agent' => null, 'payload' => '', 'last_activity' => now()->getTimestamp()],
+        ['id' => 'session-de-moussa', 'user_id' => $moussa->id, 'ip_address' => null, 'user_agent' => null, 'payload' => '', 'last_activity' => now()->getTimestamp()],
+    ]);
+
+    $this->post('/connexion', ['telephone' => '77 000 01 01', 'password' => 'motdepasse1']);
+
+    expect(DB::table('sessions')->where('id', 'session-de-moussa')->exists())->toBeTrue()
+        ->and(DB::table('sessions')->where('id', 'session-awa-ailleurs')->exists())->toBeFalse();
+});
