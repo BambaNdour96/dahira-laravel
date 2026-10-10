@@ -51,7 +51,7 @@ class MesTaches extends StatsOverviewWidget
             $taches[] = self::tache('Demandes à examiner', (clone $demandes)->count(), (clone $demandes)->min('updated_at'), '/admin/membres');
         }
 
-        if ($utilisateur->hasAnyRole(['tresorier', 'administrateur'])) {
+        if ($utilisateur->hasAnyRole(['tresorier', 'super_administrateur'])) {
             $paiements = Paiement::query()
                 ->where('statut', StatutPaiement::Declare->value)
                 ->whereDoesntHave('membre', fn ($membre) => $membre->whereIn('poste_id', RegleValidation::query()->select('poste_id')));

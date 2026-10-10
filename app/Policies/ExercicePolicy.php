@@ -12,26 +12,26 @@ class ExercicePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
     public function view(User $user, Exercice $objet): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
     public function update(User $user, Exercice $objet): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
     public function delete(User $user, Exercice $objet): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 }

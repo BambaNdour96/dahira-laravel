@@ -20,7 +20,7 @@ class RelanceController extends Controller
 
         abort_unless(
             $utilisateur instanceof User
-                && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section'])
+                && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier', 'responsable_section'])
                 && Gate::allows('view', $membre),
             403,
         );

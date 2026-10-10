@@ -29,7 +29,7 @@ function membreValideAvecCompte(string $telephone = '+221762223344', string $mot
 
 it('réserve les comptes du bureau au super administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['secretaire_general', 'administrateur']);
 
     $this->actingAs($this->super)->get('/admin/comptes-bureau')->assertOk();
     $this->actingAs($admin)->get('/admin/comptes-bureau')->assertForbidden();
@@ -37,7 +37,7 @@ it('réserve les comptes du bureau au super administrateur', function () {
 
 it('réserve les réglages au super administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['secretaire_general', 'administrateur']);
 
     $this->actingAs($this->super)->get('/admin/parametres')->assertOk();
     $this->actingAs($admin)->get('/admin/parametres')->assertForbidden();
@@ -110,7 +110,7 @@ it('montre « Panneau du bureau » sur le site aux seuls membres du bureau', fun
 
 it('montre « Mon compte de membre » dans le panneau', function () {
     $membre = membreValideAvecCompte();
-    $this->service->nommer($membre, 'administrateur');
+    $this->service->nommer($membre, 'secretaire_general');
 
     $this->actingAs($membre->user)->get('/admin')->assertOk()->assertSee('Mon compte de membre');
 });

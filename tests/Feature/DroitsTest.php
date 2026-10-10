@@ -51,7 +51,7 @@ it('laisse le responsable valider une inscription de sa cellule', function () {
 
 it('refuse le panneau à un compte désactivé', function () {
     $admin = User::factory()->create(['actif' => false]);
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['secretaire_general', 'administrateur']);
 
     $this->actingAs($admin)->get('/admin')->assertForbidden();
 });

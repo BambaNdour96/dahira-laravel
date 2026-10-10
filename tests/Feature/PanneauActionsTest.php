@@ -49,7 +49,7 @@ beforeEach(function () {
     $this->super->assignRole(['super_administrateur', 'administrateur']);
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('administrateur');
+    $this->admin->assignRole(['secretaire_general', 'administrateur']);
 
     $this->tresorier = User::factory()->create();
     $this->tresorier->assignRole('tresorier');
@@ -273,7 +273,7 @@ it('ouvre le formulaire de création de chaque donnée de référence', function
 
 it('connecte un administrateur au panneau avec son numéro de téléphone', function () {
     $compte = User::factory()->create(['telephone' => '+221770001122', 'password' => 'motdepasse1']);
-    $compte->assignRole('administrateur');
+    $compte->assignRole(['secretaire_general', 'administrateur']);
 
     $this->get('/admin/login')->assertOk();
 

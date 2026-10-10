@@ -21,7 +21,7 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('administrateur');
+    $this->admin->assignRole(['secretaire_general', 'administrateur']);
 });
 
 it('ouvre le tableau de bord à l\'administrateur', function () {

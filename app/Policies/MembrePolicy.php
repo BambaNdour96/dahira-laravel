@@ -70,6 +70,11 @@ class MembrePolicy
             return false;
         }
 
+        // Suspendre un membre, ou réactiver un membre suspendu : décision de direction.
+        if ($cible === StatutMembre::Suspendu || $membre->statut === StatutMembre::Suspendu) {
+            return $user->hasAnyRole(['jewrine_national', 'super_administrateur']);
+        }
+
         if ($user->hasRole('administrateur')) {
             return true;
         }

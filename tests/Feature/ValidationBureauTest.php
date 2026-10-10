@@ -37,8 +37,8 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->jewrineFinance = compteDuBureauAvecPoste('Jewrine finance', ['tresorier']);
-    $this->secretaire = compteDuBureauAvecPoste('Secrétaire général', ['administrateur']);
-    $this->jewrineNational = compteDuBureauAvecPoste('Jewrine national', ['administrateur']);
+    $this->secretaire = compteDuBureauAvecPoste('Secrétaire général', ['secretaire_general', 'administrateur']);
+    $this->jewrineNational = compteDuBureauAvecPoste('Jewrine national', ['jewrine_national', 'administrateur']);
 
     $this->super = User::factory()->create();
     $this->super->assignRole(['super_administrateur', 'administrateur']);
@@ -58,7 +58,7 @@ it('fait valider le paiement du Jewrine finance par le Secrétaire général', f
 
 it('refuse qu\'un autre administrateur valide le paiement du Jewrine finance', function () {
     $autreAdmin = User::factory()->create();
-    $autreAdmin->assignRole('administrateur');
+    $autreAdmin->assignRole(['secretaire_general', 'administrateur']);
     $paiement = app(CotisationService::class)->declarer($this->jewrineFinance->membre, 'T_JFINANCE00000002', 1);
 
     app(PaiementService::class)->confirmer($paiement, $autreAdmin);
@@ -85,7 +85,7 @@ it('laisse le super administrateur valider en secours', function () {
 
 it('applique aussi la règle aux paiements en espèces', function () {
     $autreAdmin = User::factory()->create();
-    $autreAdmin->assignRole('administrateur');
+    $autreAdmin->assignRole(['secretaire_general', 'administrateur']);
 
     app(CotisationService::class)->enregistrerEspeces($this->jewrineFinance->membre, 1, $autreAdmin);
 })->throws(DomainException::class);

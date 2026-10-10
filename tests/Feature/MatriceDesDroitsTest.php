@@ -39,15 +39,16 @@ function compteAvecRoles(array $roles): User
 
 dataset('roles', [
     'super administrateur' => [['super_administrateur', 'administrateur'], 'super'],
-    'administrateur' => [['administrateur'], 'admin'],
+    'Jewrine national' => [['jewrine_national', 'administrateur'], 'national'],
+    'Secrétaire général' => [['secretaire_general', 'administrateur'], 'secretaire'],
     'Jewrine finance' => [['tresorier'], 'tresorier'],
     'Jewrine de cellule' => [['responsable_section'], 'jewrine'],
     'membre' => [['membre'], 'membre'],
 ]);
 
-it('réserve les données de référence à l\'administrateur', function (array $roles, string $profil) {
+it('réserve les données de référence au Secrétaire général', function (array $roles, string $profil) {
     $compte = compteAvecRoles($roles);
-    $attendu = in_array($profil, ['super', 'admin'], true);
+    $attendu = in_array($profil, ['super', 'secretaire'], true);
 
     foreach ([Cellule::class, Commission::class, Exercice::class, Poste::class, Tarif::class] as $modele) {
         $objet = new $modele;
@@ -100,15 +101,16 @@ it('réserve les comptes du bureau au super administrateur, sans suppression', f
         ->and($compte->can('deleteAny', User::class))->toBeFalse();
 })->with('roles');
 
-it('réserve les paiements au Jewrine finance et à l\'administrateur, sans suppression', function (array $roles, string $profil) {
+it('confie les paiements au Jewrine finance, la direction les consulte, sans suppression', function (array $roles, string $profil) {
     $compte = compteAvecRoles($roles);
-    $attendu = in_array($profil, ['super', 'admin', 'tresorier'], true);
+    $consulte = in_array($profil, ['super', 'national', 'secretaire', 'tresorier'], true);
+    $gere = in_array($profil, ['super', 'tresorier'], true);
     $paiement = new Paiement;
 
-    expect($compte->can('viewAny', Paiement::class))->toBe($attendu)
-        ->and($compte->can('view', $paiement))->toBe($attendu)
-        ->and($compte->can('create', Paiement::class))->toBe($attendu)
-        ->and($compte->can('update', $paiement))->toBe($attendu)
+    expect($compte->can('viewAny', Paiement::class))->toBe($consulte)
+        ->and($compte->can('view', $paiement))->toBe($consulte)
+        ->and($compte->can('create', Paiement::class))->toBe($gere)
+        ->and($compte->can('update', $paiement))->toBe($gere)
         ->and($compte->can('delete', $paiement))->toBeFalse();
 })->with('roles');
 
@@ -121,7 +123,7 @@ describe('les membres', function () {
         $this->membreDeSaCellule = Membre::factory()->for($this->saCellule)->create(['statut' => StatutMembre::EnAttente]);
         $this->membreAilleurs = Membre::factory()->for($this->autreCellule)->create(['statut' => StatutMembre::EnAttente]);
 
-        $this->admin = compteAvecRoles(['administrateur']);
+        $this->admin = compteAvecRoles(['secretaire_general', 'administrateur']);
         $this->tresorier = compteAvecRoles(['tresorier']);
         $this->membre = compteAvecRoles(['membre']);
     });

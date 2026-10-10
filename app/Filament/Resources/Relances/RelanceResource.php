@@ -47,7 +47,7 @@ class RelanceResource extends Resource
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+            && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier', 'responsable_section']);
     }
 
     /**

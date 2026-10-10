@@ -24,20 +24,26 @@ final class AntiFraude
     }
 
     /**
-     * Règle complète : jamais soi-même, et pour un poste clé du bureau,
-     * seulement les postes désignés, ou le super administrateur en secours.
+     * Règle complète : jamais soi-même ; le paiement d'un membre est confirmé par le Jewrine finance ;
+     * pour un poste clé du bureau, seulement les postes désignés. Le super administrateur peut tout, en secours.
      */
     public static function verifierValidateur(Membre $payeur, ?User $validateur): void
     {
         self::verifierPasSoiMeme($payeur, $validateur);
 
-        if ($validateur === null || $validateur->hasRole('super_administrateur') || $payeur->poste_id === null) {
+        if ($validateur === null || $validateur->hasRole('super_administrateur')) {
             return;
         }
 
-        $regle = RegleValidation::query()->where('poste_id', $payeur->poste_id)->first();
+        $regle = $payeur->poste_id === null
+            ? null
+            : RegleValidation::query()->where('poste_id', $payeur->poste_id)->first();
 
         if ($regle === null) {
+            if (! $validateur->hasRole('tresorier')) {
+                throw new DomainException('Seul le Jewrine finance confirme les paiements des membres (ou le super administrateur, en secours).');
+            }
+
             return;
         }
 

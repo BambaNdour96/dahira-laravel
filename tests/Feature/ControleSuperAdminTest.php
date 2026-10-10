@@ -17,7 +17,7 @@ beforeEach(function () {
     $this->super->assignRole(['super_administrateur', 'administrateur']);
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('administrateur');
+    $this->admin->assignRole(['secretaire_general', 'administrateur']);
 
     $this->membre = User::factory()->create();
     $this->membre->assignRole('membre');

@@ -19,24 +19,33 @@ use Illuminate\Support\Facades\RateLimiter;
  */
 final class CompteBureauService
 {
-    /** Rôles que le super administrateur peut attribuer. */
+    /** Postes du bureau que le super administrateur peut attribuer. */
     public const ROLES = [
-        'administrateur' => 'Administrateur (Jewrine national, Secrétaire général…)',
+        'jewrine_national' => 'Jewrine national',
+        'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
     ];
 
+    /**
+     * Postes de direction : ils reçoivent aussi le socle commun « administrateur »
+     * (registre complet, cartes, imports), puis chacun ses droits propres.
+     */
+    public const DIRECTION = ['jewrine_national', 'secretaire_general'];
+
     /** Libellés de tous les rôles, pour l'affichage. */
     public const LIBELLES = [
         'super_administrateur' => 'Super administrateur',
-        'administrateur' => 'Administrateur',
+        'administrateur' => 'Direction',
+        'jewrine_national' => 'Jewrine national',
+        'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
         'membre' => 'Membre',
     ];
 
     /** Rôles qui donnent accès au panneau du bureau. */
-    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'tresorier', 'responsable_section'];
+    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section'];
 
     /** Nomme au bureau un membre validé : il garde sa fiche, sa carte et son mot de passe. */
     public function nommer(Membre $membre, string $role, mixed $celluleId = null): User
@@ -130,7 +139,7 @@ final class CompteBureauService
 
         // On garde le rôle « membre ».
         $aGarder = $user->getRoleNames()->intersect(['membre'])->values()->all();
-        $user->syncRoles([...$aGarder, $role]);
+        $user->syncRoles([...$aGarder, $role, ...(in_array($role, self::DIRECTION, true) ? ['administrateur'] : [])]);
 
         Cellule::query()->where('responsable_id', $user->id)->update(['responsable_id' => null]);
 

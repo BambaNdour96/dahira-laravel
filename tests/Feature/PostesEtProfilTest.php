@@ -20,7 +20,7 @@ it('crée la liste officielle des postes, dans l\'ordre', function () {
 
 it('réserve l\'écran des postes à l\'administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['secretaire_general', 'administrateur']);
     $jewrine = User::factory()->create();
     $jewrine->assignRole('responsable_section');
 

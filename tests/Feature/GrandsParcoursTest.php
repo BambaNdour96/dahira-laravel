@@ -157,7 +157,7 @@ it('fait fonctionner le bureau : tâches, cellules, validation croisée et relan
 
     // Le paiement du Jewrine finance est confié au Secrétaire général, qui le valide.
     $jewrineFinance = compteDuParcours(['tresorier'], 'Jewrine finance', $this->dakar);
-    $secretaire = compteDuParcours(['administrateur'], 'Secrétaire général', $this->dakar);
+    $secretaire = compteDuParcours(['secretaire_general', 'administrateur'], 'Secrétaire général', $this->dakar);
 
     $paiement = app(CotisationService::class)->declarer($jewrineFinance->membre, 'T_PARCOURS00000003', 1);
     expect(DB::table('notifications')->where('notifiable_id', $secretaire->id)->count())->toBe(1);

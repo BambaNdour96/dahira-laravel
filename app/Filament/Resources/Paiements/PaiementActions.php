@@ -164,14 +164,14 @@ final class PaiementActions
             ->openUrlInNewTab();
     }
 
-    /** Dispense de cotisation, réservée au super administrateur. */
+    /** Dispense de cotisation, réservée au Jewrine national et au super administrateur. */
     public static function exoneration(): Action
     {
         return Action::make('exonerer')
             ->label('Dispenser de cotisation')
             ->icon('heroicon-o-gift')
             ->color('info')
-            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide && self::estSuperAdmin())
+            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide && self::peutDispenser())
             ->schema([
                 Select::make('nombre_mois')
                     ->label('Nombre de mois dispensés')
@@ -185,7 +185,7 @@ final class PaiementActions
                     ->maxLength(255),
             ])
             ->action(function (Membre $record, array $data): void {
-                if (! self::estSuperAdmin()) {
+                if (! self::peutDispenser()) {
                     return;
                 }
 
@@ -201,11 +201,11 @@ final class PaiementActions
             });
     }
 
-    private static function estSuperAdmin(): bool
+    private static function peutDispenser(): bool
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasRole('super_administrateur');
+        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'super_administrateur']);
     }
 
     private static function fcfa(int $montant): string

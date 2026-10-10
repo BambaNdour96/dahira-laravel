@@ -85,10 +85,14 @@ class CompteBureauResource extends Resource
                 TextColumn::make('name')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('telephone')->label('Téléphone')->searchable(),
                 TextColumn::make('membre.matricule')->label('Matricule')->placeholder('—'),
-                TextColumn::make('roles.name')
-                    ->label('Rôles')
+                TextColumn::make('poste_bureau')
+                    ->label('Poste')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => CompteBureauService::LIBELLES[$state] ?? $state),
+                    ->state(fn (User $record): array => $record->getRoleNames()
+                        ->diff(['administrateur', 'membre'])
+                        ->map(fn (string $role): string => CompteBureauService::LIBELLES[$role] ?? $role)
+                        ->values()
+                        ->all()),
                 TextColumn::make('cellule')
                     ->label('Cellule dirigée')
                     ->state(fn (User $record): string => (string) (Cellule::query()->where('responsable_id', $record->id)->value('nom') ?? '—')),

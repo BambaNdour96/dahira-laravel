@@ -69,7 +69,7 @@ it('prévient le Jewrine finance d\'un paiement à vérifier', function () {
 
 it('confie le paiement du Jewrine finance à ses validateurs, sans le prévenir lui-même', function () {
     $secretaire = User::factory()->create();
-    $secretaire->assignRole('administrateur');
+    $secretaire->assignRole(['secretaire_general', 'administrateur']);
     Membre::factory()->for($secretaire)->valide()->create(['poste_id' => Poste::query()->where('nom', 'Secrétaire général')->value('id')]);
 
     Membre::factory()->for($this->tresorier)->valide()->create([

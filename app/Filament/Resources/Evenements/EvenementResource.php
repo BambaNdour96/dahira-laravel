@@ -107,6 +107,6 @@ class EvenementResource extends Resource
     {
         $utilisateur = auth()->user();
 
-        return $utilisateur instanceof User && $utilisateur->hasRole('super_administrateur');
+        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']);
     }
 }

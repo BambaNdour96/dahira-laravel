@@ -49,7 +49,7 @@ beforeEach(function () {
     $this->super->assignRole(['super_administrateur', 'administrateur']);
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('administrateur');
+    $this->admin->assignRole(['secretaire_general', 'administrateur']);
 });
 
 describe('les événements', function () {
@@ -75,12 +75,16 @@ describe('les événements', function () {
         expect($contenu)->toContain('Matricule')->and($contenu)->toContain('NDK-2026-0042');
     });
 
-    it('réserve les événements au super administrateur', function () {
+    it('réserve les événements à la direction et au super administrateur', function () {
+        $tresorier = User::factory()->create();
+        $tresorier->assignRole('tresorier');
+
         expect($this->super->can('view', $this->evenement))->toBeTrue()
             ->and($this->super->can('update', $this->evenement))->toBeTrue()
             ->and($this->super->can('delete', $this->evenement))->toBeTrue()
-            ->and($this->admin->can('update', $this->evenement))->toBeFalse()
-            ->and($this->admin->can('delete', $this->evenement))->toBeFalse();
+            ->and($this->admin->can('update', $this->evenement))->toBeTrue()
+            ->and($tresorier->can('update', $this->evenement))->toBeFalse()
+            ->and($tresorier->can('delete', $this->evenement))->toBeFalse();
     });
 });
 
@@ -104,7 +108,7 @@ it('modifie une règle de validation sans jamais laisser un poste se valider lui
 });
 
 it('montre aux validateurs les paiements du bureau qui les attendent', function () {
-    $secretaire = compteAvecPoste('Secrétaire général', ['administrateur']);
+    $secretaire = compteAvecPoste('Secrétaire général', ['secretaire_general', 'administrateur']);
     $jewrineFinance = compteAvecPoste('Jewrine finance', ['tresorier']);
 
     app(CotisationService::class)->declarer($jewrineFinance->membre, 'T_COUVERTURE000001', 1);

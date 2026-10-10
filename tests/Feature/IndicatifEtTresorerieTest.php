@@ -73,7 +73,7 @@ it('ouvre la trésorerie sur les seuls paiements à vérifier', function () {
 
 it('interdit à quiconque de modifier son propre statut', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole(['secretaire_general', 'administrateur']);
     $saFiche = Membre::factory()->for($admin)->valide()->create();
 
     expect($admin->can('changerStatut', [$saFiche, StatutMembre::Suspendu]))->toBeFalse();
