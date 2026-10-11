@@ -37,7 +37,7 @@ class PaiementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['membre.cellule', 'traitePar']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['membre.cellule', 'traitePar', 'collecte']))
             ->columns([
                 TextColumn::make('numero_recu')->label('Reçu')->fontFamily('mono')->placeholder('—')->searchable(),
                 TextColumn::make('declare_le')->label('Déclaré le')->dateTime('d/m/Y H:i')->sortable(),
@@ -48,7 +48,11 @@ class PaiementResource extends Resource
                     ->label('Objet')
                     ->state(fn (Paiement $record): string => $record->libelleObjet())
                     ->badge()
-                    ->color(fn (Paiement $record): string => $record->objet === 'cotisation' ? 'info' : 'primary'),
+                    ->color(fn (Paiement $record): string => match ($record->objet) {
+                        'cotisation' => 'info',
+                        'collecte' => 'warning',
+                        default => 'primary',
+                    }),
                 TextColumn::make('montant')
                     ->label('Montant')
                     ->formatStateUsing(fn ($state): string => number_format((int) $state, 0, ',', ' ').' FCFA'),
@@ -61,7 +65,7 @@ class PaiementResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('statut')->label('Statut')->options(StatutPaiement::class)->default(StatutPaiement::Declare->value),
-                SelectFilter::make('objet')->label('Objet')->options(['frais_carte' => 'Frais de carte', 'cotisation' => 'Cotisation']),
+                SelectFilter::make('objet')->label('Objet')->options(['frais_carte' => 'Frais de carte', 'cotisation' => 'Cotisation', 'collecte' => 'Participation à une collecte']),
                 SelectFilter::make('moyen')->label('Moyen')->options(MoyenPaiement::class),
             ])
             ->recordActions([

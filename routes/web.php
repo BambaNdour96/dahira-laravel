@@ -5,10 +5,12 @@ use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\EmpreinteController;
+use App\Http\Controllers\EngagementController;
 use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\ExportPresencesController;
+use App\Http\Controllers\FicheCollecteController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\MesDonneesController;
 use App\Http\Controllers\MesNotificationsController;
@@ -84,6 +86,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/mes-cotisations', [CotisationController::class, 'declarer'])
         ->middleware('throttle:inscription')
         ->name('cotisations.declarer');
+    Route::get('/mes-engagements', [EngagementController::class, 'index'])->name('engagements.index');
+    Route::post('/mes-engagements/{collecte}', [EngagementController::class, 'fixer'])
+        ->middleware('throttle:inscription')
+        ->name('engagements.fixer');
+    Route::post('/mes-engagements/{collecte}/versement', [EngagementController::class, 'declarer'])
+        ->middleware('throttle:inscription')
+        ->name('engagements.versement');
+    Route::get('/collectes/fiche-de-parametrage', FicheCollecteController::class)->name('collectes.fiche');
     Route::get('/relances/{membre}/whatsapp', [RelanceController::class, 'whatsapp'])->name('relances.whatsapp');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');

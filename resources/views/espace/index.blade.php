@@ -89,6 +89,25 @@
                 </div>
             @endif
 
+            {{-- Engagements en cours (Magal, Ziar, Prokhane, collectes) --}}
+            @php($mesEngagements = app(\App\Services\CollecteService::class)->resumePour($membre))
+            @if ($mesEngagements->isNotEmpty())
+                <a href="{{ route('engagements.index') }}" class="mt-4 block rounded-xl bg-white p-4 shadow-sm ring-1 ring-or-400 hover:bg-stone-100">
+                    <p class="font-semibold text-emerald-950">🤲 Mes engagements</p>
+                    @foreach ($mesEngagements as $resume)
+                        <div class="mt-3">
+                            <div class="flex justify-between gap-2 text-sm">
+                                <span class="truncate text-stone-700">{{ $resume['titre'] }}</span>
+                                <span class="shrink-0 font-semibold text-emerald-900">
+                                    {{ $resume['montant'] === null ? 'À fixer' : $resume['taux'].' %' }}
+                                </span>
+                            </div>
+                            <div class="mt-1 h-2 rounded-full bg-stone-200"><div class="h-2 rounded-full bg-emerald-700" style="width: {{ $resume['taux'] }}%"></div></div>
+                        </div>
+                    @endforeach
+                </a>
+            @endif
+
             {{-- Raccourcis --}}
             <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <a href="{{ route('cotisations') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">

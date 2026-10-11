@@ -7,6 +7,7 @@
             ['🪪', 'Ma carte de membre', 'carte', $valide],
             ['💳', 'Mes cotisations', 'cotisations', $valide],
             ['🧾', 'Mes reçus', 'recus.index', $valide],
+            ['🤲', 'Mes engagements', 'engagements.index', $valide],
             ['📅', 'Mes participations', 'evenements.index', $valide],
             ['🔔', 'Mes notifications', 'notifications.index', true],
             ['⚙️', 'Paramètres', 'parametres', true],

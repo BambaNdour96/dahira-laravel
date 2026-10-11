@@ -30,9 +30,11 @@ final class PaiementActions
             ->requiresConfirmation()
             ->modalDescription(fn (Paiement $record): string => 'Vérifiez d\'abord dans Wave Business le paiement de '
                 .self::fcfa($record->montant).', référence '.$record->reference.($record->numero_wave ? ', payé depuis le '.$record->numero_wave : '').'. '
-                .($record->objet === 'cotisation'
-                    ? 'Les '.$record->nombre_mois.' mois seront marqués réglés.'
-                    : 'Le membre sera validé et recevra sa carte.'))
+                .match ($record->objet) {
+                    'cotisation' => 'Les '.$record->nombre_mois.' mois seront marqués réglés.',
+                    'collecte' => 'Le versement s\'ajoutera à l\'engagement du membre.',
+                    default => 'Le membre sera validé et recevra sa carte.',
+                })
             ->action(function (Paiement $record): void {
                 if (! Gate::allows('update', $record)) {
                     return;
@@ -47,7 +49,11 @@ final class PaiementActions
                 }
 
                 Notification::make()
-                    ->title($record->objet === 'cotisation' ? 'Cotisation confirmée.' : 'Paiement confirmé : le membre a reçu sa carte.')
+                    ->title(match ($record->objet) {
+                        'cotisation' => 'Cotisation confirmée.',
+                        'collecte' => 'Versement confirmé, avec son reçu.',
+                        default => 'Paiement confirmé : le membre a reçu sa carte.',
+                    })
                     ->success()
                     ->send();
             });

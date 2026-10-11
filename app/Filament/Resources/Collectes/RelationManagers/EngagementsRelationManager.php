@@ -1,0 +1,188 @@
+<?php
+
+namespace App\Filament\Resources\Collectes\RelationManagers;
+
+use App\Models\Collecte;
+use App\Models\Engagement;
+use App\Models\Membre;
+use App\Models\Paiement;
+use App\Models\User;
+use App\Services\CollecteService;
+use DomainException;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+
+/** Chaque engagement : montant, versé, reste, situation ; attribution, modification tracée, espèces. */
+class EngagementsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'engagements';
+
+    protected static ?string $title = 'Engagements des membres';
+
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn (Builder $requete) => $requete->with(['membre.cellule', 'collecte']))
+            ->columns([
+                TextColumn::make('membre.prenom')->label('Prénom')->searchable(),
+                TextColumn::make('membre.nom')->label('Nom')->searchable(),
+                TextColumn::make('membre.cellule.nom')->label('Cellule'),
+                TextColumn::make('montant')->label('Engagement')->sortable()
+                    ->formatStateUsing(fn (mixed $state): string => CollecteService::fcfa((int) $state)),
+                TextColumn::make('fixe_par')->label('Fixé par')
+                    ->formatStateUsing(fn (mixed $state, Engagement $record): string => $record->libelleFixePar()),
+                TextColumn::make('verse')->label('Versé')
+                    ->state(fn (Engagement $record): string => CollecteService::fcfa($record->verse())),
+                TextColumn::make('reste')->label('Reste')
+                    ->state(fn (Engagement $record): string => CollecteService::fcfa($record->reste())),
+                TextColumn::make('situation')->label('Situation')->badge()
+                    ->state(fn (Engagement $record): string => $record->situation())
+                    ->color(fn (string $state): string => match ($state) {
+                        'À jour' => 'success',
+                        'En retard' => 'danger',
+                        'En cours' => 'warning',
+                        default => 'gray',
+                    }),
+            ])
+            ->filters([
+                SelectFilter::make('cellule')
+                    ->label('Cellule')
+                    ->relationship('membre.cellule', 'nom'),
+            ])
+            ->headerActions([$this->attribuer()])
+            ->recordActions([$this->modifier(), $this->especes(), $this->historique()])
+            ->defaultSort('montant', 'desc');
+    }
+
+    private function collecte(): Collecte
+    {
+        $collecte = $this->getOwnerRecord();
+        abort_unless($collecte instanceof Collecte, 404);
+
+        return $collecte;
+    }
+
+    private static function auteur(): User
+    {
+        $auteur = Auth::user();
+        abort_unless($auteur instanceof User, 403);
+
+        return $auteur;
+    }
+
+    private function attribuer(): Action
+    {
+        return Action::make('attribuer')
+            ->label('Attribuer un montant')
+            ->icon('heroicon-o-user-plus')
+            ->visible(fn (): bool => Gate::allows('attribuer', $this->collecte()))
+            ->schema([
+                Select::make('membres')
+                    ->label('Membres')
+                    ->multiple()
+                    ->searchable()
+                    ->required()
+                    ->options(fn (): array => $this->collecte()->membresConcernes()->with('cellule')->orderBy('nom')->get()
+                        ->mapWithKeys(fn (Membre $membre): array => [$membre->id => $membre->prenom.' '.$membre->nom.' — '.$membre->cellule->nom])
+                        ->all()),
+                TextInput::make('montant')->label('Montant')->numeric()->minValue(1)->required()->suffix('FCFA'),
+                Textarea::make('motif')->label('Motif')->default('Montant attribué par le bureau')->required()->maxLength(255),
+            ])
+            ->action(function (array $data): void {
+                $service = app(CollecteService::class);
+                $nombre = 0;
+
+                foreach ((array) $data['membres'] as $id) {
+                    $membre = Membre::query()->whereKey((int) $id)->first();
+
+                    if ($membre !== null) {
+                        $service->attribuer($this->collecte(), $membre, (int) $data['montant'], self::auteur(), (string) $data['motif']);
+                        $nombre++;
+                    }
+                }
+
+                Notification::make()->title($nombre.' engagement(s) attribué(s). Les membres sont prévenus.')->success()->send();
+            });
+    }
+
+    private function modifier(): Action
+    {
+        return Action::make('modifier')
+            ->label('Modifier')
+            ->icon('heroicon-o-pencil-square')
+            ->visible(fn (Engagement $record): bool => Gate::allows('modifierEngagement', $record->collecte))
+            ->fillForm(fn (Engagement $record): array => ['montant' => $record->montant])
+            ->schema([
+                TextInput::make('montant')->label('Nouveau montant')->numeric()->minValue(1)->required()->suffix('FCFA'),
+                Textarea::make('motif')
+                    ->label('Motif (gardé dans l\'historique, visible par le membre)')
+                    ->placeholder('Exemple : demande du membre, situation familiale')
+                    ->required()
+                    ->maxLength(255),
+            ])
+            ->action(function (Engagement $record, array $data): void {
+                try {
+                    app(CollecteService::class)->modifier($record, (int) $data['montant'], (string) $data['motif'], self::auteur());
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Engagement modifié. La modification est tracée et le membre est prévenu.')->success()->send();
+            });
+    }
+
+    private function especes(): Action
+    {
+        return Action::make('especes')
+            ->label('Espèces')
+            ->icon('heroicon-o-banknotes')
+            ->color('success')
+            ->visible(fn (): bool => Gate::allows('create', Paiement::class))
+            ->fillForm(fn (Engagement $record): array => ['montant' => $record->reste()])
+            ->schema([
+                TextInput::make('montant')->label('Montant reçu')->numeric()->minValue(1)->required()->suffix('FCFA'),
+            ])
+            ->action(function (Engagement $record, array $data): void {
+                try {
+                    app(CollecteService::class)->enregistrerEspeces($record->collecte, $record->membre, (int) $data['montant'], self::auteur());
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Versement en espèces enregistré, avec son reçu.')->success()->send();
+            });
+    }
+
+    private function historique(): Action
+    {
+        return Action::make('historique')
+            ->label('Historique')
+            ->icon('heroicon-o-clock')
+            ->color('gray')
+            ->modalHeading(fn (Engagement $record): string => 'Historique — '.$record->membre->prenom.' '.$record->membre->nom)
+            ->modalContent(fn (Engagement $record) => view('filament.historique-engagement', [
+                'lignes' => $record->historique()->with('auteur')->get(),
+            ]))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Fermer');
+    }
+}

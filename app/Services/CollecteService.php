@@ -1,0 +1,294 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\ModeCollecte;
+use App\Enums\MoyenPaiement;
+use App\Enums\StatutCollecte;
+use App\Enums\StatutPaiement;
+use App\Models\Collecte;
+use App\Models\Engagement;
+use App\Models\Membre;
+use App\Models\Paiement;
+use App\Models\User;
+use App\Notifications\NotificationMembre;
+use App\Support\AntiFraude;
+use DomainException;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Les règles des collectes : qui fixe l'engagement, les versements, et la trace de chaque modification.
+ */
+final class CollecteService
+{
+    /**
+     * L'engagement du membre ; créé automatiquement quand le montant est identique pour tous.
+     */
+    public function engagementDe(Collecte $collecte, Membre $membre): ?Engagement
+    {
+        $engagement = $collecte->engagements()->where('membre_id', $membre->id)->first();
+
+        if ($engagement === null && $collecte->mode === ModeCollecte::Identique && $collecte->montant !== null && $collecte->concerne($membre)) {
+            $engagement = $collecte->engagements()->create([
+                'membre_id' => $membre->id,
+                'montant' => $collecte->montant,
+                'fixe_par' => 'auto',
+            ]);
+        }
+
+        return $engagement;
+    }
+
+    /** Le membre peut-il fixer lui-même son engagement ? */
+    public function peutFixer(Collecte $collecte, Membre $membre): bool
+    {
+        return $collecte->concerne($membre)
+            && $collecte->mode !== ModeCollecte::Identique
+            && $this->engagementDe($collecte, $membre) === null;
+    }
+
+    public function minimum(Collecte $collecte): int
+    {
+        return $collecte->mode === ModeCollecte::Minimum ? (int) $collecte->montant : 1;
+    }
+
+    /** Le membre fixe son engagement, une seule fois ; ensuite, seul le bureau peut le modifier. */
+    public function fixerParMembre(Collecte $collecte, Membre $membre, int $montant): Engagement
+    {
+        if (! $this->peutFixer($collecte, $membre)) {
+            throw new DomainException('Votre engagement est déjà fixé. Pour le modifier, adressez-vous au bureau.');
+        }
+
+        $minimum = $this->minimum($collecte);
+
+        if ($montant < $minimum) {
+            throw new DomainException('Le montant minimum est de '.self::fcfa($minimum).'.');
+        }
+
+        return DB::transaction(function () use ($collecte, $membre, $montant): Engagement {
+            $engagement = $collecte->engagements()->create([
+                'membre_id' => $membre->id,
+                'montant' => $montant,
+                'fixe_par' => 'membre',
+            ]);
+
+            $engagement->historique()->create([
+                'ancien' => null,
+                'nouveau' => $montant,
+                'motif' => 'Engagement fixé par le membre',
+                'auteur_id' => $membre->user_id,
+            ]);
+
+            return $engagement;
+        });
+    }
+
+    /** Le bureau attribue un montant à un membre (Ziar, ou tout autre mode). */
+    public function attribuer(Collecte $collecte, Membre $membre, int $montant, User $auteur, string $motif = 'Montant attribué par le bureau'): Engagement
+    {
+        if (! $collecte->concerne($membre)) {
+            throw new DomainException($membre->prenom.' '.$membre->nom.' n\'est pas concerné par cette collecte.');
+        }
+
+        $existant = $collecte->engagements()->where('membre_id', $membre->id)->first();
+
+        if ($existant !== null) {
+            return $this->modifier($existant, $montant, $motif, $auteur);
+        }
+
+        return DB::transaction(function () use ($collecte, $membre, $montant, $auteur, $motif): Engagement {
+            $engagement = $collecte->engagements()->create([
+                'membre_id' => $membre->id,
+                'montant' => $montant,
+                'fixe_par' => 'bureau',
+            ]);
+
+            $engagement->historique()->create([
+                'ancien' => null,
+                'nouveau' => $montant,
+                'motif' => $motif,
+                'auteur_id' => $auteur->id,
+            ]);
+
+            $this->prevenir($engagement, null);
+
+            return $engagement;
+        });
+    }
+
+    /** Le bureau modifie un engagement : le motif est obligatoire, et tout est tracé. */
+    public function modifier(Engagement $engagement, int $nouveau, string $motif, User $auteur): Engagement
+    {
+        if (trim($motif) === '') {
+            throw new DomainException('Le motif est obligatoire.');
+        }
+
+        if ($nouveau < 1) {
+            throw new DomainException('Le montant doit être positif.');
+        }
+
+        $ancien = $engagement->montant;
+
+        if ($ancien === $nouveau) {
+            return $engagement;
+        }
+
+        DB::transaction(function () use ($engagement, $nouveau, $ancien, $motif, $auteur): void {
+            $engagement->update(['montant' => $nouveau, 'fixe_par' => 'bureau']);
+
+            $engagement->historique()->create([
+                'ancien' => $ancien,
+                'nouveau' => $nouveau,
+                'motif' => $motif,
+                'auteur_id' => $auteur->id,
+            ]);
+        });
+
+        $this->prevenir($engagement, $ancien);
+
+        return $engagement;
+    }
+
+    /** Versement Wave déclaré par le membre, à confirmer par le Jewrine finance. */
+    public function declarer(Collecte $collecte, Membre $membre, int $montant, string $reference, ?string $numeroWave = null): Paiement
+    {
+        $engagement = $this->engagementDe($collecte, $membre);
+
+        if ($engagement === null) {
+            throw new DomainException('Fixez d\'abord votre engagement.');
+        }
+
+        if (! $collecte->estOuverte()) {
+            throw new DomainException('Cette collecte n\'accepte plus de versements.');
+        }
+
+        if ($this->versementEnCours($collecte, $membre) !== null) {
+            throw new DomainException('Un versement est déjà en cours de vérification.');
+        }
+
+        if ($montant < 1) {
+            throw new DomainException('Indiquez le montant versé.');
+        }
+
+        return $membre->paiements()->create([
+            'collecte_id' => $collecte->id,
+            'objet' => 'collecte',
+            'montant' => $montant,
+            'nombre_mois' => 0,
+            'moyen' => MoyenPaiement::Wave,
+            'reference' => $reference,
+            'numero_wave' => $numeroWave,
+            'statut' => StatutPaiement::Declare,
+            'declare_le' => now(),
+        ]);
+    }
+
+    /** Versement en espèces, enregistré directement par le Jewrine finance. */
+    public function enregistrerEspeces(Collecte $collecte, Membre $membre, int $montant, ?User $tresorier): Paiement
+    {
+        if ($montant < 1) {
+            throw new DomainException('Indiquez le montant reçu.');
+        }
+
+        AntiFraude::verifierValidateur($membre, $tresorier);
+        $this->engagementDe($collecte, $membre);
+
+        return $membre->paiements()->create([
+            'collecte_id' => $collecte->id,
+            'objet' => 'collecte',
+            'montant' => $montant,
+            'nombre_mois' => 0,
+            'moyen' => MoyenPaiement::Especes,
+            'statut' => StatutPaiement::Confirme,
+            'declare_le' => now(),
+            'traite_le' => now(),
+            'traite_par' => $tresorier?->id,
+        ]);
+    }
+
+    public function versementEnCours(Collecte $collecte, Membre $membre): ?Paiement
+    {
+        return $collecte->paiements()
+            ->where('membre_id', $membre->id)
+            ->where('statut', StatutPaiement::Declare->value)
+            ->latest('declare_le')
+            ->first();
+    }
+
+    /**
+     * Les chiffres du tableau de bord d'une collecte.
+     *
+     * @return array{concernes: int, engages: int, a_jour: int, en_retard: int, total_engage: int, total_verse: int, cible: int, taux: int}
+     */
+    public function statistiques(Collecte $collecte): array
+    {
+        $engagements = $collecte->engagements()->with('collecte')->get();
+        $aJour = $engagements->filter(fn (Engagement $e): bool => $e->reste() === 0)->count();
+
+        return [
+            'concernes' => $collecte->membresConcernes()->count(),
+            'engages' => $engagements->count(),
+            'a_jour' => $aJour,
+            'en_retard' => $collecte->estEnRetard() ? $engagements->count() - $aJour : 0,
+            'total_engage' => (int) $engagements->sum('montant'),
+            'total_verse' => $collecte->totalVerse(),
+            'cible' => $collecte->cible(),
+            'taux' => $collecte->taux(),
+        ];
+    }
+
+    /**
+     * Les collectes ouvertes qui concernent le membre, pour l'accueil.
+     *
+     * @return Collection<int, array{titre: string, montant: int|null, verse: int, taux: int}>
+     */
+    public function resumePour(Membre $membre): Collection
+    {
+        return $this->ouvertesPour($membre)->map(function (Collecte $collecte) use ($membre): array {
+            $engagement = $this->engagementDe($collecte, $membre);
+
+            return [
+                'titre' => $collecte->titre,
+                'montant' => $engagement?->montant,
+                'verse' => $engagement?->verse() ?? 0,
+                'taux' => $engagement?->taux() ?? 0,
+            ];
+        })->values();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Collecte> */
+    public function ouvertesPour(Membre $membre): \Illuminate\Database\Eloquent\Collection
+    {
+        return Collecte::query()
+            ->where('statut', StatutCollecte::Ouverte->value)
+            ->whereDate('ouverture', '<=', now())
+            ->where(fn ($requete) => $requete->whereNull('cellule_id')->orWhere('cellule_id', $membre->cellule_id))
+            ->orderByRaw('date_limite is null')
+            ->orderBy('date_limite')
+            ->get()
+            ->filter(fn (Collecte $collecte): bool => $collecte->concerne($membre))
+            ->values();
+    }
+
+    private function prevenir(Engagement $engagement, ?int $ancien): void
+    {
+        $compte = User::query()->find($engagement->membre->user_id);
+
+        if ($compte === null) {
+            return;
+        }
+
+        $titre = $engagement->collecte->titre;
+        $message = $ancien === null
+            ? 'Le bureau a fixé votre engagement pour « '.$titre.' » à '.self::fcfa($engagement->montant).'.'
+            : 'Le bureau a modifié votre engagement pour « '.$titre.' » : '.self::fcfa($ancien).' → '.self::fcfa($engagement->montant).'.';
+
+        $compte->notify(new NotificationMembre('Votre engagement', $message, route('engagements.index'), 'Voir mes engagements'));
+    }
+
+    public static function fcfa(int $montant): string
+    {
+        return number_format($montant, 0, ',', ' ').' FCFA';
+    }
+}

@@ -93,6 +93,11 @@ final class PaiementService
                 return;
             }
 
+            // Versement d'une collecte : il s'ajoute simplement à l'engagement du membre.
+            if ($paiement->objet === 'collecte') {
+                return;
+            }
+
             $membre = $paiement->membre;
 
             if ($membre->statut !== StatutMembre::Valide) {

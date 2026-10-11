@@ -22,6 +22,16 @@ final class LienWave
             ?? self::avecMontant(Parametre::valeur('wave_lien_paiement'), $nombreMois * $mensuel);
     }
 
+    /** Participation à une collecte : le lien général de la Daara, avec le montant à verser. */
+    public static function collecte(int $montant): ?string
+    {
+        $base = collect(['wave_lien_paiement', 'wave_lien_frais_carte', 'wave_lien_1_mois'])
+            ->map(fn (string $cle): ?string => Parametre::valeur($cle))
+            ->first(fn (?string $lien): bool => filled($lien));
+
+        return $montant > 0 ? self::avecMontant($base, $montant) : null;
+    }
+
     public static function avecMontant(?string $lien, int $montant): ?string
     {
         if ($lien === null || $lien === '') {
