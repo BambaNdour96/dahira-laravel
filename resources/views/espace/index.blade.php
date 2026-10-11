@@ -222,7 +222,7 @@
                             <li>
                                 <p class="font-semibold text-emerald-900">1. Payez {{ $montant }} FCFA avec Wave</p>
                                 @if ($lienWave)
-                                    <a href="{{ $lienWave }}" target="_blank" rel="noopener"
+                                    <a href="{{ $lienWave }}"
                                        class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
                                         Payer avec Wave
                                     </a>

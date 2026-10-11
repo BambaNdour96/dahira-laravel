@@ -103,7 +103,7 @@
 
                 <div>
                     <p class="font-semibold text-emerald-900">2. Payez avec Wave</p>
-                    <a id="bouton-wave" href="{{ $lienParDefaut ?? '#' }}" target="_blank" rel="noopener"
+                    <a id="bouton-wave" href="{{ $lienParDefaut ?? '#' }}"
                        class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90 {{ $lienParDefaut ? '' : 'hidden' }}">
                         Payer <span id="montant-wave">{{ $fcfa($choixParDefaut * $mensuel) }}</span> avec Wave
                     </a>
