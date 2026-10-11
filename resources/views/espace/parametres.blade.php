@@ -20,6 +20,18 @@
         </button>
     </div>
 
+    <p class="mt-6 text-xs font-medium uppercase tracking-wide text-stone-500">Notifications sur ce téléphone</p>
+    <div class="mt-2 rounded-xl bg-white p-4 ring-1 ring-stone-200" data-notifications-telephone
+         data-cle="{{ config('webpush.vapid.public_key') }}"
+         data-enregistrer="{{ route('notifications-telephone.store') }}"
+         data-retirer="{{ route('notifications-telephone.destroy') }}"
+         data-jeton="{{ csrf_token() }}">
+        <p class="text-sm text-stone-700">Recevez vos avis (paiement confirmé, engagement, carte…) directement sur votre téléphone, même application fermée, comme un message.</p>
+        <p data-etat class="mt-2 text-sm font-medium text-stone-500"></p>
+        <button type="button" data-activer class="mt-3 hidden w-full rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900">Activer sur ce téléphone</button>
+        <button type="button" data-desactiver class="mt-3 hidden w-full rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-red-800 ring-1 ring-stone-200 hover:bg-stone-100">Désactiver sur ce téléphone</button>
+    </div>
+
     <p class="mt-6 text-xs font-medium uppercase tracking-wide text-stone-500">Connexion par empreinte</p>
     <div class="mt-2 rounded-xl bg-white p-4 ring-1 ring-stone-200">
         <p class="text-sm text-stone-700">Connectez-vous en une seconde avec l'empreinte digitale, le visage ou le code de votre téléphone. Votre empreinte ne quitte jamais votre appareil.</p>

@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 /**
  * Notification adressée à un membre : dans son compte, et par email s'il en a un.
@@ -25,7 +27,25 @@ class NotificationMembre extends Notification implements ShouldQueue
     /** @return list<string> */
     public function via(object $notifiable): array
     {
-        return $notifiable instanceof User && $notifiable->email_verified_at !== null && filled($notifiable->email) ? ['database', 'mail'] : ['database'];
+        $canaux = $notifiable instanceof User && $notifiable->email_verified_at !== null && filled($notifiable->email) ? ['database', 'mail'] : ['database'];
+
+        // Sur le téléphone, même application fermée, si le membre l'a activé.
+        if ($notifiable instanceof User && $notifiable->pushSubscriptions()->exists()) {
+            $canaux[] = WebPushChannel::class;
+        }
+
+        return $canaux;
+    }
+
+    public function toWebPush(object $notifiable, mixed $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title($this->titre)
+            ->body($this->message)
+            ->icon('/images/icone-192.png')
+            ->badge('/images/icone-192.png')
+            ->data(['url' => self::chemin($this->lien) ?? '/mon-espace'])
+            ->options(['TTL' => 86400]);
     }
 
     /** @return array<string, string|null> */

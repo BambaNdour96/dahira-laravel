@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbonnementTelephoneController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
@@ -102,6 +103,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-notifications', [MesNotificationsController::class, 'index'])->name('notifications.index');
     Route::view('/mon-compte/parametres', 'espace.parametres')->name('parametres');
     Route::post('/mes-notifications/lues', [MesNotificationsController::class, 'marquerLues'])->name('notifications.lues');
+    Route::post('/notifications-telephone', [AbonnementTelephoneController::class, 'store'])->name('notifications-telephone.store');
+    Route::delete('/notifications-telephone', [AbonnementTelephoneController::class, 'destroy'])->name('notifications-telephone.destroy');
     Route::post('/session/activite', fn () => response()->noContent())->name('session.activite');
     Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
     Route::post('/v/{jeton}/presence/{evenement}', [PresenceController::class, 'store'])->name('presences.store');

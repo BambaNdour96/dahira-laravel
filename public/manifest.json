@@ -15,5 +15,10 @@
         { "src": "/images/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
         { "src": "/images/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
         { "src": "/images/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ],
+    "shortcuts": [
+        { "name": "Ma carte", "short_name": "Carte", "url": "/ma-carte", "icons": [{ "src": "/images/icone-192.png", "sizes": "192x192" }] },
+        { "name": "Payer ma cotisation", "short_name": "Payer", "url": "/mes-cotisations", "icons": [{ "src": "/images/icone-192.png", "sizes": "192x192" }] },
+        { "name": "Mes engagements", "short_name": "Engagements", "url": "/mes-engagements", "icons": [{ "src": "/images/icone-192.png", "sizes": "192x192" }] }
     ]
 }

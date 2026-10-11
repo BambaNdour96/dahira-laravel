@@ -34,3 +34,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// La carte reste affichée sans que l'écran ne s'éteigne, le temps que le contrôleur la scanne.
+document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('carte-membre') || !('wakeLock' in navigator)) {
+        return;
+    }
+
+    let verrou = null;
+    const garderAllume = async () => {
+        try {
+            verrou = await navigator.wakeLock.request('screen');
+        } catch (erreur) {
+            verrou = null;
+        }
+    };
+
+    garderAllume();
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && verrou === null) {
+            garderAllume();
+        }
+    });
+});

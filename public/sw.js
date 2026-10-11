@@ -4,7 +4,7 @@
  * - Carte de membre : une copie à jour, rangée à part, effacée à la déconnexion.
  * - Aucune autre page personnelle n'est gardée.
  */
-const VERSION = 'ndk-v3';
+const VERSION = 'ndk-v4';
 const CACHE_CARTE = 'ndk-carte';
 const HORS_LIGNE = '/hors-ligne';
 
@@ -67,4 +67,35 @@ self.addEventListener('fetch', (evenement) => {
     if (requete.mode === 'navigate') {
         evenement.respondWith(fetch(requete).catch(() => caches.match(HORS_LIGNE)));
     }
+});
+
+// Notifications sur le téléphone : affichage, puis ouverture de la bonne page au toucher.
+self.addEventListener('push', (evenement) => {
+    const donnees = evenement.data ? evenement.data.json() : {};
+
+    evenement.waitUntil(self.registration.showNotification(donnees.title || 'Daara NDK', {
+        body: donnees.body || '',
+        icon: donnees.icon || '/images/icone-192.png',
+        badge: donnees.badge || '/images/icone-192.png',
+        data: donnees.data || {},
+        lang: 'fr',
+        vibrate: [100, 50, 100],
+    }));
+});
+
+self.addEventListener('notificationclick', (evenement) => {
+    evenement.notification.close();
+    const adresse = (evenement.notification.data && evenement.notification.data.url) || '/mon-espace';
+
+    evenement.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenetres) => {
+        const ouverte = fenetres.find((fenetre) => new URL(fenetre.url).origin === self.location.origin);
+
+        if (ouverte) {
+            ouverte.navigate(adresse);
+
+            return ouverte.focus();
+        }
+
+        return self.clients.openWindow(adresse);
+    }));
 });
