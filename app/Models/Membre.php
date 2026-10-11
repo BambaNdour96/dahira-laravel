@@ -30,6 +30,7 @@ use Illuminate\Support\Str;
  * @property string $nom
  * @property Sexe $sexe
  * @property Carbon|null $date_naissance
+ * @property string|null $niveau_etudes_autre
  * @property string|null $lieu_naissance
  * @property string $telephone
  * @property string|null $email
@@ -82,7 +83,7 @@ class Membre extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
+        'niveau_etudes_autre', 'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
         'adresse', 'ville', 'pays_residence', 'cellule_id', 'poste_id', 'photo_path',
         'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
         'situation_professionnelle', 'profession', 'secteur_activite',

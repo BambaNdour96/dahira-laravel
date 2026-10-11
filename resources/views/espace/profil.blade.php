@@ -37,7 +37,7 @@
                         @endforeach
                     </div>
                 </div>
-                <x-champ nom="date_naissance" libelle="Date de naissance" type="date" requis min="1900-01-01" :max="now()->subDay()->format('Y-m-d')" :value="$membre->date_naissance?->format('Y-m-d')" />
+                <x-date-naissance :value="$membre->date_naissance?->format('Y-m-d')" />
                 <x-champ nom="lieu_naissance" libelle="Lieu de naissance" :value="$membre->lieu_naissance" />
                 <div>
                     <label for="cellule_id" class="block text-sm font-medium">Cellule <span class="text-red-700">*</span></label>
@@ -69,6 +69,7 @@
                     @endforeach
                 </select>
             </div>
+            <x-champ nom="niveau_etudes_autre" libelle="Précisez votre niveau d'études" :value="$membre->niveau_etudes_autre" maxlength="100" />
             <x-champ nom="diplome" libelle="Diplôme le plus élevé" :value="$membre->diplome" />
             <x-champ nom="domaine_etudes" libelle="Domaine d'études" :value="$membre->domaine_etudes" />
             <fieldset>

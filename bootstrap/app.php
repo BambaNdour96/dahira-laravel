@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AppliquerIndicatif;
+use App\Http\Middleware\AssemblerDateNaissance;
 use App\Http\Middleware\ChangementMotDePasseObligatoire;
 use App\Http\Middleware\EnTetesSecurite;
 use App\Http\Middleware\ExpirationInactivite;
@@ -19,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        $middleware->web(append: [UtiliserNumeroMemorise::class]);
+        $middleware->web(append: [UtiliserNumeroMemorise::class, AssemblerDateNaissance::class]);
         $middleware->web(append: [ExpirationInactivite::class]);
         $middleware->web(append: [AppliquerIndicatif::class]);
         $middleware->web(append: [EnTetesSecurite::class]);

@@ -14,6 +14,10 @@ class CoherenceProfilObserver
 {
     public function saving(Membre $membre): void
     {
+        if ($membre->niveau_etudes !== NiveauEtudes::Autre) {
+            $membre->niveau_etudes_autre = null;
+        }
+
         if ($membre->niveau_etudes === NiveauEtudes::Aucun) {
             $membre->diplome = null;
             $membre->domaine_etudes = null;

@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
         ->name('espace.paiement');
     Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
+    Route::get('/ma-carte/pdf', [CarteController::class, 'pdf'])->name('carte.pdf');
 
     Route::get('/mon-compte/mot-de-passe', [MotDePasseController::class, 'edit'])->name('mot-de-passe.edit');
     Route::put('/mon-compte/mot-de-passe', [MotDePasseController::class, 'update'])

@@ -150,6 +150,7 @@
         }));
         const regleProfil = () => {
             griser(['diplome', 'domaine_etudes'], valeurDe('niveau_etudes') === 'aucun');
+            tous('[name="niveau_etudes_autre"]').forEach((champ) => conteneur(champ).classList.toggle('hidden', valeurDe('niveau_etudes') !== 'autre'));
             const situation = valeurDe('situation_professionnelle');
             griser(['secteur_activite'], situation === 'retraite');
             griser(['profession'], situation === 'retraite' || situation === 'eleve_etudiant');

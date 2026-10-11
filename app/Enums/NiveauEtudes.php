@@ -11,7 +11,12 @@ enum NiveauEtudes: string implements HasLabel
     case Elementaire = 'elementaire';
     case Moyen = 'moyen';
     case Secondaire = 'secondaire';
+    case Bac = 'bac';
     case Superieur = 'superieur';
+    case Licence = 'licence';
+    case Master = 'master';
+    case BacPlus5 = 'bac_plus_5';
+    case Autre = 'autre';
 
     public function getLabel(): string
     {
@@ -21,7 +26,12 @@ enum NiveauEtudes: string implements HasLabel
             self::Elementaire => 'Élémentaire',
             self::Moyen => 'Moyen',
             self::Secondaire => 'Secondaire',
-            self::Superieur => 'Supérieur',
+            self::Superieur => 'BTS, DUT ou autre bac + 2',
+            self::Bac => 'BAC',
+            self::Licence => 'Licence',
+            self::Master => 'Master',
+            self::BacPlus5 => 'BAC + 5 et plus',
+            self::Autre => 'Autre (à préciser)',
         };
     }
 }

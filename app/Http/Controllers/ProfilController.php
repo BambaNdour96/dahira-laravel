@@ -49,6 +49,7 @@ class ProfilController extends Controller
             'ville' => ['required', 'string', 'max:100'],
             'pays_residence' => ['required', 'string', 'max:100'],
             'niveau_etudes' => ['nullable', Rule::enum(NiveauEtudes::class)],
+            'niveau_etudes_autre' => ['nullable', 'required_if:niveau_etudes,autre', 'string', 'max:100'],
             'diplome' => ['nullable', 'string', 'max:150'],
             'domaine_etudes' => ['nullable', 'string', 'max:150'],
             'langues' => ['nullable', 'array'],
@@ -74,7 +75,7 @@ class ProfilController extends Controller
         $donnees = $request->validate($regles, MessagesValidation::tous());
 
         $champs = Arr::only($donnees, [
-            'email', 'adresse', 'ville', 'pays_residence', 'niveau_etudes', 'diplome', 'domaine_etudes',
+            'email', 'adresse', 'ville', 'pays_residence', 'niveau_etudes', 'niveau_etudes_autre', 'diplome', 'domaine_etudes',
             'niveau_arabe', 'situation_professionnelle', 'profession', 'secteur_activite',
             'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'cellule_id',
         ]);

@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <x-champ nom="date_naissance" libelle="Date de naissance" type="date" requis min="1900-01-01" :max="now()->subDay()->format('Y-m-d')" />
+            <x-date-naissance />
             <x-champ nom="lieu_naissance" libelle="Lieu de naissance" aide="Facultatif." />
 
             <div>

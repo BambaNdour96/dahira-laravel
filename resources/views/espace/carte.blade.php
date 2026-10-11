@@ -12,7 +12,7 @@
     <h1 class="text-2xl font-semibold text-emerald-900">Ma carte de membre</h1>
 
     <div class="mx-auto mt-6 w-full max-w-md">
-        <div class="relative flex aspect-[85.6/54] flex-col overflow-hidden rounded-2xl bg-white text-stone-900 shadow-xl ring-1 ring-stone-300">
+        <div id="carte-membre" data-nom-fichier="carte-{{ $membre->matricule }}" class="relative flex aspect-[85.6/54] flex-col overflow-hidden rounded-2xl bg-white text-stone-900 shadow-xl ring-1 ring-stone-300">
 
             {{-- Grand logo en filigrane, comme sur les affiches --}}
             <img src="{{ asset('images/logo-ndk.png') }}" alt=""
@@ -79,6 +79,16 @@
             </div>
         </div>
     </div>
+
+    <div class="mx-auto mt-5 grid w-full max-w-md grid-cols-2 gap-3">
+        <a href="{{ route('carte.pdf') }}" class="flex items-center justify-center gap-2 rounded-lg bg-emerald-800 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-900">
+            📄 Télécharger en PDF
+        </a>
+        <button type="button" data-telecharger-carte class="flex items-center justify-center gap-2 rounded-lg bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100">
+            🖼️ Télécharger en image
+        </button>
+    </div>
+    <p id="message-carte-image" class="mt-2 text-center text-sm"></p>
 
     <p class="mt-6 text-center text-sm text-stone-600">
         Présentez cette carte lors des événements. Le QR code permet de vérifier votre adhésion.
