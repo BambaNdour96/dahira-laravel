@@ -37,6 +37,10 @@ class CollecteChiffres extends StatsOverviewWidget
                 ->description($chiffres['engages'].' membre(s) engagé(s) sur '.$chiffres['concernes'].' concerné(s)')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('primary'),
+            Stat::make('Sans engagement', (string) max(0, $chiffres['concernes'] - $chiffres['engages']))
+                ->description('Membres concernés qui ne se sont pas encore engagés')
+                ->descriptionIcon('heroicon-m-question-mark-circle')
+                ->color($chiffres['concernes'] > $chiffres['engages'] ? 'warning' : 'gray'),
             Stat::make('À jour', $chiffres['a_jour'].' / '.$chiffres['engages'])
                 ->description('Engagements entièrement réglés')
                 ->descriptionIcon('heroicon-m-check-badge')

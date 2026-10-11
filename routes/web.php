@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
         ->name('engagements.versement');
     Route::get('/collectes/fiche-de-parametrage', FicheCollecteController::class)->name('collectes.fiche');
     Route::get('/relances/{membre}/whatsapp', [RelanceController::class, 'whatsapp'])->name('relances.whatsapp');
+    Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');

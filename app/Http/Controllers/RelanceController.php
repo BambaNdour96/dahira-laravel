@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Engagement;
 use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\User;
@@ -36,5 +37,22 @@ class RelanceController extends Controller
         JournalActivite::enregistrer($membre, 'relance', ['apres' => ['whatsapp' => count($retard).' mois de retard']]);
 
         return redirect()->away('https://wa.me/'.ltrim($membre->telephone, '+').'?text='.rawurlencode($message));
+    }
+
+    /** Relance d'un engagement de collecte : notée au journal, puis WhatsApp avec le message prêt. */
+    public function collecte(Request $request, Engagement $engagement): RedirectResponse
+    {
+        $utilisateur = $request->user();
+
+        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier']), 403);
+
+        $engagement->loadMissing(['membre', 'collecte']);
+
+        JournalActivite::enregistrer($engagement->membre, 'relance', ['apres' => [
+            'collecte' => $engagement->collecte->titre,
+            'reste' => $engagement->reste(),
+        ]]);
+
+        return redirect()->away('https://wa.me/'.ltrim($engagement->membre->telephone, '+').'?text='.rawurlencode(MessagesRelance::collecte($engagement)));
     }
 }

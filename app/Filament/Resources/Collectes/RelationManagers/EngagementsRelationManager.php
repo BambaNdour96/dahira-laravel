@@ -8,6 +8,7 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Services\CollecteService;
+use App\Support\MessagesRelance;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -16,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,9 +65,15 @@ class EngagementsRelationManager extends RelationManager
                 SelectFilter::make('cellule')
                     ->label('Cellule')
                     ->relationship('membre.cellule', 'nom'),
+                Filter::make('pas_a_jour')
+                    ->label('Pas encore à jour')
+                    ->query(fn (Builder $requete) => $requete->whereRaw(
+                        'engagements.montant > (select coalesce(sum(p.montant), 0) from paiements p where p.collecte_id = engagements.collecte_id and p.membre_id = engagements.membre_id and p.statut = ?)',
+                        ['confirme'],
+                    )),
             ])
-            ->headerActions([$this->attribuer()])
-            ->recordActions([$this->modifier(), $this->especes(), $this->historique()])
+            ->headerActions([$this->messageGroupe(), $this->attribuer()])
+            ->recordActions([$this->relancer(), $this->modifier(), $this->especes(), $this->historique()])
             ->defaultSort('montant', 'desc');
     }
 
@@ -118,6 +126,38 @@ class EngagementsRelationManager extends RelationManager
 
                 Notification::make()->title($nombre.' engagement(s) attribué(s). Les membres sont prévenus.')->success()->send();
             });
+    }
+
+    private function relancer(): Action
+    {
+        return Action::make('relancer')
+            ->label('Relancer')
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->color('success')
+            ->visible(function (Engagement $record): bool {
+                $utilisateur = Auth::user();
+
+                return $record->reste() > 0
+                    && $utilisateur instanceof User
+                    && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier']);
+            })
+            ->url(fn (Engagement $record): string => route('relances.collecte', $record))
+            ->openUrlInNewTab();
+    }
+
+    private function messageGroupe(): Action
+    {
+        return Action::make('messageGroupe')
+            ->label('Message pour les groupes')
+            ->icon('heroicon-o-megaphone')
+            ->color('gray')
+            ->modalDescription('Copiez ce message et publiez-le dans les groupes WhatsApp de la Daara.')
+            ->fillForm(fn (): array => ['message' => MessagesRelance::collecteGroupe($this->collecte())])
+            ->schema([
+                Textarea::make('message')->label('Message')->rows(6)->readOnly(),
+            ])
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Fermer');
     }
 
     private function modifier(): Action
