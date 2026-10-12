@@ -22,6 +22,8 @@ use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\ProgrammeExportController;
+use App\Http\Controllers\ProgrammeRapportController;
 use App\Http\Controllers\RapportProjetController;
 use App\Http\Controllers\RapportSuiviPdfController;
 use App\Http\Controllers\RecuController;
@@ -101,6 +103,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::get('/programmes/{collecte}/export', ProgrammeExportController::class)->name('programmes.export');
+    Route::get('/programmes/{collecte}/rapport', ProgrammeRapportController::class)->name('programmes.rapport');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');

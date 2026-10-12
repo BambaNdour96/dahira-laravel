@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\Collectes\Pages;
 
 use App\Filament\Resources\Collectes\CollecteResource;
+use App\Filament\Resources\Collectes\Widgets\CollecteAnalyse;
 use App\Filament\Resources\Collectes\Widgets\CollecteChiffres;
 use App\Filament\Resources\Collectes\Widgets\CollecteEvolution;
 use App\Filament\Resources\Collectes\Widgets\CollecteParCellule;
 use App\Filament\Resources\Collectes\Widgets\EngagementsDesMembres;
 use App\Filament\Resources\Collectes\Widgets\JourJDuProgramme;
 use App\Models\Collecte;
+use App\Models\User;
+use App\Policies\CollectePolicy;
 use App\Services\JourJService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -22,7 +25,22 @@ class ViewCollecte extends ViewRecord
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
+        $lecteur = fn (): bool => auth()->user() instanceof User
+            && auth()->user()->hasAnyRole([...CollectePolicy::BUREAU, 'suivi_evaluation']);
+
         return [
+            Action::make('exporter')
+                ->label('Excel')
+                ->icon('heroicon-o-table-cells')
+                ->color('gray')
+                ->visible($lecteur)
+                ->url(fn (Collecte $record): string => route('programmes.export', $record)),
+            Action::make('rapport')
+                ->label('Rapport (PDF)')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('gray')
+                ->visible($lecteur)
+                ->url(fn (Collecte $record): string => route('programmes.rapport', $record)),
             CollecteResource::cloturer(),
             CollecteResource::rouvrir(),
             EditAction::make()->label('Paramètres'),
@@ -43,7 +61,7 @@ class ViewCollecte extends ViewRecord
     /** @return array<int, class-string> */
     protected function getHeaderWidgets(): array
     {
-        return [CollecteChiffres::class, JourJDuProgramme::class, CollecteEvolution::class, CollecteParCellule::class];
+        return [CollecteChiffres::class, CollecteAnalyse::class, JourJDuProgramme::class, CollecteEvolution::class, CollecteParCellule::class];
     }
 
     public function getHeaderWidgetsColumns(): int|array

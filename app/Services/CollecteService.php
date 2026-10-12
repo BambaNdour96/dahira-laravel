@@ -287,6 +287,35 @@ final class CollecteService
             ->values();
     }
 
+    /**
+     * L'avancement cellule par cellule : membres concernés, engagés, à jour, montants et taux.
+     *
+     * @return array<string, array{concernes: int, engages: int, a_jour: int, engage: int, verse: int, taux: int}>
+     */
+    public function parCellule(Collecte $collecte): array
+    {
+        $resultat = [];
+
+        foreach ($collecte->membresConcernes()->with('cellule')->get()->groupBy(fn (Membre $membre): string => $membre->cellule->nom) as $nom => $membres) {
+            $engagements = $collecte->engagements()->with('collecte')->whereIn('membre_id', $membres->modelKeys())->get();
+            $engage = (int) $engagements->sum('montant');
+            $verse = (int) $engagements->sum(fn (Engagement $engagement): int => $engagement->verse());
+
+            $resultat[(string) $nom] = [
+                'concernes' => $membres->count(),
+                'engages' => $engagements->count(),
+                'a_jour' => $engagements->filter(fn (Engagement $engagement): bool => $engagement->reste() === 0)->count(),
+                'engage' => $engage,
+                'verse' => $verse,
+                'taux' => $engage > 0 ? (int) min(100, round($verse / $engage * 100)) : 0,
+            ];
+        }
+
+        ksort($resultat);
+
+        return $resultat;
+    }
+
     private function prevenir(Engagement $engagement, ?int $ancien): void
     {
         $compte = User::query()->find($engagement->membre->user_id);
