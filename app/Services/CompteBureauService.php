@@ -25,6 +25,7 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
+        'suivi_evaluation' => 'Membre de Suivi et Évaluation',
     ];
 
     /**
@@ -41,11 +42,12 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
+        'suivi_evaluation' => 'Suivi et Évaluation',
         'membre' => 'Membre',
     ];
 
     /** Rôles qui donnent accès au panneau du bureau. */
-    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section'];
+    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section', 'suivi_evaluation'];
 
     /** Nomme au bureau un membre validé : il garde sa fiche, sa carte et son mot de passe. */
     public function nommer(Membre $membre, string $role, mixed $celluleId = null): User

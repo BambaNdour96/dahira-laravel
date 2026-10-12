@@ -53,7 +53,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->actif
-            && $this->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+            && $this->hasAnyRole(['administrateur', 'tresorier', 'responsable_section', 'suivi_evaluation']);
     }
 
     /** @return HasOne<Membre, $this> */

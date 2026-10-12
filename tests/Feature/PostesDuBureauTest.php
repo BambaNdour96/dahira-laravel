@@ -49,6 +49,7 @@ it('propose les vrais postes du bureau, sans « Administrateur »', function () 
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
+        'suivi_evaluation' => 'Membre de Suivi et Évaluation',
     ]);
 });
 
