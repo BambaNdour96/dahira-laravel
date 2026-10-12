@@ -23,6 +23,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RapportProjetController;
+use App\Http\Controllers\RapportSuiviPdfController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\SuppressionCompteController;
@@ -99,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/{membre}/whatsapp', [RelanceController::class, 'whatsapp'])->name('relances.whatsapp');
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
+    Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');
     Route::get('/mes-recus', [MesRecusController::class, 'index'])->name('recus.index');
     Route::get('/mon-compte/mes-donnees', [MesDonneesController::class, 'telecharger'])->name('donnees.export');

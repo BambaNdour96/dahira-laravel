@@ -6,6 +6,7 @@ use App\Models\Engagement;
 use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\User;
+use App\Policies\CollectePolicy;
 use App\Services\CotisationService;
 use App\Support\MessagesRelance;
 use Illuminate\Http\RedirectResponse;
@@ -44,9 +45,9 @@ class RelanceController extends Controller
     {
         $utilisateur = $request->user();
 
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier']), 403);
+        $engagement->loadMissing(['membre.cellule', 'collecte']);
 
-        $engagement->loadMissing(['membre', 'collecte']);
+        abort_unless($utilisateur instanceof User && CollectePolicy::peutRelancer($utilisateur, $engagement), 403);
 
         JournalActivite::enregistrer($engagement->membre, 'relance', ['apres' => [
             'collecte' => $engagement->collecte->titre,

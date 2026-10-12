@@ -16,7 +16,7 @@ class CotisationsParCellule extends RepartitionWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section', 'suivi_evaluation']);
     }
 
     protected function titre(): string

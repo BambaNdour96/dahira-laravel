@@ -17,7 +17,7 @@ class EncaissementsParCellule extends RepartitionWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier']);
+        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'suivi_evaluation']);
     }
 
     protected function titre(): string

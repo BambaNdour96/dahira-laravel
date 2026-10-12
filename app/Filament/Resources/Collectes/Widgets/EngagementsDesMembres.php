@@ -8,6 +8,7 @@ use App\Models\Engagement;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
+use App\Policies\CollectePolicy;
 use App\Services\CollecteService;
 use App\Support\MessagesRelance;
 use DomainException;
@@ -26,7 +27,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
-/** Chaque engagement : montant, versé, reste, situation ; attribution, relance, modification tracée, espèces. */
+/**
+ * Chaque engagement : montant, versé, reste, situation ; attribution, relance, modification tracée, espèces.
+ * Un Jewrine de cellule ne voit que les membres de sa cellule.
+ */
 class EngagementsDesMembres extends TableWidget
 {
     public ?Model $record = null;
@@ -37,9 +41,19 @@ class EngagementsDesMembres extends TableWidget
     {
         return $table
             ->heading('Engagements des membres')
-            ->query(fn (): Builder => Engagement::query()
-                ->where('collecte_id', $this->collecte()->id)
-                ->with(['membre.cellule', 'collecte']))
+            ->query(function (): Builder {
+                $query = Engagement::query()
+                    ->where('collecte_id', $this->collecte()->id)
+                    ->with(['membre.cellule', 'collecte']);
+
+                $utilisateur = Auth::user();
+
+                if ($utilisateur instanceof User && CollectePolicy::limiteeACellule($utilisateur)) {
+                    $query->whereIn('membre_id', Membre::query()->select('id')->whereIn('cellule_id', Cellule::query()->select('id')->where('responsable_id', $utilisateur->id)));
+                }
+
+                return $query;
+            })
             ->columns([
                 TextColumn::make('membre.prenom')->label('Prénom')->searchable(),
                 TextColumn::make('membre.nom')->label('Nom')->searchable(),
@@ -65,12 +79,12 @@ class EngagementsDesMembres extends TableWidget
                 SelectFilter::make('cellule')
                     ->label('Cellule')
                     ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
-                    ->query(fn (Builder $requete, array $data): Builder => filled($data['value'] ?? null)
-                        ? $requete->whereHas('membre', fn (Builder $membre) => $membre->where('cellule_id', $data['value']))
-                        : $requete),
+                    ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
+                        ? $query->whereHas('membre', fn (Builder $membre) => $membre->where('cellule_id', $data['value']))
+                        : $query),
                 Filter::make('pas_a_jour')
                     ->label('Pas encore à jour')
-                    ->query(fn (Builder $requete): Builder => $requete->whereRaw(
+                    ->query(fn (Builder $query): Builder => $query->whereRaw(
                         'engagements.montant > (select coalesce(sum(p.montant), 0) from paiements p where p.collecte_id = engagements.collecte_id and p.membre_id = engagements.membre_id and p.statut = ?)',
                         ['confirme'],
                     )),
@@ -136,6 +150,7 @@ class EngagementsDesMembres extends TableWidget
             ->label('Message pour les groupes')
             ->icon('heroicon-o-megaphone')
             ->color('gray')
+            ->visible(fn (): bool => ! self::auteur()->hasRole('suivi_evaluation') || self::auteur()->hasAnyRole(CollectePolicy::BUREAU))
             ->modalDescription('Copiez ce message et publiez-le dans les groupes WhatsApp de la Daara.')
             ->fillForm(fn (): array => ['message' => MessagesRelance::collecteGroupe($this->collecte())])
             ->schema([
@@ -151,13 +166,7 @@ class EngagementsDesMembres extends TableWidget
             ->label('Relancer')
             ->icon('heroicon-o-chat-bubble-left-right')
             ->color('success')
-            ->visible(function (Engagement $record): bool {
-                $utilisateur = Auth::user();
-
-                return $record->reste() > 0
-                    && $utilisateur instanceof User
-                    && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier']);
-            })
+            ->visible(fn (Engagement $record): bool => $record->reste() > 0 && CollectePolicy::peutRelancer(self::auteur(), $record))
             ->url(fn (Engagement $record): string => route('relances.collecte', $record))
             ->openUrlInNewTab();
     }

@@ -58,7 +58,7 @@ class MembreResource extends Resource
         $requete = parent::getEloquentQuery();
         $utilisateur = Auth::user();
 
-        if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['administrateur', 'tresorier'])) {
+        if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'suivi_evaluation'])) {
             $requete->whereHas('cellule', fn ($cellule) => $cellule->where('responsable_id', $utilisateur->id));
         }
 

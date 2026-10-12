@@ -26,7 +26,7 @@ class CollectesEnCours extends StatsOverviewWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(CollectePolicy::BUREAU)
+            && $utilisateur->hasAnyRole(CollectePolicy::LECTURE)
             && Collecte::query()->where('statut', StatutCollecte::Ouverte->value)->exists();
     }
 

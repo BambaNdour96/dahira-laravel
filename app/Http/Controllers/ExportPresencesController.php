@@ -17,7 +17,7 @@ class ExportPresencesController extends Controller
     public function __invoke(Request $request, Evenement $evenement): StreamedResponse
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur', 'suivi_evaluation']), 403);
 
         $nomFichier = 'presences-'.$evenement->debut->format('Y-m-d').'-'.Str::slug($evenement->titre).'.csv';
 
