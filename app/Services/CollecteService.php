@@ -163,12 +163,19 @@ final class CollecteService
             throw new DomainException('Cette collecte n\'accepte plus de versements.');
         }
 
-        if ($this->versementEnCours($collecte, $membre) !== null) {
-            throw new DomainException('Un versement est déjà en cours de vérification.');
-        }
-
         if ($montant < 1) {
             throw new DomainException('Indiquez le montant versé.');
+        }
+
+        // On peut verser petit à petit, mais jamais plus que ce qui reste (versements en vérification compris).
+        $disponible = $engagement->reste() - $this->enVerification($collecte, $membre);
+
+        if ($disponible <= 0) {
+            throw new DomainException('Vos versements en vérification couvrent déjà tout votre engagement.');
+        }
+
+        if ($montant > $disponible) {
+            throw new DomainException('Ce montant dépasse ce qu\'il vous reste à verser : '.self::fcfa($disponible).'.');
         }
 
         return $membre->paiements()->create([
@@ -205,6 +212,15 @@ final class CollecteService
             'traite_le' => now(),
             'traite_par' => $tresorier?->id,
         ]);
+    }
+
+    /** Total des versements déclarés, en attente de vérification par le Jewrine finance. */
+    public function enVerification(Collecte $collecte, Membre $membre): int
+    {
+        return (int) $collecte->paiements()
+            ->where('membre_id', $membre->id)
+            ->where('statut', StatutPaiement::Declare->value)
+            ->sum('montant');
     }
 
     public function versementEnCours(Collecte $collecte, Membre $membre): ?Paiement

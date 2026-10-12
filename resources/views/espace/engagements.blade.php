@@ -70,12 +70,27 @@
                     <p class="mt-4 rounded-lg bg-stone-50 p-3 text-sm text-stone-600">Votre engagement sera fixé par le bureau.</p>
                 @endif
             @else
+                @php
+                    $pctVerse = $engagement->taux();
+                    $pctAttente = $engagement->montant > 0
+                        ? max(0, min(100 - $pctVerse, (int) round($fiche['enVerification'] / $engagement->montant * 100)))
+                        : 0;
+                @endphp
                 <div class="mt-4">
                     <div class="flex items-baseline justify-between">
                         <p class="text-sm text-stone-600">Versé <span class="font-semibold text-emerald-900">{{ $fcfa($fiche['verse']) }}</span> sur {{ $fcfa($engagement->montant) }}</p>
-                        <p class="text-sm font-semibold text-emerald-900">{{ $engagement->taux() }} %</p>
+                        <p class="text-sm font-semibold text-emerald-900">{{ $pctVerse }} %</p>
                     </div>
-                    <div class="mt-1 h-3 rounded-full bg-stone-200"><div class="h-3 rounded-full bg-emerald-700" style="width: {{ $engagement->taux() }}%"></div></div>
+                    <div class="mt-1 flex h-3 overflow-hidden rounded-full bg-stone-200" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $pctVerse }}">
+                        <div class="h-3 bg-emerald-700" style="width: {{ $pctVerse }}%"></div>
+                        <div class="h-3 bg-amber-400" style="width: {{ $pctAttente }}%"></div>
+                    </div>
+                    @if ($fiche['enVerification'] > 0)
+                        <p class="mt-2 text-sm text-amber-800">
+                            <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-400 align-middle"></span>
+                            {{ $fcfa($fiche['enVerification']) }} en vérification par le Jewrine finance : votre jauge avancera dès sa confirmation.
+                        </p>
+                    @endif
                     @if ($fiche['reste'] === 0)
                         <p class="mt-2 text-sm font-semibold text-emerald-800">✓ Engagement entièrement réglé. Barakallahou fikoum.</p>
                     @else
@@ -83,47 +98,69 @@
                     @endif
                 </div>
 
-                @if ($fiche['enCours'])
-                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-                        Versement de {{ $fcfa($fiche['enCours']->montant) }} déclaré le {{ $fiche['enCours']->declare_le->format('d/m/Y à H:i') }},
-                        en cours de vérification par le Jewrine finance.
-                    </p>
-                @elseif ($fiche['reste'] > 0 && $collecte->estOuverte())
-                    <div class="mt-4 space-y-3 text-sm">
+                @if ($fiche['disponible'] > 0 && $collecte->estOuverte())
+                    @php
+                        $montantPropose = $actif && old('montant') ? (int) old('montant') : $fiche['disponible'];
+                        $rapides = array_values(array_filter([2000, 5000, 10000], fn (int $montant): bool => $montant < $fiche['disponible']));
+                    @endphp
+                    <form method="POST" action="{{ route('engagements.versement', $collecte) }}" class="mt-4 space-y-4 text-sm"
+                          data-versement data-lien="{{ $fiche['lienWave'] }}" data-max="{{ $fiche['disponible'] }}">
+                        @csrf
+                        <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
+
                         <div>
-                            <p class="font-semibold text-emerald-900">1. Versez avec Wave</p>
-                            @if ($fiche['lienWave'])
-                                <a href="{{ $fiche['lienWave'] }}" class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
-                                    Verser {{ $fcfa($fiche['reste']) }} avec Wave
-                                </a>
-                                <p class="mt-1 text-xs text-stone-500">Vous pouvez aussi verser en plusieurs fois, ou en espèces auprès du Jewrine finance.</p>
-                            @else
-                                <p class="mt-1 text-stone-600">Le lien Wave n'est pas encore disponible. Vous pouvez verser en espèces auprès du Jewrine finance.</p>
-                            @endif
-                        </div>
-                        <form method="POST" action="{{ route('engagements.versement', $collecte) }}" class="space-y-2">
-                            @csrf
-                            <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
-                            <p class="font-semibold text-emerald-900">2. Indiquez votre versement</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" name="montant" min="1" inputmode="numeric" required value="{{ $actif ? old('montant') : $fiche['reste'] }}"
-                                       placeholder="Montant versé" title="Montant versé"
-                                       class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                                <input type="tel" name="numero_wave" value="{{ $actif ? old('numero_wave') : $membre->telephone }}" inputmode="tel"
-                                       placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé"
-                                       class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                            <p class="font-semibold text-emerald-900">1. Combien voulez-vous verser aujourd'hui ?</p>
+                            <p class="text-xs text-stone-500">Vous pouvez verser petit à petit, jusqu'à {{ $fcfa($fiche['disponible']) }}.</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach ($rapides as $rapide)
+                                    <button type="button" data-montant="{{ $rapide }}"
+                                            class="rounded-full bg-white px-3 py-1.5 font-semibold text-emerald-900 ring-1 ring-emerald-300 hover:bg-emerald-50">{{ $fcfa($rapide) }}</button>
+                                @endforeach
+                                <button type="button" data-montant="{{ $fiche['disponible'] }}"
+                                        class="rounded-full bg-white px-3 py-1.5 font-semibold text-emerald-900 ring-1 ring-emerald-300 hover:bg-emerald-50">Tout le reste ({{ $fcfa($fiche['disponible']) }})</button>
                             </div>
+                            <label for="montant-{{ $collecte->id }}" class="mt-3 block text-xs font-medium text-stone-600">Ou écrivez le montant de votre choix</label>
+                            <div class="mt-1 flex items-center gap-2">
+                                <input id="montant-{{ $collecte->id }}" type="number" name="montant" min="100" max="{{ $fiche['disponible'] }}" step="50" inputmode="numeric" required
+                                       value="{{ $montantPropose }}"
+                                       class="w-40 rounded-lg border border-stone-300 px-3 py-2.5 text-base font-semibold">
+                                <span class="text-stone-600">FCFA</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="font-semibold text-emerald-900">2. Payez avec Wave</p>
+                            @if ($fiche['lienWave'])
+                                <a href="{{ $fiche['lienWave'] }}" data-bouton-wave
+                                   class="mt-2 inline-block rounded-lg bg-[#1dc8ff] px-5 py-3 font-semibold text-white hover:opacity-90">
+                                    Payer <span data-montant-affiche>{{ $fcfa($montantPropose) }}</span> avec Wave
+                                </a>
+                            @else
+                                <p class="mt-1 text-stone-600">Le lien Wave n'est pas encore disponible.</p>
+                            @endif
+                            <p class="mt-1 text-xs text-stone-500">Vous pouvez aussi payer en espèces auprès du Jewrine finance.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="font-semibold text-emerald-900">3. Indiquez votre paiement</p>
                             <input type="text" name="reference" value="{{ $actif ? old('reference') : '' }}" required autocomplete="off"
                                    placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R"
                                    class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
-                            <button type="submit" class="w-full rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">J'ai versé</button>
+                            <input type="tel" name="numero_wave" value="{{ $actif ? old('numero_wave') : $membre->telephone }}" inputmode="tel"
+                                   placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé"
+                                   class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                            <button type="submit" class="w-full rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white hover:bg-emerald-900">
+                                J'ai payé <span data-montant-affiche>{{ $fcfa($montantPropose) }}</span>
+                            </button>
                             @if ($actif)
                                 @error('montant') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
                                 @error('reference') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
                                 @error('numero_wave') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
                             @endif
-                        </form>
-                    </div>
+                        </div>
+                    </form>
+                @elseif ($fiche['reste'] > 0 && $fiche['disponible'] === 0)
+                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Vos versements en vérification couvrent tout votre engagement. Merci !</p>
                 @endif
 
                 @if ($fiche['versements']->isNotEmpty())

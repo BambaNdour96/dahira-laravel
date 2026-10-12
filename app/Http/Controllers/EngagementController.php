@@ -25,6 +25,8 @@ class EngagementController extends Controller
         $fiches = $service->ouvertesPour($membre)->map(function (Collecte $collecte) use ($service, $membre): array {
             $engagement = $service->engagementDe($collecte, $membre);
             $reste = $engagement?->reste() ?? 0;
+            $enVerification = $service->enVerification($collecte, $membre);
+            $disponible = max(0, $reste - $enVerification);
 
             return [
                 'collecte' => $collecte,
@@ -33,8 +35,9 @@ class EngagementController extends Controller
                 'minimum' => $service->minimum($collecte),
                 'verse' => $engagement?->verse() ?? 0,
                 'reste' => $reste,
-                'enCours' => $service->versementEnCours($collecte, $membre),
-                'lienWave' => LienWave::collecte($reste),
+                'enVerification' => $enVerification,
+                'disponible' => $disponible,
+                'lienWave' => LienWave::collecte($disponible),
                 'versements' => $collecte->paiements()->where('membre_id', $membre->id)->latest('declare_le')->get(),
                 'jauge' => $collecte->jaugeVisibleParLesMembres() ? $collecte->taux() : null,
             ];
@@ -79,11 +82,11 @@ class EngagementController extends Controller
         try {
             $service->declarer($collecte, $membre, (int) $request->input('montant'), $reference, $numeroWave);
         } catch (DomainException $e) {
-            return back()->withInput()->withErrors(['reference' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['montant' => $e->getMessage()]);
         }
 
         return redirect()->route('engagements.index')
-            ->with('succes', 'Merci ! Votre versement est en cours de vérification par le Jewrine finance.');
+            ->with('succes', 'Merci ! Votre versement de '.CollecteService::fcfa((int) $request->input('montant')).' est en cours de vérification par le Jewrine finance. Votre jauge avancera dès sa confirmation.');
     }
 
     private function membre(Request $request): Membre
