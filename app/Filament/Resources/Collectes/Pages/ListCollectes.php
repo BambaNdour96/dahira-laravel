@@ -20,7 +20,7 @@ class ListCollectes extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
                 ->url(fn (): string => route('collectes.fiche')),
-            CreateAction::make()->label('Nouvelle collecte'),
+            CreateAction::make()->label('Nouveau programme'),
         ];
     }
 }

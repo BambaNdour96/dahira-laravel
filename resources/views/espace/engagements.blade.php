@@ -32,6 +32,18 @@
                 @endif
             </div>
 
+            @if ($fiche['jourJ'])
+                <p class="mt-3 rounded-lg bg-sky-50 p-3 text-sm text-sky-900 ring-1 ring-sky-200">
+                    📍 <span class="font-semibold">Jour J :</span>
+                    {{ $fiche['jourJ']->debut->translatedFormat('j F Y à H:i') }} · {{ $fiche['jourJ']->lieu }}
+                    @if ($fiche['present'])
+                        <span class="ml-1 font-semibold text-emerald-800">· ✓ Vous étiez présent</span>
+                    @elseif ($fiche['jourJ']->debut->isFuture())
+                        <span class="block text-xs text-sky-800">Présentez votre carte de membre à l'entrée.</span>
+                    @endif
+                </p>
+            @endif
+
             @if ($collecte->description)
                 <p class="mt-3 text-sm text-stone-700">{{ $collecte->description }}</p>
             @endif

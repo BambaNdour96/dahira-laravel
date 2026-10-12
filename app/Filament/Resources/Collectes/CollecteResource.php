@@ -16,6 +16,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -49,18 +50,18 @@ class CollecteResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Collectes';
+    protected static ?string $navigationLabel = 'Programmes';
 
-    protected static ?string $modelLabel = 'collecte';
+    protected static ?string $modelLabel = 'programme';
 
-    protected static ?string $pluralModelLabel = 'collectes';
+    protected static ?string $pluralModelLabel = 'programmes';
 
     protected static ?string $recordTitleAttribute = 'titre';
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('La collecte')
+            Section::make('Le programme')
                 ->columns(2)
                 ->schema([
                     Select::make('programme')
@@ -95,15 +96,37 @@ class CollecteResource extends Resource
                         ->label('Membres concernés')
                         ->relationship('cellule', 'nom')
                         ->placeholder('Toute la Daara'),
-                    Select::make('evenement_id')
-                        ->label('Événement lié (scan des présences)')
-                        ->relationship('evenement', 'titre')
-                        ->searchable()
-                        ->preload()
-                        ->placeholder('Aucun'),
                 ]),
 
-            Section::make('Engagement des membres')
+            Section::make('📍 Le jour J (facultatif)')
+                ->description('Le rendez-vous lui-même : date, lieu, et scan des cartes des membres à l\'entrée.')
+                ->columns(2)
+                ->schema([
+                    Toggle::make('avec_jour_j')
+                        ->label('Ce programme a un jour J')
+                        ->helperText('Exemple : le Magal le 12 août à Touba. Laissez désactivé pour une collecte seule (construction, équipement…).')
+                        ->live()
+                        ->columnSpanFull(),
+                    DateTimePicker::make('jour_j_debut')
+                        ->label('Début')
+                        ->native(false)
+                        ->seconds(false)
+                        ->visible(fn (Get $get): bool => (bool) $get('avec_jour_j'))
+                        ->required(fn (Get $get): bool => (bool) $get('avec_jour_j')),
+                    DateTimePicker::make('jour_j_fin')
+                        ->label('Fin')
+                        ->native(false)
+                        ->seconds(false)
+                        ->afterOrEqual('jour_j_debut')
+                        ->visible(fn (Get $get): bool => (bool) $get('avec_jour_j')),
+                    TextInput::make('jour_j_lieu')
+                        ->label('Lieu')
+                        ->maxLength(150)
+                        ->visible(fn (Get $get): bool => (bool) $get('avec_jour_j'))
+                        ->required(fn (Get $get): bool => (bool) $get('avec_jour_j')),
+                ]),
+
+            Section::make('💰 La collecte : engagement des membres')
                 ->columns(2)
                 ->schema([
                     Radio::make('mode')
@@ -162,7 +185,8 @@ class CollecteResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('titre')->label('Collecte')->searchable()->weight('bold')->limit(40),
+                TextColumn::make('titre')->label('Programme')->searchable()->weight('bold')->limit(40),
+                TextColumn::make('evenement.debut')->label('Jour J')->date('d/m/Y')->placeholder('—'),
                 TextColumn::make('programme')->label('Programme')->badge(),
                 TextColumn::make('mode')->label('Engagement'),
                 TextColumn::make('statut')->label('État')->badge(),

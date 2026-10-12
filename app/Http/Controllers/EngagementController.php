@@ -40,6 +40,9 @@ class EngagementController extends Controller
                 'lienWave' => LienWave::collecte($disponible),
                 'versements' => $collecte->paiements()->where('membre_id', $membre->id)->latest('declare_le')->get(),
                 'jauge' => $collecte->jaugeVisibleParLesMembres() ? $collecte->taux() : null,
+                'jourJ' => $collecte->evenement,
+                'present' => $collecte->evenement !== null
+                    && $collecte->evenement->presences()->where('membre_id', $membre->id)->exists(),
             ];
         });
 
