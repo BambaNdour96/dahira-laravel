@@ -44,6 +44,8 @@ class ProjetResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $navigationLabel = 'Projets';
+
     protected static ?string $modelLabel = 'projet';
 
     protected static ?string $pluralModelLabel = 'projets';

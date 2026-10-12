@@ -49,6 +49,8 @@ class CollecteResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $navigationLabel = 'Collectes';
+
     protected static ?string $modelLabel = 'collecte';
 
     protected static ?string $pluralModelLabel = 'collectes';
