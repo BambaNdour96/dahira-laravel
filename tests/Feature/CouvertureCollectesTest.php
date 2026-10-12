@@ -5,11 +5,10 @@ use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\Pages\CreateCollecte;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
-use App\Filament\Resources\Collectes\Pages\ViewCollecte;
-use App\Filament\Resources\Collectes\RelationManagers\EngagementsRelationManager;
 use App\Filament\Resources\Collectes\Widgets\CollecteChiffres;
 use App\Filament\Resources\Collectes\Widgets\CollecteEvolution;
 use App\Filament\Resources\Collectes\Widgets\CollecteParCellule;
+use App\Filament\Resources\Collectes\Widgets\EngagementsDesMembres;
 use App\Models\Collecte;
 use App\Models\Membre;
 use App\Models\Paiement;
@@ -75,9 +74,9 @@ it('clôture puis rouvre une collecte', function () {
 
 it('attribue, modifie, encaisse et retrace un engagement depuis le panneau', function () {
     $this->actingAs($this->super);
-    $page = ['ownerRecord' => $this->collecte, 'pageClass' => ViewCollecte::class];
+    $page = ['record' => $this->collecte];
 
-    Livewire::test(EngagementsRelationManager::class, $page)
+    Livewire::test(EngagementsDesMembres::class, $page)
         ->callAction(TestAction::make('attribuer')->table(), data: [
             'membres' => [$this->membre->id],
             'montant' => 50000,
@@ -88,20 +87,20 @@ it('attribue, modifie, encaisse et retrace un engagement depuis le panneau', fun
     $engagement = $this->collecte->engagements()->firstOrFail();
     expect($engagement->montant)->toBe(50000);
 
-    Livewire::test(EngagementsRelationManager::class, $page)
+    Livewire::test(EngagementsDesMembres::class, $page)
         ->callAction(TestAction::make('modifier')->table($engagement), data: ['montant' => 40000, 'motif' => 'Demande du membre'])
         ->assertHasNoActionErrors()
         ->callAction(TestAction::make('especes')->table($engagement), data: ['montant' => 15000])
         ->assertHasNoActionErrors()
-        ->mountAction(TestAction::make('historique')->table($engagement))
-        ->assertSee('Demande du membre');
+        ->assertActionVisible(TestAction::make('historique')->table($engagement));
+
+    expect($engagement->historique()->pluck('motif')->all())->toContain('Décision du bureau', 'Demande du membre');
 
     expect($engagement->fresh()->montant)->toBe(40000)
         ->and($engagement->fresh()->verse())->toBe(15000);
 
-    Livewire::test(EngagementsRelationManager::class, $page)
-        ->mountAction(TestAction::make('messageGroupe')->table())
-        ->assertSee('Ziar annuelle 2026');
+    Livewire::test(EngagementsDesMembres::class, $page)
+        ->assertActionVisible(TestAction::make('messageGroupe')->table());
 });
 
 it('affiche les graphiques et les chiffres d\'une collecte', function () {

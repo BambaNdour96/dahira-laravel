@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\Collectes\RelationManagers;
+namespace App\Filament\Resources\Collectes\Widgets;
 
+use App\Models\Cellule;
 use App\Models\Collecte;
 use App\Models\Engagement;
 use App\Models\Membre;
@@ -15,31 +16,30 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
-/** Chaque engagement : montant, versé, reste, situation ; attribution, modification tracée, espèces. */
-class EngagementsRelationManager extends RelationManager
+/** Chaque engagement : montant, versé, reste, situation ; attribution, relance, modification tracée, espèces. */
+class EngagementsDesMembres extends TableWidget
 {
-    protected static string $relationship = 'engagements';
+    public ?Model $record = null;
 
-    protected static ?string $title = 'Engagements des membres';
-
-    public function isReadOnly(): bool
-    {
-        return false;
-    }
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $requete) => $requete->with(['membre.cellule', 'collecte']))
+            ->heading('Engagements des membres')
+            ->query(fn (): Builder => Engagement::query()
+                ->where('collecte_id', $this->collecte()->id)
+                ->with(['membre.cellule', 'collecte']))
             ->columns([
                 TextColumn::make('membre.prenom')->label('Prénom')->searchable(),
                 TextColumn::make('membre.nom')->label('Nom')->searchable(),
@@ -64,10 +64,13 @@ class EngagementsRelationManager extends RelationManager
             ->filters([
                 SelectFilter::make('cellule')
                     ->label('Cellule')
-                    ->relationship('membre.cellule', 'nom'),
+                    ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
+                    ->query(fn (Builder $requete, array $data): Builder => filled($data['value'] ?? null)
+                        ? $requete->whereHas('membre', fn (Builder $membre) => $membre->where('cellule_id', $data['value']))
+                        : $requete),
                 Filter::make('pas_a_jour')
                     ->label('Pas encore à jour')
-                    ->query(fn (Builder $requete) => $requete->whereRaw(
+                    ->query(fn (Builder $requete): Builder => $requete->whereRaw(
                         'engagements.montant > (select coalesce(sum(p.montant), 0) from paiements p where p.collecte_id = engagements.collecte_id and p.membre_id = engagements.membre_id and p.statut = ?)',
                         ['confirme'],
                     )),
@@ -79,10 +82,9 @@ class EngagementsRelationManager extends RelationManager
 
     private function collecte(): Collecte
     {
-        $collecte = $this->getOwnerRecord();
-        abort_unless($collecte instanceof Collecte, 404);
+        abort_unless($this->record instanceof Collecte, 404);
 
-        return $collecte;
+        return $this->record;
     }
 
     private static function auteur(): User
@@ -128,6 +130,21 @@ class EngagementsRelationManager extends RelationManager
             });
     }
 
+    private function messageGroupe(): Action
+    {
+        return Action::make('messageGroupe')
+            ->label('Message pour les groupes')
+            ->icon('heroicon-o-megaphone')
+            ->color('gray')
+            ->modalDescription('Copiez ce message et publiez-le dans les groupes WhatsApp de la Daara.')
+            ->fillForm(fn (): array => ['message' => MessagesRelance::collecteGroupe($this->collecte())])
+            ->schema([
+                Textarea::make('message')->label('Message')->rows(6)->readOnly(),
+            ])
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Fermer');
+    }
+
     private function relancer(): Action
     {
         return Action::make('relancer')
@@ -143,21 +160,6 @@ class EngagementsRelationManager extends RelationManager
             })
             ->url(fn (Engagement $record): string => route('relances.collecte', $record))
             ->openUrlInNewTab();
-    }
-
-    private function messageGroupe(): Action
-    {
-        return Action::make('messageGroupe')
-            ->label('Message pour les groupes')
-            ->icon('heroicon-o-megaphone')
-            ->color('gray')
-            ->modalDescription('Copiez ce message et publiez-le dans les groupes WhatsApp de la Daara.')
-            ->fillForm(fn (): array => ['message' => MessagesRelance::collecteGroupe($this->collecte())])
-            ->schema([
-                Textarea::make('message')->label('Message')->rows(6)->readOnly(),
-            ])
-            ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Fermer');
     }
 
     private function modifier(): Action

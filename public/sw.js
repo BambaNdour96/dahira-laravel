@@ -85,7 +85,7 @@ self.addEventListener('push', (evenement) => {
 
 self.addEventListener('notificationclick', (evenement) => {
     evenement.notification.close();
-    const adresse = (evenement.notification.data && evenement.notification.data.url) || '/mon-espace';
+    const adresse = (evenement.notification.data && evenement.notification.data.url) || '/';
 
     evenement.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenetres) => {
         const ouverte = fenetres.find((fenetre) => new URL(fenetre.url).origin === self.location.origin);

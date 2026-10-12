@@ -9,7 +9,6 @@ use App\Filament\Resources\Collectes\Pages\CreateCollecte;
 use App\Filament\Resources\Collectes\Pages\EditCollecte;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
 use App\Filament\Resources\Collectes\Pages\ViewCollecte;
-use App\Filament\Resources\Collectes\RelationManagers\EngagementsRelationManager;
 use App\Models\Collecte;
 use App\Services\CollecteService;
 use BackedEnum;
@@ -225,7 +224,7 @@ class CollecteResource extends Resource
     /** @return array<int, class-string> */
     public static function getRelations(): array
     {
-        return [EngagementsRelationManager::class];
+        return [];
     }
 
     /** @return array<string, PageRegistration> */

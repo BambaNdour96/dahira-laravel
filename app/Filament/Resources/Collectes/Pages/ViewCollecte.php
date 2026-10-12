@@ -6,6 +6,7 @@ use App\Filament\Resources\Collectes\CollecteResource;
 use App\Filament\Resources\Collectes\Widgets\CollecteChiffres;
 use App\Filament\Resources\Collectes\Widgets\CollecteEvolution;
 use App\Filament\Resources\Collectes\Widgets\CollecteParCellule;
+use App\Filament\Resources\Collectes\Widgets\EngagementsDesMembres;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -29,6 +30,12 @@ class ViewCollecte extends ViewRecord
     protected function getHeaderWidgets(): array
     {
         return [CollecteChiffres::class, CollecteEvolution::class, CollecteParCellule::class];
+    }
+
+    /** @return array<int, class-string> */
+    protected function getFooterWidgets(): array
+    {
+        return [EngagementsDesMembres::class];
     }
 
     public function getHeaderWidgetsColumns(): int|array
