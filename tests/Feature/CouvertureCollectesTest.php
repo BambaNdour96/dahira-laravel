@@ -124,9 +124,9 @@ it('déclare un versement depuis « Mes engagements », et refuse une erreur de 
     expect(Paiement::query()->where('collecte_id', $this->collecte->id)->where('objet', 'collecte')->count())->toBe(1);
 
     $this->actingAs($this->compte)->post(route('engagements.versement', $this->collecte), [
-        'montant' => 5000,
+        'montant' => 15000,
         'reference' => 'T_VERSEMENT0000002',
-    ])->assertSessionHasErrors('reference');
+    ])->assertSessionHasErrors('montant');
 
     $this->actingAs($this->compte)->post(route('engagements.fixer', $this->collecte), ['montant' => 1000])
         ->assertSessionHasErrors('montant');
