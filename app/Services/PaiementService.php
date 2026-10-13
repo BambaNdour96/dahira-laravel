@@ -87,6 +87,10 @@ final class PaiementService
                 'traite_par' => $tresorier?->id,
             ]);
 
+            if ($paiement->objet === 'collecte') {
+                app(RappelService::class)->apresVersement($paiement);
+            }
+
             if ($paiement->objet === 'cotisation') {
                 $this->cotisations->affecter($paiement);
 

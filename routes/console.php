@@ -17,5 +17,8 @@ Schedule::command('cotisations:rappeler')->monthlyOn(5, '09:00');
 // Chaque nuit à 3 h : application des durées de conservation des données personnelles.
 Schedule::command('donnees:purger')->dailyAt('03:00');
 
+// Chaque matin à 9 h : rappels des programmes (jamais de nuit, jamais en double).
+Schedule::command('programmes:rappeler')->dailyAt('09:00');
+
 // Chaque matin à 8 h : alerte sur les tâches en attente depuis plus de 3 jours.
 Schedule::command('taches:surveiller')->dailyAt('08:00');

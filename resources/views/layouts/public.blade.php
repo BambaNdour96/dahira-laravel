@@ -209,6 +209,7 @@
         media.addEventListener('change', () => appliquer(lire()));
     })();
 </script>
+@include('partials.rappel')
 @include('partials.barre-onglets')
 @include('partials.tiroir-menu')
 @include('partials.tiroir-notifications')

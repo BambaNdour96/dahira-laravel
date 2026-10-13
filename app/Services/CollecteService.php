@@ -201,7 +201,7 @@ final class CollecteService
         AntiFraude::verifierValidateur($membre, $tresorier);
         $this->engagementDe($collecte, $membre);
 
-        return $membre->paiements()->create([
+        $paiement = $membre->paiements()->create([
             'collecte_id' => $collecte->id,
             'objet' => 'collecte',
             'montant' => $montant,
@@ -212,6 +212,10 @@ final class CollecteService
             'traite_le' => now(),
             'traite_par' => $tresorier?->id,
         ]);
+
+        app(RappelService::class)->apresVersement($paiement);
+
+        return $paiement;
     }
 
     /** Total des versements déclarés, en attente de vérification par le Jewrine finance. */

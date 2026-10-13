@@ -15,7 +15,7 @@
             $actif = (int) old('collecte_id') === $collecte->id;
         @endphp
 
-        <section class="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+        <section id="collecte-{{ $collecte->id }}" class="mt-6 scroll-mt-24 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $collecte->programme->getLabel() }}</p>

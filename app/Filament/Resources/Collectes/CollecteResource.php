@@ -172,6 +172,10 @@ class CollecteResource extends Resource
                         ->label('Montrer l\'avancement (la jauge) aux membres')
                         ->helperText('Les noms des contributeurs restent réservés au bureau.')
                         ->live(),
+                    Toggle::make('rappels_actifs')
+                        ->label('Rappels automatiques aux membres')
+                        ->helperText('Fenêtre à l\'ouverture de l\'application et notifications, jamais de nuit ni en double.')
+                        ->default(true),
                     DatePicker::make('jauge_visible_depuis')
                         ->label('Jauge visible à partir du')
                         ->helperText('Laisser vide : dès l\'ouverture.')

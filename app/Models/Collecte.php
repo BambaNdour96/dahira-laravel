@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property bool $versement_apres_limite
  * @property bool $visible_membres
  * @property Carbon|null $jauge_visible_depuis
+ * @property bool $rappels_actifs
  * @property StatutCollecte $statut
  * @property int|null $cellule_id
  * @property int|null $evenement_id
@@ -47,12 +48,13 @@ class Collecte extends Model
         'obligatoire' => true,
         'versement_apres_limite' => true,
         'visible_membres' => false,
+        'rappels_actifs' => true,
         'statut' => 'ouverte',
     ];
 
     protected $fillable = [
         'titre', 'programme', 'mode', 'montant', 'objectif', 'ouverture', 'date_limite', 'obligatoire',
-        'versement_apres_limite', 'visible_membres', 'jauge_visible_depuis', 'statut', 'cellule_id',
+        'versement_apres_limite', 'visible_membres', 'jauge_visible_depuis', 'rappels_actifs', 'statut', 'cellule_id',
         'evenement_id', 'description', 'cree_par',
     ];
 
@@ -71,6 +73,7 @@ class Collecte extends Model
             'obligatoire' => 'boolean',
             'versement_apres_limite' => 'boolean',
             'visible_membres' => 'boolean',
+            'rappels_actifs' => 'boolean',
         ];
     }
 
