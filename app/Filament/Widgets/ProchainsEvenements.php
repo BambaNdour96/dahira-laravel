@@ -30,12 +30,12 @@ class ProchainsEvenements extends TableWidget
             ->heading('Événements : à venir et récents')
             ->query(fn () => Evenement::query()
                 ->where('debut', '>=', now()->subDays(30))
-                ->withCount('presences'))
+                ->withCount('presents'))
             ->columns([
                 TextColumn::make('titre')->label('Événement')->weight('bold'),
                 TextColumn::make('debut')->label('Date')->dateTime('d/m/Y H:i')->sortable(),
                 TextColumn::make('lieu')->label('Lieu'),
-                TextColumn::make('presences_count')->label('Présents'),
+                TextColumn::make('presents_count')->label('Présents'),
                 TextColumn::make('quand')->label('')->badge()
                     ->state(fn (Evenement $record): string => $record->debut->isFuture() ? 'À venir' : 'Passé')
                     ->color(fn (string $state): string => $state === 'À venir' ? 'info' : 'gray'),

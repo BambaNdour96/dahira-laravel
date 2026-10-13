@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $ville
  * @property string $pays
  * @property int|null $responsable_id
+ * @property int|null $jewrine_femmes_id
  * @property string|null $whatsapp_lien
  */
 class Cellule extends Model
@@ -22,7 +23,7 @@ class Cellule extends Model
     /** @use HasFactory<CelluleFactory> */
     use HasFactory, Journalise;
 
-    protected $fillable = ['nom', 'ville', 'pays', 'responsable_id', 'whatsapp_lien'];
+    protected $fillable = ['nom', 'ville', 'pays', 'responsable_id', 'jewrine_femmes_id', 'whatsapp_lien'];
 
     /** @return BelongsTo<User, $this> */
     public function responsable(): BelongsTo
@@ -34,5 +35,17 @@ class Cellule extends Model
     public function membres(): HasMany
     {
         return $this->hasMany(Membre::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function jewrineFemmes(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'jewrine_femmes_id');
+    }
+
+    /** @return HasMany<CellulePointeur, $this> */
+    public function pointeurs(): HasMany
+    {
+        return $this->hasMany(CellulePointeur::class);
     }
 }

@@ -20,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 /**
@@ -36,6 +37,8 @@ class EvenementResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'Vie de la Daara';
 
     protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'Événements';
 
     protected static ?string $modelLabel = 'événement';
 
@@ -108,5 +111,11 @@ class EvenementResource extends Resource
         $utilisateur = auth()->user();
 
         return $utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur', 'suivi_evaluation']);
+    }
+
+    /** Les séances de cellule ont leur propre écran. @return \Illuminate\Database\Eloquent\Builder<Evenement> */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('type', '!=', Evenement::SEANCE);
     }
 }

@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Filament\Resources\Seances;
+
+use App\Filament\Resources\Seances\Pages\CreateSeance;
+use App\Filament\Resources\Seances\Pages\EditSeance;
+use App\Filament\Resources\Seances\Pages\ListSeances;
+use App\Filament\Resources\Seances\Pages\ViewSeance;
+use App\Models\Cellule;
+use App\Models\Evenement;
+use App\Models\User;
+use App\Services\PointageService;
+use BackedEnum;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Pages\PageRegistration;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use UnitEnum;
+
+/**
+ * Les séances de dahira des cellules, créées par leurs Jewrine quand elles ont lieu.
+ * Chaque cellule ne voit que ses séances ; le bureau et Suivi et Évaluation voient tout.
+ */
+class SeanceResource extends Resource
+{
+    protected static ?string $model = Evenement::class;
+
+    protected static bool $hasTitleCaseModelLabel = false;
+
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Vie de la Daara';
+
+    protected static ?int $navigationSort = 0;
+
+    protected static ?string $navigationLabel = 'Séances de cellule';
+
+    protected static ?string $modelLabel = 'séance';
+
+    protected static ?string $pluralModelLabel = 'séances';
+
+    public const LECTURE = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation', 'responsable_section', 'jewrine_femmes'];
+
+    public const GESTION = ['super_administrateur', 'responsable_section', 'jewrine_femmes'];
+
+    private static function utilisateur(): ?User
+    {
+        $utilisateur = Auth::user();
+
+        return $utilisateur instanceof User ? $utilisateur : null;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return self::utilisateur()?->hasAnyRole(self::LECTURE) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return self::utilisateur()?->hasAnyRole(self::GESTION) ?? false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $utilisateur = self::utilisateur();
+
+        if ($utilisateur === null || ! $record instanceof Evenement) {
+            return false;
+        }
+
+        return $utilisateur->hasRole('super_administrateur')
+            || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        $utilisateur = self::utilisateur();
+
+        if ($utilisateur === null || ! $record instanceof Evenement) {
+            return false;
+        }
+
+        return $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])
+            || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return self::canEdit($record) && $record instanceof Evenement && ! $record->presences()->exists();
+    }
+
+    /** Un Jewrine ne voit que les séances de sa cellule. @return Builder<Evenement> */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->where('type', Evenement::SEANCE);
+        $utilisateur = self::utilisateur();
+
+        if ($utilisateur !== null && ! $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])) {
+            $query->whereIn('cellule_id', PointageService::cellulesDirigees($utilisateur));
+        }
+
+        return $query;
+    }
+
+    /** @return array<int|string, string> */
+    public static function cellulesPermises(): array
+    {
+        $utilisateur = self::utilisateur();
+        $query = Cellule::query()->orderBy('nom');
+
+        if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
+            $query->whereIn('id', PointageService::cellulesDirigees($utilisateur));
+        }
+
+        return $query->pluck('nom', 'id')->all();
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Select::make('cellule_id')
+                ->label('Cellule')
+                ->options(fn (): array => self::cellulesPermises())
+                ->default(fn (): mixed => array_key_first(self::cellulesPermises()))
+                ->required(),
+            TextInput::make('lieu')->label('Lieu')->required()->maxLength(150)->placeholder('Exemple : chez Serigne Fall, Médina'),
+            DateTimePicker::make('debut')->label('Date et heure')->required()->native(false)->seconds(false),
+            DateTimePicker::make('fin')->label('Fin (facultatif)')->native(false)->seconds(false)->after('debut'),
+            Textarea::make('description')->label('Thème ou programme')->rows(3)->maxLength(500)
+                ->placeholder('Exemple : récital de Xassaïdes, causerie sur le Mawlid')
+                ->columnSpanFull(),
+            Toggle::make('avec_rappel')->label('Rappeler la séance aux membres de la cellule le jour même')->default(true)->columnSpanFull(),
+        ])->columns(2);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('cellule')->withCount(['presents']))
+            ->columns([
+                TextColumn::make('debut')->label('Date')->dateTime('d/m/Y H:i')->sortable(),
+                TextColumn::make('cellule.nom')->label('Cellule'),
+                TextColumn::make('lieu')->label('Lieu')->limit(30),
+                TextColumn::make('description')->label('Programme')->limit(40)->placeholder('—'),
+                TextColumn::make('presents_count')->label('Présents'),
+                TextColumn::make('taux')->label('Présence')->badge()
+                    ->state(fn (Evenement $record): string => app(PointageService::class)->bilan($record)['taux'].' %')
+                    ->color(fn (string $state): string => (int) $state >= 75 ? 'success' : ((int) $state >= 40 ? 'warning' : 'gray')),
+            ])
+            ->filters([
+                SelectFilter::make('cellule_id')->label('Cellule')->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all()),
+            ])
+            ->recordActions([ViewAction::make()->label('Présences'), EditAction::make()])
+            ->defaultSort('debut', 'desc');
+    }
+
+    /** @return array<string, PageRegistration> */
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListSeances::route('/'),
+            'create' => CreateSeance::route('/create'),
+            'view' => ViewSeance::route('/{record}'),
+            'edit' => EditSeance::route('/{record}/edit'),
+        ];
+    }
+}

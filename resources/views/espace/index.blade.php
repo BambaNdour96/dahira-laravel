@@ -89,6 +89,29 @@
                 </div>
             @endif
 
+            {{-- Dahira de la cellule : prochaine séance et assiduité --}}
+            @php($prochaineSeance = app(\App\Services\AssiduiteService::class)->prochaineSeance($membre))
+            @php($assiduite = app(\App\Services\AssiduiteService::class)->pour($membre))
+            @if ($prochaineSeance || $assiduite['seances'] > 0)
+                <div class="mt-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
+                    <p class="font-semibold text-emerald-950">🕌 Dahira de ma cellule</p>
+                    @if ($prochaineSeance)
+                        <p class="mt-1 text-sm text-stone-700">
+                            Prochaine séance : <span class="font-semibold">{{ $prochaineSeance->debut->translatedFormat('l j F à H\hi') }}</span> · {{ $prochaineSeance->lieu }}
+                        </p>
+                        @if ($prochaineSeance->description)
+                            <p class="text-xs text-stone-500">{{ $prochaineSeance->description }}</p>
+                        @endif
+                    @endif
+                    @if ($assiduite['seances'] > 0)
+                        <p class="mt-2 text-sm text-stone-700">
+                            Mon assiduité : <span class="font-semibold text-emerald-900">{{ $assiduite['presents'] }} séance(s) sur {{ $assiduite['seances'] }}</span> ces 3 derniers mois
+                            {{ $assiduite['excuses'] > 0 ? '('.$assiduite['excuses'].' excusée(s))' : '' }}
+                        </p>
+                    @endif
+                </div>
+            @endif
+
             {{-- Engagements en cours (Magal, Ziar, Prokhane, collectes) --}}
             @php($mesEngagements = app(\App\Services\CollecteService::class)->resumePour($membre))
             @if ($mesEngagements->isNotEmpty())

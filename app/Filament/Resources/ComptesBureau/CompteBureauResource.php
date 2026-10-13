@@ -59,9 +59,9 @@ class CompteBureauResource extends Resource
             Select::make('cellule_id')
                 ->label('Cellule de ce Jewrine')
                 ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
-                ->visible(fn ($get): bool => $get('role') === 'responsable_section')
-                ->required(fn ($get): bool => $get('role') === 'responsable_section')
-                ->helperText('Si cette cellule avait déjà un Jewrine, il sera remplacé.'),
+                ->visible(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
+                ->required(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
+                ->helperText('Si cette cellule avait déjà quelqu\'un à ce poste, il sera remplacé.'),
         ];
     }
 
@@ -95,7 +95,7 @@ class CompteBureauResource extends Resource
                         ->all()),
                 TextColumn::make('cellule')
                     ->label('Cellule dirigée')
-                    ->state(fn (User $record): string => (string) (Cellule::query()->where('responsable_id', $record->id)->value('nom') ?? '—')),
+                    ->state(fn (User $record): string => (string) (Cellule::query()->where('responsable_id', $record->id)->orWhere('jewrine_femmes_id', $record->id)->value('nom') ?? '—')),
                 IconColumn::make('actif')->label('Actif')->boolean(),
                 TextColumn::make('derniere_connexion_at')->label('Dernière connexion')->since()->placeholder('Jamais'),
             ])
@@ -106,7 +106,7 @@ class CompteBureauResource extends Resource
                     ->mutateRecordDataUsing(fn (array $data, User $record): array => [
                         ...$data,
                         'role' => $record->getRoleNames()->intersect(array_keys(CompteBureauService::ROLES))->first(),
-                        'cellule_id' => Cellule::query()->where('responsable_id', $record->id)->value('id'),
+                        'cellule_id' => Cellule::query()->where('responsable_id', $record->id)->orWhere('jewrine_femmes_id', $record->id)->value('id'),
                     ])
                     ->using(fn (User $record, array $data): User => app(CompteBureauService::class)->mettreAJour($record, $data)),
 

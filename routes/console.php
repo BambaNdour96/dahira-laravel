@@ -17,6 +17,9 @@ Schedule::command('cotisations:rappeler')->monthlyOn(5, '09:00');
 // Chaque nuit à 3 h : application des durées de conservation des données personnelles.
 Schedule::command('donnees:purger')->dailyAt('03:00');
 
+// Chaque matin à 8 h 30 : rappel des séances de cellule du jour, alerte après 3 absences de suite.
+Schedule::command('seances:routine')->dailyAt('08:30');
+
 // Chaque matin à 9 h : rappels des programmes (jamais de nuit, jamais en double).
 Schedule::command('programmes:rappeler')->dailyAt('09:00');
 

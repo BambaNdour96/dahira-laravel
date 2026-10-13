@@ -9,6 +9,7 @@
             ['🧾', 'Mes reçus', 'recus.index', $valide],
             ['🤲', 'Mes engagements', 'engagements.index', $valide],
             ['📅', 'Mes participations', 'evenements.index', $valide],
+            ['📋', 'Pointage', 'pointage.index', auth()->check() && app(\App\Services\PointageService::class)->rendezVousDuMoment(auth()->user())->isNotEmpty()],
             ['🔔', 'Mes notifications', 'notifications.index', true],
             ['⚙️', 'Paramètres', 'parametres', true],
         ], fn (array $lien): bool => $lien[3] && \Illuminate\Support\Facades\Route::has($lien[2]));

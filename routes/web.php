@@ -21,6 +21,7 @@ use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
 use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\PointageController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ProgrammeExportController;
@@ -104,6 +105,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::get('/pointage', [PointageController::class, 'index'])->name('pointage.index');
+    Route::get('/pointage/{evenement}', [PointageController::class, 'show'])->name('pointage.show');
+    Route::post('/pointage/{evenement}/{membre}', [PointageController::class, 'pointer'])->name('pointage.pointer');
     Route::get('/bureau/charte', [CharteController::class, 'show'])->name('charte');
     Route::post('/bureau/charte', [CharteController::class, 'accepter'])->name('charte.accepter');
     Route::get('/programmes/{collecte}/export', ProgrammeExportController::class)->name('programmes.export');

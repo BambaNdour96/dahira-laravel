@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Auth;
  * @property Carbon $debut
  * @property Carbon|null $fin
  * @property int|null $cellule_id
+ * @property string $type
+ * @property bool $avec_rappel
  * @property int|null $auteur_id
  * @property-read Cellule|null $cellule
  */
@@ -30,7 +32,11 @@ class Evenement extends Model
     /** Le contrôle des présences ouvre 3 heures avant le début et ferme 3 heures après la fin. */
     public const MARGE_HEURES = 3;
 
-    protected $fillable = ['titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'auteur_id'];
+    public const SEANCE = 'seance';
+
+    protected $fillable = ['type', 'titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'avec_rappel', 'auteur_id'];
+
+    protected $attributes = ['type' => 'evenement', 'avec_rappel' => true];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -38,6 +44,7 @@ class Evenement extends Model
         return [
             'debut' => 'datetime',
             'fin' => 'datetime',
+            'avec_rappel' => 'boolean',
         ];
     }
 
@@ -98,5 +105,20 @@ class Evenement extends Model
     public function presences(): HasMany
     {
         return $this->hasMany(Presence::class);
+    }
+
+    /**
+     * Les présents seulement (sans les absents excusés).
+     *
+     * @return HasMany<Presence, $this>
+     */
+    public function presents(): HasMany
+    {
+        return $this->hasMany(Presence::class)->where('statut', 'present');
+    }
+
+    public function estSeance(): bool
+    {
+        return $this->type === self::SEANCE;
     }
 }

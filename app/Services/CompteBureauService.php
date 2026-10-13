@@ -25,8 +25,12 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
+        'jewrine_femmes' => 'Jewrine des femmes de cellule',
         'suivi_evaluation' => 'Membre de Suivi et Évaluation',
     ];
+
+    /** Postes rattachés à une cellule. */
+    public const AVEC_CELLULE = ['responsable_section', 'jewrine_femmes'];
 
     /**
      * Postes de direction : ils reçoivent aussi le socle commun « administrateur »
@@ -42,12 +46,13 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
+        'jewrine_femmes' => 'Jewrine des femmes',
         'suivi_evaluation' => 'Suivi et Évaluation',
         'membre' => 'Membre',
     ];
 
     /** Rôles qui donnent accès au panneau du bureau. */
-    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section', 'suivi_evaluation'];
+    public const ROLES_BUREAU = ['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section', 'jewrine_femmes', 'suivi_evaluation'];
 
     /** Nomme au bureau un membre validé : il garde sa fiche, sa carte et son mot de passe. */
     public function nommer(Membre $membre, string $role, mixed $celluleId = null): User
@@ -106,6 +111,7 @@ final class CompteBureauService
 
             $user->syncRoles($user->getRoleNames()->intersect(['membre'])->values()->all());
             Cellule::query()->where('responsable_id', $user->id)->update(['responsable_id' => null]);
+            Cellule::query()->where('jewrine_femmes_id', $user->id)->update(['jewrine_femmes_id' => null]);
 
             JournalActivite::enregistrer($user, 'modifie', [
                 'avant' => ['roles' => $avant],
@@ -144,13 +150,15 @@ final class CompteBureauService
         $user->syncRoles([...$aGarder, $role, ...(in_array($role, self::DIRECTION, true) ? ['administrateur'] : [])]);
 
         Cellule::query()->where('responsable_id', $user->id)->update(['responsable_id' => null]);
+        Cellule::query()->where('jewrine_femmes_id', $user->id)->update(['jewrine_femmes_id' => null]);
 
-        if ($role === 'responsable_section') {
+        if (in_array($role, self::AVEC_CELLULE, true)) {
             if (blank($celluleId)) {
                 throw new DomainException('Choisissez la cellule de ce Jewrine.');
             }
 
-            Cellule::query()->whereKey($celluleId)->update(['responsable_id' => $user->id]);
+            $colonne = $role === 'jewrine_femmes' ? 'jewrine_femmes_id' : 'responsable_id';
+            Cellule::query()->whereKey($celluleId)->update([$colonne => $user->id]);
         }
 
         $apres = $user->getRoleNames()->join(', ');
