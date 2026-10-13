@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AbonnementTelephoneController;
+use App\Http\Controllers\BordereauRemiseController;
+use App\Http\Controllers\CaisseController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\CharteController;
 use App\Http\Controllers\ConfirmationEmailController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\RecuSympathisantController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\SuppressionCompteController;
 use App\Http\Controllers\VerificationController;
+use App\Http\Middleware\ExigerCharteConfidentialite;
 use App\Listeners\MemoriserNumero;
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +109,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::middleware(ExigerCharteConfidentialite::class)->group(function () {
+        Route::get('/caisse', [CaisseController::class, 'index'])->name('caisse.index');
+        Route::get('/caisse/membres/{membre}', [CaisseController::class, 'membre'])->name('caisse.membre');
+        Route::post('/caisse/membres/{membre}/cotisation', [CaisseController::class, 'cotisation'])->name('caisse.cotisation');
+        Route::post('/caisse/membres/{membre}/engagements/{engagement}', [CaisseController::class, 'versement'])->name('caisse.versement');
+        Route::post('/caisse/paiements/{paiement}/valider', [CaisseController::class, 'valider'])->name('caisse.valider');
+        Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');
+    });
+    Route::get('/remises/{remise}/bordereau', BordereauRemiseController::class)->name('remises.bordereau');
     Route::post('/pointage/{evenement}/sympathisants', [PointageController::class, 'accueillirSympathisant'])->name('pointage.sympathisant.nouveau');
     Route::post('/pointage/{evenement}/sympathisants/{sympathisant}', [PointageController::class, 'sympathisantPresent'])->name('pointage.sympathisant');
     Route::post('/pointage/{evenement}/visiteurs', [PointageController::class, 'visiteur'])->name('pointage.visiteur');

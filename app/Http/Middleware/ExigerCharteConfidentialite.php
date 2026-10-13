@@ -17,7 +17,7 @@ class ExigerCharteConfidentialite
 
         if ($utilisateur instanceof User
             && $utilisateur->charte_acceptee_le === null
-            && $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'super_administrateur'])) {
+            && $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'super_administrateur', 'representant_finance'])) {
             return redirect()->guest(route('charte'));
         }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,6 +25,6 @@ class CharteController extends Controller
 
         $utilisateur->forceFill(['charte_acceptee_le' => now()])->save();
 
-        return redirect()->intended('/admin');
+        return redirect()->intended($utilisateur->canAccessPanel(Filament::getPanel('admin')) ? '/admin' : route('caisse.index'));
     }
 }

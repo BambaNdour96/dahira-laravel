@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Membre;
 use App\Models\RegleValidation;
+use App\Models\RepresentantFinance;
 use App\Models\User;
 use DomainException;
 
@@ -40,8 +41,8 @@ final class AntiFraude
             : RegleValidation::query()->where('poste_id', $payeur->poste_id)->first();
 
         if ($regle === null) {
-            if (! $validateur->hasRole('tresorier')) {
-                throw new DomainException('Seul le Jewrine finance confirme les paiements des membres (ou le super administrateur, en secours).');
+            if (! $validateur->hasRole('tresorier') && ! RepresentantFinance::represente($validateur, $payeur)) {
+                throw new DomainException('Seul le Jewrine finance ou son représentant dans la cellule confirme les paiements des membres (ou le super administrateur, en secours).');
             }
 
             return;

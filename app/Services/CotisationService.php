@@ -211,7 +211,7 @@ final class CotisationService
             throw new DomainException('Un paiement de cotisation est déjà en cours de vérification.');
         }
 
-        return Paiement::query()->create([
+        $paiement = Paiement::query()->create([
             'membre_id' => $membre->id,
             'objet' => 'cotisation',
             'montant' => $nombreMois * $this->montantMensuel(),
@@ -222,6 +222,10 @@ final class CotisationService
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
         ]);
+
+        RepresentantFinanceService::prevenir($paiement);
+
+        return $paiement;
     }
 
     /** Répartit un paiement confirmé sur les mois impayés les plus anciens. */

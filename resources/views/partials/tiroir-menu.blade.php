@@ -9,6 +9,7 @@
             ['🧾', 'Mes reçus', 'recus.index', $valide],
             ['🤲', 'Mes engagements', 'engagements.index', $valide],
             ['📅', 'Mes participations', 'evenements.index', $valide],
+            ['💰', 'Ma caisse', 'caisse.index', auth()->check() && auth()->user()->hasRole('representant_finance')],
             ['📋', 'Pointage', 'pointage.index', auth()->check() && app(\App\Services\PointageService::class)->rendezVousDuMoment(auth()->user())->isNotEmpty()],
             ['🔔', 'Mes notifications', 'notifications.index', true],
             ['⚙️', 'Paramètres', 'parametres', true],

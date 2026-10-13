@@ -178,7 +178,7 @@ final class CollecteService
             throw new DomainException('Ce montant dépasse ce qu\'il vous reste à verser : '.self::fcfa($disponible).'.');
         }
 
-        return $membre->paiements()->create([
+        $paiement = $membre->paiements()->create([
             'collecte_id' => $collecte->id,
             'objet' => 'collecte',
             'montant' => $montant,
@@ -189,6 +189,10 @@ final class CollecteService
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
         ]);
+
+        RepresentantFinanceService::prevenir($paiement);
+
+        return $paiement;
     }
 
     /** Versement en espèces, enregistré directement par le Jewrine finance. */
