@@ -1,11 +1,11 @@
 @extends('layouts.public')
 
-@section('titre', 'Mes engagements')
+@section('titre', 'Mes Sass et Jàyante')
 
 @section('contenu')
     @php $fcfa = fn (int $montant): string => number_format($montant, 0, ',', ' ').' FCFA'; @endphp
 
-    <h1 class="text-2xl font-semibold text-emerald-900">Mes engagements</h1>
+    <h1 class="text-2xl font-semibold text-emerald-900">Mes Sass et Jàyante</h1>
     <p class="mt-1 text-sm text-stone-600">Vos participations aux programmes et collectes de la Daara.</p>
 
     @forelse ($fiches as $fiche)
@@ -62,7 +62,7 @@
                     <form method="POST" action="{{ route('engagements.fixer', $collecte) }}" class="mt-4 space-y-2">
                         @csrf
                         <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
-                        <label for="montant-{{ $collecte->id }}" class="block text-sm font-semibold text-emerald-900">Fixez votre engagement</label>
+                        <label for="montant-{{ $collecte->id }}" class="block text-sm font-semibold text-emerald-900">Fixez votre Jàyante</label>
                         <p class="text-xs text-stone-500">
                             {{ $collecte->mode->getDescription() }}
                             @if ($fiche['minimum'] > 1) Minimum : {{ $fcfa($fiche['minimum']) }}. @endif
@@ -73,13 +73,13 @@
                                    class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                             <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white hover:bg-emerald-900">M'engager</button>
                         </div>
-                        <p class="text-xs text-stone-500">Une fois fixé, votre engagement ne peut être modifié que par le bureau.</p>
+                        <p class="text-xs text-stone-500">Une fois fixé, votre Jàyante ne peut être modifié que par le bureau.</p>
                         @if ($actif)
                             @error('montant') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
                         @endif
                     </form>
                 @else
-                    <p class="mt-4 rounded-lg bg-stone-50 p-3 text-sm text-stone-600">Votre engagement sera fixé par le bureau.</p>
+                    <p class="mt-4 rounded-lg bg-stone-50 p-3 text-sm text-stone-600">Votre Sass sera fixé par le bureau.</p>
                 @endif
             @else
                 @php
@@ -90,7 +90,7 @@
                 @endphp
                 <div class="mt-4">
                     <div class="flex items-baseline justify-between">
-                        <p class="text-sm text-stone-600">Versé <span class="font-semibold text-emerald-900">{{ $fcfa($fiche['verse']) }}</span> sur {{ $fcfa($engagement->montant) }}</p>
+                        <p class="text-sm text-stone-600">Versé <span class="font-semibold text-emerald-900">{{ $fcfa($fiche['verse']) }}</span> sur {{ $fcfa($engagement->montant) }} · {{ $engagement->nature() }}</p>
                         <p class="text-sm font-semibold text-emerald-900">{{ $pctVerse }} %</p>
                     </div>
                     <div class="mt-1 flex h-3 overflow-hidden rounded-full bg-stone-200" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $pctVerse }}">
@@ -104,7 +104,7 @@
                         </p>
                     @endif
                     @if ($fiche['reste'] === 0)
-                        <p class="mt-2 text-sm font-semibold text-emerald-800">✓ Engagement entièrement réglé. Barakallahou fikoum.</p>
+                        <p class="mt-2 text-sm font-semibold text-emerald-800">✓ {{ $engagement->nature() }} entièrement réglé. Barakallahou fikoum.</p>
                     @else
                         <p class="mt-2 text-sm text-stone-700">Reste à verser : <span class="font-semibold">{{ $fcfa($fiche['reste']) }}</span></p>
                     @endif
@@ -172,7 +172,7 @@
                         </div>
                     </form>
                 @elseif ($fiche['reste'] > 0 && $fiche['disponible'] === 0)
-                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Vos versements en vérification couvrent tout votre engagement. Merci !</p>
+                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Vos versements en vérification couvrent tout votre {{ $engagement->nature() }}. Merci !</p>
                 @endif
 
                 @if ($fiche['versements']->isNotEmpty())

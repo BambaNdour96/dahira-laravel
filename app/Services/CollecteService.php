@@ -57,7 +57,7 @@ final class CollecteService
     public function fixerParMembre(Collecte $collecte, Membre $membre, int $montant): Engagement
     {
         if (! $this->peutFixer($collecte, $membre)) {
-            throw new DomainException('Votre engagement est déjà fixé. Pour le modifier, adressez-vous au bureau.');
+            throw new DomainException('Votre Jàyante est déjà fixé. Pour le modifier, adressez-vous au bureau.');
         }
 
         $minimum = $this->minimum($collecte);
@@ -156,7 +156,7 @@ final class CollecteService
         $engagement = $this->engagementDe($collecte, $membre);
 
         if ($engagement === null) {
-            throw new DomainException('Fixez d\'abord votre engagement.');
+            throw new DomainException('Fixez d\'abord votre Jàyante.');
         }
 
         if (! $collecte->estOuverte()) {
@@ -171,7 +171,7 @@ final class CollecteService
         $disponible = $engagement->reste() - $this->enVerification($collecte, $membre);
 
         if ($disponible <= 0) {
-            throw new DomainException('Vos versements en vérification couvrent déjà tout votre engagement.');
+            throw new DomainException('Vos versements en vérification couvrent déjà tout votre '.$engagement->nature().'.');
         }
 
         if ($montant > $disponible) {

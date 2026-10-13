@@ -116,7 +116,7 @@
             @php($mesEngagements = app(\App\Services\CollecteService::class)->resumePour($membre))
             @if ($mesEngagements->isNotEmpty())
                 <a href="{{ route('engagements.index') }}" class="mt-4 block rounded-xl bg-white p-4 shadow-sm ring-1 ring-or-400 hover:bg-stone-100">
-                    <p class="font-semibold text-emerald-950">🤲 Mes engagements</p>
+                    <p class="font-semibold text-emerald-950">🤲 Mes Sass et Jàyante</p>
                     @foreach ($mesEngagements as $resume)
                         <div class="mt-3">
                             <div class="flex justify-between gap-2 text-sm">

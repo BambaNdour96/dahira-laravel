@@ -155,7 +155,7 @@ it('montre au membre ses engagements, avec le bouton Wave du montant restant', f
     $this->actingAs($this->compte)->get(route('engagements.index'))
         ->assertOk()
         ->assertSee('Magal de Touba 2026')
-        ->assertSee('Fixez votre engagement')
+        ->assertSee('Fixez votre Jàyante')
         ->assertSee('Avancement de la collecte');
 
     $this->actingAs($this->compte)->post(route('engagements.fixer', $collecte), ['montant' => 20000])
@@ -165,7 +165,7 @@ it('montre au membre ses engagements, avec le bouton Wave du montant restant', f
         ->assertSee('amount=20000', false)
         ->assertSee('Reste à verser');
 
-    $this->actingAs($this->compte)->get(route('espace'))->assertSee('Mes engagements');
+    $this->actingAs($this->compte)->get(route('espace'))->assertSee('Mes Sass et Jàyante');
 });
 
 it('fournit la fiche de paramétrage au bureau, en PDF', function () {

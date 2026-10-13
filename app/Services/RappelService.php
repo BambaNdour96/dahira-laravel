@@ -116,9 +116,9 @@ final class RappelService
         if ($engagement !== null && $engagement->reste() === 0 && $compte !== null) {
             $compte->notify(new RappelProgramme(
                 $collecte->titre,
-                'Barakallahou fikoum ! Votre engagement pour « '.$collecte->titre.' » est entièrement réglé.',
+                'Barakallahou fikoum ! Votre '.$engagement->nature().' pour « '.$collecte->titre.' » est entièrement réglé.',
                 route('engagements.index'),
-                'Voir mes engagements',
+                'Voir mes Sass et Jàyante',
             ));
         }
 

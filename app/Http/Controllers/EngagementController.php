@@ -56,7 +56,7 @@ class EngagementController extends Controller
         $request->validate([
             'montant' => ['required', 'integer', 'min:1', 'max:100000000'],
         ], [
-            'montant.required' => 'Indiquez le montant de votre engagement.',
+            'montant.required' => 'Indiquez le montant de votre Jàyante.',
             'montant.min' => 'Le montant doit être positif.',
         ]);
 
@@ -67,7 +67,7 @@ class EngagementController extends Controller
         }
 
         return redirect()->route('engagements.index')
-            ->with('succes', 'Votre engagement pour « '.$collecte->titre.' » est enregistré. Qu\'Allah l\'accepte.');
+            ->with('succes', 'Votre Jàyante pour « '.$collecte->titre.' » est enregistré. Qu\'Allah l\'accepte.');
     }
 
     public function declarer(Request $request, Collecte $collecte, CollecteService $service): RedirectResponse
