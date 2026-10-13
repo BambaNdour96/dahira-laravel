@@ -33,6 +33,8 @@ class BilanSeance extends StatsOverviewWidget
             Stat::make('Sœurs', (string) $bilan['soeurs']),
             Stat::make('Excusés', (string) $bilan['excuses'])->color('warning'),
             Stat::make('Absents', (string) $bilan['absents'])->color($bilan['absents'] > 0 ? 'danger' : 'gray'),
+            Stat::make('Fréquentation totale', (string) $bilan['total'])
+                ->description($bilan['presents'].' membre(s), '.$bilan['sympathisants'].' sympathisant(s), '.$bilan['visiteurs'].' visiteur(s)'),
         ];
     }
 }

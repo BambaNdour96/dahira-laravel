@@ -29,6 +29,7 @@ use App\Http\Controllers\ProgrammeRapportController;
 use App\Http\Controllers\RapportProjetController;
 use App\Http\Controllers\RapportSuiviPdfController;
 use App\Http\Controllers\RecuController;
+use App\Http\Controllers\RecuSympathisantController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\SuppressionCompteController;
 use App\Http\Controllers\VerificationController;
@@ -105,6 +106,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::post('/pointage/{evenement}/sympathisants', [PointageController::class, 'accueillirSympathisant'])->name('pointage.sympathisant.nouveau');
+    Route::post('/pointage/{evenement}/sympathisants/{sympathisant}', [PointageController::class, 'sympathisantPresent'])->name('pointage.sympathisant');
+    Route::post('/pointage/{evenement}/visiteurs', [PointageController::class, 'visiteur'])->name('pointage.visiteur');
+    Route::get('/recus-sympathisants/{participation}', RecuSympathisantController::class)->name('sympathisants.recu');
     Route::get('/pointage', [PointageController::class, 'index'])->name('pointage.index');
     Route::get('/pointage/{evenement}', [PointageController::class, 'show'])->name('pointage.show');
     Route::post('/pointage/{evenement}/{membre}', [PointageController::class, 'pointer'])->name('pointage.pointer');

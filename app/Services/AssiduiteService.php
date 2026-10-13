@@ -141,6 +141,8 @@ final class AssiduiteService
             }
         }
 
+        app(SympathisantService::class)->purger();
+
         return ['rappels' => $rappels, 'alertes' => $alertes];
     }
 

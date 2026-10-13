@@ -116,9 +116,15 @@ class Collecte extends Model
             && ($this->cellule_id === null || $membre->cellule_id === $this->cellule_id);
     }
 
+    /** Tout l'argent confirmé : versements des membres et participations des sympathisants. */
     public function totalVerse(): int
     {
-        return (int) $this->paiements()->where('statut', StatutPaiement::Confirme->value)->sum('montant');
+        return (int) $this->paiements()->where('statut', StatutPaiement::Confirme->value)->sum('montant') + $this->totalSympathisants();
+    }
+
+    public function totalSympathisants(): int
+    {
+        return (int) ParticipationSympathisant::query()->where('collecte_id', $this->id)->sum('montant');
     }
 
     public function totalEngage(): int

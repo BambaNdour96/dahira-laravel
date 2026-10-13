@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
  * @property int|null $cellule_id
  * @property string $type
  * @property bool $avec_rappel
+ * @property int $visiteurs
  * @property int|null $auteur_id
  * @property-read Cellule|null $cellule
  */
@@ -34,9 +35,9 @@ class Evenement extends Model
 
     public const SEANCE = 'seance';
 
-    protected $fillable = ['type', 'titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'avec_rappel', 'auteur_id'];
+    protected $fillable = ['type', 'titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'avec_rappel', 'visiteurs', 'auteur_id'];
 
-    protected $attributes = ['type' => 'evenement', 'avec_rappel' => true];
+    protected $attributes = ['type' => 'evenement', 'avec_rappel' => true, 'visiteurs' => 0];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -115,6 +116,12 @@ class Evenement extends Model
     public function presents(): HasMany
     {
         return $this->hasMany(Presence::class)->where('statut', 'present');
+    }
+
+    /** @return HasMany<VisiteSympathisant, $this> */
+    public function visitesSympathisants(): HasMany
+    {
+        return $this->hasMany(VisiteSympathisant::class);
     }
 
     public function estSeance(): bool

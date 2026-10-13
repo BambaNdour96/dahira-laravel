@@ -47,6 +47,8 @@ class CollecteAnalyse extends StatsOverviewWidget
                 ->description('par membre engagé'),
             Stat::make('Versements confirmés', (string) $nombre)
                 ->description(CollecteService::fcfa($enVerification).' en vérification'),
+            Stat::make('Dont sympathisants', CollecteService::fcfa($collecte->totalSympathisants()))
+                ->description('participations volontaires'),
             Stat::make('Wave / espèces', $partWave.' % / '.(100 - $partWave).' %')
                 ->description('part des montants confirmés'),
         ];

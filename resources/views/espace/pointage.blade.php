@@ -23,6 +23,9 @@
             <p class="text-xs text-stone-600">excusés</p>
         </div>
     </div>
+    <p class="mt-2 text-center text-xs text-stone-600">
+        Fréquentation totale : <span class="font-semibold">{{ $bilan['total'] }}</span> personne(s) — {{ $bilan['presents'] }} membre(s), {{ $bilan['sympathisants'] }} sympathisant(s), {{ $bilan['visiteurs'] }} visiteur(s)
+    </p>
 
     <p class="mt-4 rounded-lg bg-sky-50 p-3 text-sm text-sky-900 ring-1 ring-sky-200">
         📷 Pour scanner une carte, ouvrez l'appareil photo du téléphone et visez le QR code : la fiche du membre s'ouvre avec le bouton « Marquer présent ». Ici, vous pointez à la main ceux qui ont oublié leur carte.
@@ -84,6 +87,74 @@
             </li>
         @endforeach
     </ul>
+
+    @if ($evenement->cellule_id !== null)
+        <section id="sympathisants" class="mt-8 scroll-mt-24">
+            <h2 class="text-lg font-semibold text-emerald-900">Sympathisants et visiteurs</h2>
+
+            <div class="mt-3 flex items-center justify-between rounded-xl bg-white p-3 ring-1 ring-stone-200">
+                <p class="text-sm text-stone-700">Visiteurs anonymes : <span class="text-lg font-bold text-emerald-900">{{ $evenement->visiteurs }}</span></p>
+                <div class="flex gap-2">
+                    <form method="POST" action="{{ route('pointage.visiteur', $evenement) }}">
+                        @csrf
+                        <input type="hidden" name="ecart" value="-1">
+                        <button type="submit" class="rounded-lg px-3 py-2 text-sm font-semibold text-stone-700 ring-1 ring-stone-300">−1</button>
+                    </form>
+                    <form method="POST" action="{{ route('pointage.visiteur', $evenement) }}">
+                        @csrf
+                        <input type="hidden" name="ecart" value="1">
+                        <button type="submit" class="rounded-lg bg-emerald-800 px-3 py-2 text-sm font-semibold text-white">+1 visiteur</button>
+                    </form>
+                </div>
+            </div>
+
+            <ul class="mt-3 space-y-2">
+                @foreach ($sympathisants as $sympathisant)
+                    <li data-membre="{{ mb_strtolower($sympathisant->prenom.' '.$sympathisant->nom) }}"
+                        class="flex items-center justify-between rounded-xl bg-white p-3 ring-1 {{ in_array($sympathisant->id, $venus, true) ? 'ring-emerald-300' : 'ring-stone-200' }}">
+                        <div>
+                            <p class="font-semibold text-emerald-950">{{ $sympathisant->prenom }} {{ $sympathisant->nom }}</p>
+                            <p class="text-xs text-stone-500">Sympathisant{{ $sympathisant->sexe->value === 'F' ? 'e' : '' }}</p>
+                        </div>
+                        @if (in_array($sympathisant->id, $venus, true))
+                            <span class="text-sm font-semibold text-emerald-800">Présent ✓</span>
+                        @else
+                            <form method="POST" action="{{ route('pointage.sympathisant', [$evenement, $sympathisant]) }}">
+                                @csrf
+                                <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Présent</button>
+                            </form>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+
+            <details class="mt-3 rounded-xl bg-white p-4 ring-1 ring-stone-200">
+                <summary class="cursor-pointer font-semibold text-emerald-900">+ Nouveau sympathisant</summary>
+                <form method="POST" action="{{ route('pointage.sympathisant.nouveau', $evenement) }}" class="mt-3 space-y-3 text-sm">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" name="prenom" required maxlength="80" placeholder="Prénom" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                        <input type="text" name="nom" required maxlength="80" placeholder="Nom" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                    </div>
+                    <select name="sexe" required class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                        @if ($perimetre !== 'femmes')
+                            <option value="H">Homme</option>
+                        @endif
+                        @if ($perimetre !== 'hommes')
+                            <option value="F">Femme</option>
+                        @endif
+                    </select>
+                    <input type="tel" name="telephone" maxlength="20" inputmode="tel" placeholder="Téléphone (seulement s'il accepte d'être recontacté)"
+                           class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                    <label class="flex items-start gap-2 text-stone-700">
+                        <input type="checkbox" name="accord" value="1" required class="mt-1 h-5 w-5 rounded border-stone-300">
+                        <span>La personne accepte d'être recensée comme sympathisant de la Daara.</span>
+                    </label>
+                    <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-3 font-semibold text-white">Enregistrer et marquer présent</button>
+                </form>
+            </details>
+        </section>
+    @endif
 
     <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
         document.querySelector('[data-chercher-membre]')?.addEventListener('input', (evenement) => {

@@ -92,6 +92,11 @@ class Membre extends Model
 
     protected static function booted(): void
     {
+        // Un sympathisant qui s'inscrit avec le même numéro garde son historique de visites.
+        static::created(function (Membre $membre): void {
+            Sympathisant::query()->whereNull('membre_id')->where('telephone', $membre->telephone)->update(['membre_id' => $membre->id]);
+        });
+
         // Règle 4.6 : toute nouvelle photo est retraitée avant l'enregistrement.
         static::saving(function (Membre $membre): void {
             if (! $membre->isDirty('photo_path')) {

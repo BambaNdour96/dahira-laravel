@@ -169,7 +169,7 @@ final class PointageService
     /**
      * Le bilan d'un rendez-vous.
      *
-     * @return array{concernes: int, presents: int, freres: int, soeurs: int, excuses: int, absents: int, taux: int}
+     * @return array{concernes: int, presents: int, freres: int, soeurs: int, excuses: int, absents: int, taux: int, sympathisants: int, visiteurs: int, total: int}
      */
     public function bilan(Evenement $evenement): array
     {
@@ -177,6 +177,7 @@ final class PointageService
         $presents = $presences->where('statut', 'present');
         $concernes = $evenement->membresConcernes();
         $excuses = $presences->where('statut', 'excuse')->count();
+        $sympathisants = $evenement->visitesSympathisants()->count();
 
         return [
             'concernes' => $concernes,
@@ -186,6 +187,9 @@ final class PointageService
             'excuses' => $excuses,
             'absents' => max(0, $concernes - $presents->count() - $excuses),
             'taux' => $concernes > 0 ? (int) round($presents->count() / $concernes * 100) : 0,
+            'sympathisants' => $sympathisants,
+            'visiteurs' => $evenement->visiteurs,
+            'total' => $presents->count() + $sympathisants + $evenement->visiteurs,
         ];
     }
 
