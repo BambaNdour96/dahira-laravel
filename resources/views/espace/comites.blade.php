@@ -5,16 +5,38 @@
 @section('contenu')
     <h1 class="text-2xl font-semibold text-emerald-900">Mes comités</h1>
 
+    @if (session('comite_succes'))
+        <p class="mt-3 rounded-lg bg-emerald-50 p-3 text-sm font-semibold text-emerald-900">{{ session('comite_succes') }}</p>
+    @endif
+    @if (session('comite_erreur'))
+        <p class="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-900">{{ session('comite_erreur') }}</p>
+    @endif
+
     @if ($actions->isNotEmpty())
         <section class="mt-4 rounded-xl bg-amber-50 p-4 ring-1 ring-amber-200">
             <h2 class="font-semibold text-amber-900">Mes actions à mener</h2>
             <ul class="mt-2 space-y-2 text-sm">
                 @foreach ($actions as $action)
-                    <li>
+                    <li class="rounded-lg bg-white p-3 ring-1 {{ $action->estEnRetard() ? 'ring-red-300' : 'ring-amber-200' }}">
                         <span class="font-medium text-stone-900">{{ $action->description }}</span>
                         <span class="block text-xs text-stone-600">
                             {{ $action->instance->nom }}{{ $action->commission ? ' · Commission '.$action->commission->nom : '' }}{{ $action->echeance ? ' · pour le '.$action->echeance->format('d/m/Y') : '' }}
+                            · <span class="font-semibold {{ $action->estEnRetard() ? 'text-red-700' : 'text-stone-700' }}">{{ $action->estEnRetard() ? 'En retard' : \App\Models\ActionComite::STATUTS[$action->statut] }}</span>
                         </span>
+                        <div class="mt-2 flex gap-2">
+                            @if ($action->statut === 'a_faire')
+                                <form method="POST" action="{{ route('comites.actions.statut', $action) }}">
+                                    @csrf
+                                    <input type="hidden" name="statut" value="en_cours">
+                                    <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-sky-800 ring-1 ring-sky-300">Commencée</button>
+                                </form>
+                            @endif
+                            <form method="POST" action="{{ route('comites.actions.statut', $action) }}">
+                                @csrf
+                                <input type="hidden" name="statut" value="faite">
+                                <button type="submit" class="rounded-lg bg-emerald-800 px-3 py-1.5 text-xs font-semibold text-white">Faite ✓</button>
+                            </form>
+                        </div>
                     </li>
                 @endforeach
             </ul>

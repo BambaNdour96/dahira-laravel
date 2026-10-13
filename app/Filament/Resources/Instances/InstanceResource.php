@@ -8,6 +8,7 @@ use App\Filament\Resources\Instances\Pages\ListInstances;
 use App\Filament\Resources\Instances\Pages\ViewInstance;
 use App\Models\Collecte;
 use App\Models\Instance;
+use App\Models\Membre;
 use App\Models\User;
 use App\Services\ComiteService;
 use BackedEnum;
@@ -127,7 +128,7 @@ class InstanceResource extends Resource
                     Select::make('statut')->label('État')->options(['active' => 'Actif', 'close' => 'Clôturé'])->default('active')->required(),
                 ]),
             Section::make('Les commissions')
-                ->description('Elles peuvent changer à chaque Magal. Un chef extérieur au comité y est ajouté automatiquement.')
+                ->description('Elles peuvent changer à chaque Magal. Les chefs et les membres des commissions extérieurs au comité y sont ajoutés automatiquement.')
                 ->schema([
                     Repeater::make('commissions')
                         ->relationship('commissions')
@@ -139,6 +140,14 @@ class InstanceResource extends Resource
                             TextInput::make('nom')->label('Commission')->required()->maxLength(100)->placeholder('Cuisine'),
                             TextInput::make('mission')->label('Mission')->maxLength(255)->placeholder('Menus, achats, cuisson, service'),
                             Select::make('chef_id')->label('Chef de commission')->options(fn (): array => ComiteService::choixMembres())->searchable(),
+                            Select::make('membres')
+                                ->label('Membres de la commission')
+                                ->relationship('membres', 'nom')
+                                ->getOptionLabelFromRecordUsing(fn (Membre $record): string => $record->prenom.' '.$record->nom.' — '.$record->matricule)
+                                ->multiple()
+                                ->searchable(['prenom', 'nom', 'matricule'])
+                                ->preload()
+                                ->columnSpanFull(),
                         ]),
                 ]),
         ]);

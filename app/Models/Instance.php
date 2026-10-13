@@ -81,6 +81,18 @@ class Instance extends Model
         return $this->hasMany(Decision::class);
     }
 
+    /** @return HasMany<ActionComite, $this> */
+    public function actions(): HasMany
+    {
+        return $this->hasMany(ActionComite::class);
+    }
+
+    /** La date du rendez-vous visé (le jour J du programme lié), pour le compte à rebours. */
+    public function dateCible(): ?Carbon
+    {
+        return $this->collecte?->evenement?->debut;
+    }
+
     /** @return BelongsTo<Membre, $this> */
     public function president(): BelongsTo
     {

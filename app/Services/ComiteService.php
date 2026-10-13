@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\StatutMembre;
+use App\Models\ActionComite;
 use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\Membre;
@@ -132,10 +133,14 @@ final class ComiteService
         $instance->membres()->syncWithoutDetaching(Instance::comiteDirecteur()->membres()->pluck('membres.id')->all());
     }
 
-    /** Le président et les chefs de commission font toujours partie du comité. */
+    /** Le président, les chefs et les membres des commissions font toujours partie du comité. */
     public function integrerResponsables(Instance $instance): void
     {
         $ids = $instance->commissions()->whereNotNull('chef_id')->pluck('chef_id')->all();
+
+        foreach ($instance->commissions()->with('membres')->get() as $commission) {
+            array_push($ids, ...$commission->membres->modelKeys());
+        }
 
         if ($instance->president_id !== null) {
             $ids[] = $instance->president_id;
@@ -295,5 +300,97 @@ final class ComiteService
     private function comptesDesMembres(Instance $instance): Collection
     {
         return User::query()->whereIn('id', $instance->membres()->whereNotNull('user_id')->select('user_id'))->get();
+    }
+
+    /** Peut-on changer le statut de cette action ? L'organisateur, le responsable ou le chef de la commission. */
+    public static function peutSuivre(User $utilisateur, ActionComite $action): bool
+    {
+        if (self::peutOrganiser($utilisateur, $action->instance)) {
+            return true;
+        }
+
+        return $action->compteResponsable()?->id === $utilisateur->id;
+    }
+
+    public function changerStatut(ActionComite $action, string $statut, User $utilisateur): void
+    {
+        if (! array_key_exists($statut, ActionComite::STATUTS)) {
+            throw new DomainException('Statut inconnu.');
+        }
+
+        if (! self::peutSuivre($utilisateur, $action)) {
+            throw new DomainException('Seuls le responsable, le chef de la commission et les organisateurs suivent cette action.');
+        }
+
+        $action->update(['statut' => $statut]);
+    }
+
+    /**
+     * L'avancement d'un comité : actions, réunions, décisions, et le compte à rebours.
+     *
+     * @return array{actions: int, faites: int, en_retard: int, taux: int, reunions: int, decisions: int, jours: int|null}
+     */
+    public function avancement(Instance $instance): array
+    {
+        $actions = $instance->actions()->get();
+        $faites = $actions->where('statut', 'faite')->count();
+        $cible = $instance->dateCible();
+
+        return [
+            'actions' => $actions->count(),
+            'faites' => $faites,
+            'en_retard' => $actions->filter(fn (ActionComite $action): bool => $action->estEnRetard())->count(),
+            'taux' => $actions->count() > 0 ? (int) round($faites / $actions->count() * 100) : 0,
+            'reunions' => $instance->reunions()->count(),
+            'decisions' => $instance->decisions()->count(),
+            'jours' => $cible !== null ? (int) now()->startOfDay()->diffInDays($cible->copy()->startOfDay(), false) : null,
+        ];
+    }
+
+    /**
+     * Chaque matin : rappel aux responsables 2 jours avant l'échéance et le jour même ; le lendemain d'un retard, le président est prévenu.
+     *
+     * @return array{rappels: int, retards: int}
+     */
+    public function routineDuMatin(): array
+    {
+        $rappels = 0;
+        $retards = 0;
+        $aujourdhui = now()->startOfDay();
+
+        $actions = ActionComite::query()
+            ->with(['instance.president', 'responsable', 'commission.chef'])
+            ->where('statut', '!=', 'faite')
+            ->whereNotNull('echeance')
+            ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))
+            ->get();
+
+        foreach ($actions as $action) {
+            $ecart = (int) $aujourdhui->diffInDays($action->echeance?->copy()->startOfDay(), false);
+
+            if (in_array($ecart, [2, 0], true) && ($compte = $action->compteResponsable()) !== null) {
+                $compte->notify(new NotificationMembre(
+                    $action->instance->nom,
+                    'Action à mener'.($ecart === 0 ? ' aujourd\'hui' : ' dans 2 jours').' : '.$action->description.'.',
+                    route('comites.index'),
+                    'Voir mes actions',
+                ));
+                $rappels++;
+            }
+
+            $president = $action->instance->president;
+
+            if ($ecart === -1 && $president !== null && $president->user_id !== null && ($compte = User::query()->find($president->user_id)) !== null) {
+                $compte->notify(new NotificationMembre(
+                    $action->instance->nom,
+                    'Action en retard : '.$action->description.' ('.$action->responsableTexte().').',
+                    route('comites.index'),
+                    'Voir le comité',
+                ));
+                $retards++;
+            }
+        }
+
+        return ['rappels' => $rappels, 'retards' => $retards];
     }
 }

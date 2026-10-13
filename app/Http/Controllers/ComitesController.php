@@ -6,6 +6,9 @@ use App\Models\ActionComite;
 use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\User;
+use App\Services\ComiteService;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -36,5 +39,20 @@ class ComitesController extends Controller
             ->get();
 
         return view('espace.comites', ['instances' => $instances, 'actions' => $actions]);
+    }
+
+    public function statut(Request $request, ActionComite $action, ComiteService $comites): RedirectResponse
+    {
+        $utilisateur = $request->user();
+        abort_unless($utilisateur instanceof User, 403);
+        $statut = (string) $request->validate(['statut' => ['required', 'in:a_faire,en_cours,faite']])['statut'];
+
+        try {
+            $comites->changerStatut($action, $statut, $utilisateur);
+        } catch (DomainException $e) {
+            return back()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', '« '.$action->description.' » : '.mb_strtolower(ActionComite::STATUTS[$statut]).'.');
     }
 }

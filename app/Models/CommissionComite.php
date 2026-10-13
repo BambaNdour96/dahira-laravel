@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Une commission d'un comité (Cuisine, Hygiène et environnement, Finance…), avec son chef.
@@ -33,5 +35,17 @@ class CommissionComite extends Model
     public function chef(): BelongsTo
     {
         return $this->belongsTo(Membre::class, 'chef_id');
+    }
+
+    /** @return BelongsToMany<Membre, $this> */
+    public function membres(): BelongsToMany
+    {
+        return $this->belongsToMany(Membre::class, 'commission_comite_membre')->withTimestamps();
+    }
+
+    /** @return HasMany<ActionComite, $this> */
+    public function actions(): HasMany
+    {
+        return $this->hasMany(ActionComite::class, 'commission_id');
     }
 }

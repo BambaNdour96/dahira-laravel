@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property-read Membre|null $responsable
  * @property-read CommissionComite|null $commission
  * @property-read Instance $instance
+ * @property-read Reunion|null $reunion
  */
 class ActionComite extends Model
 {
@@ -44,6 +45,23 @@ class ActionComite extends Model
                 $action->instance_id = (int) Reunion::query()->whereKey($action->reunion_id)->value('instance_id');
             }
         });
+    }
+
+    public function estEnRetard(): bool
+    {
+        return $this->statut !== 'faite' && $this->echeance !== null && $this->echeance->lt(now()->startOfDay());
+    }
+
+    /** Le compte à prévenir pour cette action : le membre responsable, ou le chef de la commission. */
+    public function compteResponsable(): ?User
+    {
+        $membre = $this->responsable ?? $this->commission?->chef;
+
+        if ($membre === null || $membre->user_id === null) {
+            return null;
+        }
+
+        return User::query()->find($membre->user_id);
     }
 
     public function responsableTexte(): string
@@ -71,5 +89,11 @@ class ActionComite extends Model
     public function instance(): BelongsTo
     {
         return $this->belongsTo(Instance::class);
+    }
+
+    /** @return BelongsTo<Reunion, $this> */
+    public function reunion(): BelongsTo
+    {
+        return $this->belongsTo(Reunion::class);
     }
 }

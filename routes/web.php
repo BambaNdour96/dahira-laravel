@@ -111,6 +111,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::post('/comites/actions/{action}/statut', [ComitesController::class, 'statut'])->name('comites.actions.statut');
     Route::get('/mes-comites', ComitesController::class.'@index')->name('comites.index');
     Route::get('/reunions/{reunion}/pv', PvReunionController::class)->name('reunions.pv');
     Route::middleware(ExigerCharteConfidentialite::class)->group(function () {

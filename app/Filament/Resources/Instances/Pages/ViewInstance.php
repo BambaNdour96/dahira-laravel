@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Instances\Pages;
 
 use App\Filament\Resources\Instances\InstanceResource;
+use App\Filament\Resources\Instances\Widgets\AvancementCommissions;
 use App\Filament\Resources\Instances\Widgets\MembresInstance;
 use App\Filament\Resources\Instances\Widgets\ReunionsInstance;
+use App\Filament\Resources\Instances\Widgets\TableauDeBordComite;
 use App\Filament\Resources\Reunions\ReunionResource;
 use App\Models\Instance;
 use App\Models\User;
@@ -61,8 +63,14 @@ class ViewInstance extends ViewRecord
     }
 
     /** @return array<int, class-string> */
+    protected function getHeaderWidgets(): array
+    {
+        return [TableauDeBordComite::class];
+    }
+
+    /** @return array<int, class-string> */
     protected function getFooterWidgets(): array
     {
-        return [ReunionsInstance::class, MembresInstance::class];
+        return [AvancementCommissions::class, ReunionsInstance::class, MembresInstance::class];
     }
 }

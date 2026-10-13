@@ -20,6 +20,9 @@ Schedule::command('donnees:purger')->dailyAt('03:00');
 // Chaque matin à 8 h : paiements en attente depuis 48 h et caisses des représentants à remettre.
 Schedule::command('finance:routine')->dailyAt('08:00');
 
+// Chaque matin à 8 h 15 : actions des comités à échéance, et retards signalés aux présidents.
+Schedule::command('comites:routine')->dailyAt('08:15');
+
 // Chaque matin à 8 h 30 : rappel des séances de cellule du jour, alerte après 3 absences de suite.
 Schedule::command('seances:routine')->dailyAt('08:30');
 
