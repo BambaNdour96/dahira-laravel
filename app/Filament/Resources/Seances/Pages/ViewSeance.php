@@ -12,7 +12,7 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Livewire\Component;
 
-/** Une séance : le bilan (frères, sœurs, excusés, absents) et la liste de présence. */
+/** Une séance : le bilan (Goor Yalla, Sokhnas, excusés, absents) et la liste de présence. */
 class ViewSeance extends ViewRecord
 {
     protected static string $resource = SeanceResource::class;

@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
-/** Les pointeurs désignés de chaque cellule : un frère pour les frères, une sœur pour les sœurs. */
+/** Les pointeurs désignés de chaque cellule : un Goor Yalla pour les Goor Yalla, une Sokhna pour les Sokhnas. */
 class PointeurResource extends Resource
 {
     protected static ?string $model = CellulePointeur::class;

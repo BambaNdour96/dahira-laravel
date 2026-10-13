@@ -29,8 +29,8 @@ class BilanSeance extends StatsOverviewWidget
             Stat::make('Présents', $bilan['presents'].' / '.$bilan['concernes'])
                 ->description($bilan['taux'].' % de présence')
                 ->color($bilan['taux'] >= 75 ? 'success' : ($bilan['taux'] >= 40 ? 'warning' : 'danger')),
-            Stat::make('Frères', (string) $bilan['freres']),
-            Stat::make('Sœurs', (string) $bilan['soeurs']),
+            Stat::make('Goor Yalla', (string) $bilan['freres']),
+            Stat::make('Sokhnas', (string) $bilan['soeurs']),
             Stat::make('Excusés', (string) $bilan['excuses'])->color('warning'),
             Stat::make('Absents', (string) $bilan['absents'])->color($bilan['absents'] > 0 ? 'danger' : 'gray'),
             Stat::make('Fréquentation totale', (string) $bilan['total'])

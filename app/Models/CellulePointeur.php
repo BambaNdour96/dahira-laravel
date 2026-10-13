@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Une personne désignée pour pointer les présences d'une cellule : les frères ou les sœurs.
+ * Une personne désignée pour pointer les présences d'une cellule : les Goor Yalla ou les Sokhnas.
  *
  * @property int $id
  * @property int $cellule_id
@@ -21,7 +21,7 @@ class CellulePointeur extends Model
 
     protected $fillable = ['cellule_id', 'user_id', 'perimetre'];
 
-    public const PERIMETRES = ['hommes' => 'Les frères', 'femmes' => 'Les sœurs'];
+    public const PERIMETRES = ['hommes' => 'Les Goor Yalla', 'femmes' => 'Les Sokhnas'];
 
     /** @return BelongsTo<Cellule, $this> */
     public function cellule(): BelongsTo

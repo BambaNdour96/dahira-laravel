@@ -35,7 +35,7 @@ use Livewire\Component;
 use UnitEnum;
 
 /**
- * Le registre des sympathisants. Un Jewrine voit sa cellule ; la Jewrine des femmes, les sœurs de sa cellule ;
+ * Le registre des sympathisants. Un Jewrine voit sa cellule ; la Jewrine des Sokhnas, les Sokhnas de sa cellule ;
  * le bureau et Suivi et Évaluation voient tout. Le Jewrine finance enregistre leurs participations.
  */
 class SympathisantResource extends Resource
@@ -124,7 +124,7 @@ class SympathisantResource extends Resource
                 TextColumn::make('prenom')->label('Prénom')->searchable(),
                 TextColumn::make('nom')->label('Nom')->searchable(),
                 TextColumn::make('cellule.nom')->label('Cellule'),
-                TextColumn::make('sexe')->label('')->formatStateUsing(fn (mixed $state): string => $state === Sexe::Femme ? 'Sœur' : 'Frère'),
+                TextColumn::make('sexe')->label('')->formatStateUsing(fn (mixed $state): string => $state === Sexe::Femme ? 'Sokhna' : 'Goor Yalla'),
                 TextColumn::make('telephone')->label('Téléphone')->placeholder('—'),
                 TextColumn::make('visites_count')->label('Visites')->sortable(),
                 TextColumn::make('derniere_visite_le')->label('Dernière venue')->date('d/m/Y')->placeholder('—')->sortable(),
@@ -142,7 +142,7 @@ class SympathisantResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('cellule_id')->label('Cellule')->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all()),
-                SelectFilter::make('sexe')->label('Frères / sœurs')->options(['H' => 'Frères', 'F' => 'Sœurs']),
+                SelectFilter::make('sexe')->label('Goor Yalla / Sokhnas')->options(['H' => 'Goor Yalla', 'F' => 'Sokhnas']),
                 Filter::make('a_inviter')
                     ->label('À inviter (3 visites en 3 mois)')
                     ->query(fn (Builder $query): Builder => $query

@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * L'assiduité de chaque membre sur 3 mois. Un Jewrine voit sa cellule ; la Jewrine des femmes, les sœurs de sa cellule.
+ * L'assiduité de chaque membre sur 3 mois. Un Jewrine voit sa cellule ; la Jewrine des Sokhnas, les Sokhnas de sa cellule.
  */
 class AssiduiteDesMembres extends TableWidget
 {
@@ -62,7 +62,7 @@ class AssiduiteDesMembres extends TableWidget
                     ->color(fn (int $state): string => $state >= 3 ? 'danger' : ($state > 0 ? 'warning' : 'gray')),
             ])
             ->filters([
-                SelectFilter::make('sexe')->label('Frères / sœurs')->options(['H' => 'Frères', 'F' => 'Sœurs']),
+                SelectFilter::make('sexe')->label('Goor Yalla / Sokhnas')->options(['H' => 'Goor Yalla', 'F' => 'Sokhnas']),
             ]);
     }
 }

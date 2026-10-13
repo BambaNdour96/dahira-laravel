@@ -15,9 +15,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Qui peut pointer qui, et comment.
- * - Jewrine de cellule : tous les membres de sa cellule ; une sœur est alors « pointée en secours ».
- * - Jewrine des femmes : les sœurs de sa cellule.
- * - Pointeurs désignés : les frères ou les sœurs de leur cellule, selon leur périmètre.
+ * - Jewrine de cellule : tous les membres de sa cellule ; une Sokhna est alors « pointée en secours ».
+ * - Jewrine des Sokhnas : les Sokhnas de sa cellule.
+ * - Pointeurs désignés : les Goor Yalla ou les Sokhnas de leur cellule, selon leur périmètre.
  * - Contrôleurs d'un événement : tout le monde.
  * - Super administrateur et Jewrine national : tout le monde, et corrections après coup.
  */
@@ -69,7 +69,7 @@ final class PointageService
     }
 
     /**
-     * Vérifie que cette personne peut pointer ce membre ; renvoie « secours » si un frère pointe une sœur.
+     * Vérifie que cette personne peut pointer ce membre ; renvoie « secours » si un Goor Yalla pointe une Sokhna.
      */
     public function autorisation(User $utilisateur, Evenement $evenement, Membre $membre): ?string
     {
@@ -88,11 +88,11 @@ final class PointageService
         }
 
         if ($perimetre === 'hommes' && $membre->sexe !== Sexe::Homme) {
-            throw new DomainException('Les sœurs sont pointées par la Jewrine des femmes ou une pointeuse.');
+            throw new DomainException('Les Sokhnas sont pointées par la Jewrine des Sokhnas ou une pointeuse.');
         }
 
         if ($perimetre === 'femmes' && $membre->sexe !== Sexe::Femme) {
-            throw new DomainException('Les frères sont pointés par le Jewrine ou un pointeur.');
+            throw new DomainException('Les Goor Yalla sont pointés par le Jewrine ou un pointeur.');
         }
 
         $cellule = $evenement->cellule;
@@ -194,7 +194,7 @@ final class PointageService
     }
 
     /**
-     * Les cellules que cette personne dirige (Jewrine ou Jewrine des femmes).
+     * Les cellules que cette personne dirige (Jewrine ou Jewrine des Sokhnas).
      *
      * @return list<int>
      */

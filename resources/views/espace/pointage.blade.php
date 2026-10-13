@@ -6,7 +6,7 @@
     <h1 class="text-xl font-semibold text-emerald-900">{{ $evenement->titre }}</h1>
     <p class="text-sm text-stone-600">{{ $evenement->debut->translatedFormat('l j F à H\hi') }} · {{ $evenement->lieu }}</p>
     @if ($perimetre !== 'tous')
-        <p class="mt-1 text-xs font-semibold text-emerald-700">Vous pointez {{ $perimetre === 'femmes' ? 'les sœurs' : 'les frères' }}.</p>
+        <p class="mt-1 text-xs font-semibold text-emerald-700">Vous pointez {{ $perimetre === 'femmes' ? 'les Sokhnas' : 'les Goor Yalla' }}.</p>
     @endif
 
     <div class="mt-4 grid grid-cols-3 gap-2 text-center">
@@ -16,7 +16,7 @@
         </div>
         <div class="rounded-xl bg-white p-3 ring-1 ring-stone-200">
             <p class="text-lg font-bold text-emerald-900">{{ $bilan['freres'] }} / {{ $bilan['soeurs'] }}</p>
-            <p class="text-xs text-stone-600">frères / sœurs</p>
+            <p class="text-xs text-stone-600">Goor Yalla / Sokhnas</p>
         </div>
         <div class="rounded-xl bg-white p-3 ring-1 ring-stone-200">
             <p class="text-lg font-bold text-amber-800">{{ $bilan['excuses'] }}</p>
@@ -50,7 +50,7 @@
                     <div class="min-w-0">
                         <p class="truncate font-semibold text-emerald-950">{{ $membre->prenom }} {{ $membre->nom }}</p>
                         <p class="text-xs text-stone-500">
-                            {{ $membre->matricule }} · {{ $membre->sexe->value === 'F' ? 'Sœur' : 'Frère' }}
+                            {{ $membre->matricule }} · {{ $membre->sexe->value === 'F' ? 'Sokhna' : 'Goor Yalla' }}
                             @if ($presence)
                                 · <span class="font-semibold {{ $presence->statut === 'present' ? 'text-emerald-800' : 'text-amber-800' }}">
                                     {{ $presence->statut === 'present' ? 'Présent ✓ ('.mb_strtolower($presence->libelleMode()).')' : 'Excusé : '.$presence->motif }}
@@ -138,10 +138,10 @@
                     </div>
                     <select name="sexe" required class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                         @if ($perimetre !== 'femmes')
-                            <option value="H">Homme</option>
+                            <option value="H">Goor Yalla</option>
                         @endif
                         @if ($perimetre !== 'hommes')
-                            <option value="F">Femme</option>
+                            <option value="F">Sokhna</option>
                         @endif
                     </select>
                     <input type="tel" name="telephone" maxlength="20" inputmode="tel" placeholder="Téléphone (seulement s'il accepte d'être recontacté)"

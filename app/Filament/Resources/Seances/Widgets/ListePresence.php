@@ -46,7 +46,7 @@ class ListePresence extends TableWidget
             ->columns([
                 TextColumn::make('prenom')->label('Prénom')->searchable(),
                 TextColumn::make('nom')->label('Nom')->searchable(),
-                TextColumn::make('sexe')->label('')->formatStateUsing(fn (mixed $state): string => $state === Sexe::Femme ? 'Sœur' : 'Frère'),
+                TextColumn::make('sexe')->label('')->formatStateUsing(fn (mixed $state): string => $state === Sexe::Femme ? 'Sokhna' : 'Goor Yalla'),
                 TextColumn::make('etat')->label('Présence')->badge()
                     ->state(function (Membre $record) use ($presences): string {
                         $presence = $presences()->get($record->id);
@@ -76,7 +76,7 @@ class ListePresence extends TableWidget
                     }),
             ])
             ->filters([
-                SelectFilter::make('sexe')->label('Frères / sœurs')->options(['H' => 'Frères', 'F' => 'Sœurs']),
+                SelectFilter::make('sexe')->label('Goor Yalla / Sokhnas')->options(['H' => 'Goor Yalla', 'F' => 'Sokhnas']),
             ]);
     }
 }

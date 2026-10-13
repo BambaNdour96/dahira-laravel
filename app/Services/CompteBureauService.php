@@ -25,7 +25,7 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
-        'jewrine_femmes' => 'Jewrine des femmes de cellule',
+        'jewrine_femmes' => 'Jewrine des Sokhnas de cellule',
         'suivi_evaluation' => 'Membre de Suivi et Évaluation',
     ];
 
@@ -46,7 +46,7 @@ final class CompteBureauService
         'secretaire_general' => 'Secrétaire général',
         'tresorier' => 'Jewrine finance',
         'responsable_section' => 'Jewrine de cellule',
-        'jewrine_femmes' => 'Jewrine des femmes',
+        'jewrine_femmes' => 'Jewrine des Sokhnas',
         'suivi_evaluation' => 'Suivi et Évaluation',
         'membre' => 'Membre',
     ];
