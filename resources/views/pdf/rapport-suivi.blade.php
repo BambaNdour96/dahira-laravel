@@ -24,9 +24,13 @@
         .texte h3 { font-size: 10pt; color: #064e3b; }
         .texte blockquote { border-left: 2px solid #d4a017; margin-left: 0; padding-left: 3mm; color: #44403c; }
         .signature { margin-top: 10mm; font-size: 9pt; }
+            .confidentiel { border: 0.5px solid #b91c1c; color: #b91c1c; font-size: 7.5pt; font-weight: bold; padding: 1.2mm 2mm; margin-bottom: 3mm; }
+        .pied-confidentiel { position: fixed; bottom: -9mm; left: 0; right: 0; text-align: center; font-size: 6.5pt; color: #b91c1c; }
     </style>
 </head>
 <body>
+    <div class="pied-confidentiel">{{ $confidentiel }}</div>
+    <div class="confidentiel">{{ $confidentiel }}</div>
     <div class="entete">
         @if ($logo)<img src="{{ $logo }}" alt="">@endif
         <div class="titre">

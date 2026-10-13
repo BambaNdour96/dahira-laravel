@@ -11,12 +11,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\LaravelPasskeys\Models\Concerns\HasPasskeys;
 use Spatie\LaravelPasskeys\Models\Concerns\InteractsWithPasskeys;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
+ * @property Carbon|null $charte_acceptee_le
  * @property string|null $app_authentication_secret
  * @property list<string>|null $app_authentication_recovery_codes
  */
@@ -44,6 +46,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'derniere_connexion_at' => 'datetime',
             'password' => 'hashed',
             'actif' => 'boolean',
+            'charte_acceptee_le' => 'datetime',
             'doit_changer_mot_de_passe' => 'boolean',
             'app_authentication_secret' => 'encrypted',
             'app_authentication_recovery_codes' => 'encrypted:array',

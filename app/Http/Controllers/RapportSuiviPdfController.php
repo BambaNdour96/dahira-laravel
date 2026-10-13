@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\RapportSuivi;
+use App\Models\User;
+use App\Support\Confidentiel;
 use Dompdf\Dompdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
@@ -15,11 +17,16 @@ class RapportSuiviPdfController extends Controller
     {
         Gate::authorize('view', $rapport);
 
+        $utilisateur = auth()->user();
+        abort_unless($utilisateur instanceof User, 403);
+        Confidentiel::noter($utilisateur, 'Rapport rédigé (PDF) : '.$rapport->titre);
+
         $rapport->load(['projet', 'collecte', 'auteur']);
         $logo = public_path('images/logo-ndk.png');
 
         $html = view('pdf.rapport-suivi', [
             'rapport' => $rapport,
+            'confidentiel' => Confidentiel::mention($utilisateur),
             'contenu' => RapportSuivi::propre($rapport->contenu),
             'recommandations' => RapportSuivi::propre($rapport->recommandations),
             'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,

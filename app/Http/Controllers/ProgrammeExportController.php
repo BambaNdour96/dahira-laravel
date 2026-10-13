@@ -6,6 +6,7 @@ use App\Models\Collecte;
 use App\Models\Engagement;
 use App\Models\User;
 use App\Policies\CollectePolicy;
+use App\Support\Confidentiel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -21,9 +22,16 @@ class ProgrammeExportController extends Controller
         $engagements = $collecte->engagements()->with(['membre.cellule', 'collecte'])->get()
             ->sortBy(fn (Engagement $engagement): string => $engagement->membre->cellule->nom.' '.$engagement->membre->nom);
 
+        $avecTelephones = $request->boolean('telephones');
+        $motif = trim((string) $request->input('motif'));
+        abort_if($avecTelephones && $motif === '', 422, 'Indiquez pourquoi les numéros de téléphone sont nécessaires.');
+
+        Confidentiel::noter($utilisateur, 'Engagements (Excel) : '.$collecte->titre, $avecTelephones ? 'Avec téléphones. Motif : '.$motif : 'Sans téléphones');
+        $mention = Confidentiel::mention($utilisateur);
+
         $nom = 'Engagements-'.Str::slug($collecte->titre).'-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($engagements): void {
+        return response()->streamDownload(function () use ($engagements, $avecTelephones, $mention): void {
             $sortie = fopen('php://output', 'w');
 
             if ($sortie === false) {
@@ -31,10 +39,16 @@ class ProgrammeExportController extends Controller
             }
 
             fwrite($sortie, "\xEF\xBB\xBF");
-            fputcsv($sortie, ['Matricule', 'Prénom', 'Nom', 'Cellule', 'Téléphone', 'Engagement (FCFA)', 'Versé (FCFA)', 'Reste (FCFA)', 'Avancement (%)', 'Situation', 'Fixé par'], ';');
+            $entetes = ['Matricule', 'Prénom', 'Nom', 'Cellule', 'Téléphone', 'Engagement (FCFA)', 'Versé (FCFA)', 'Reste (FCFA)', 'Avancement (%)', 'Situation', 'Fixé par'];
+
+            if (! $avecTelephones) {
+                unset($entetes[4]);
+            }
+
+            fputcsv($sortie, array_values($entetes), ';');
 
             foreach ($engagements as $engagement) {
-                fputcsv($sortie, [
+                $ligne = [
                     $engagement->membre->matricule,
                     $engagement->membre->prenom,
                     $engagement->membre->nom,
@@ -46,8 +60,17 @@ class ProgrammeExportController extends Controller
                     $engagement->taux(),
                     $engagement->situation(),
                     $engagement->libelleFixePar(),
-                ], ';');
+                ];
+
+                if (! $avecTelephones) {
+                    unset($ligne[4]);
+                }
+
+                fputcsv($sortie, array_values($ligne), ';');
             }
+
+            fputcsv($sortie, [], ';');
+            fputcsv($sortie, [$mention], ';');
 
             fclose($sortie);
         }, $nom, ['Content-Type' => 'text/csv; charset=UTF-8']);

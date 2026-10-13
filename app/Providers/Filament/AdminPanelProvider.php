@@ -6,6 +6,7 @@ use App\Filament\LienEspaceMembre;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\ChangementMotDePasseObligatoire;
 use App\Http\Middleware\EnTetesSecurite;
+use App\Http\Middleware\ExigerCharteConfidentialite;
 use App\Http\Middleware\ExpirationInactivite;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
@@ -38,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->middleware([EnTetesSecurite::class])
             ->profile()
             ->multiFactorAuthentication([AppAuthentication::make()->recoverable()->brandName('Daara NDK')], isRequired: app()->isProduction())
-            ->authMiddleware([ChangementMotDePasseObligatoire::class])
+            ->authMiddleware([ChangementMotDePasseObligatoire::class, ExigerCharteConfidentialite::class])
             ->navigationItems([LienEspaceMembre::item(), LienEspaceMembre::motDePasse()])
             ->renderHook(PanelsRenderHook::BODY_START, fn (): string => view('partials.bandeau-en-tant-que')->render())
             ->navigationGroups(['Registre', 'Paramètres'])

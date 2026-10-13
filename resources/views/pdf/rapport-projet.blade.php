@@ -24,9 +24,13 @@
         .chiffres td { text-align: center; border: 0.5px solid #d6d3d1; }
         .chiffres .valeur { font-size: 13pt; font-weight: bold; color: #064e3b; }
         .petit { font-size: 7.5pt; color: #57534e; }
+            .confidentiel { border: 0.5px solid #b91c1c; color: #b91c1c; font-size: 7.5pt; font-weight: bold; padding: 1.2mm 2mm; margin-bottom: 3mm; }
+        .pied-confidentiel { position: fixed; bottom: -9mm; left: 0; right: 0; text-align: center; font-size: 6.5pt; color: #b91c1c; }
     </style>
 </head>
 <body>
+    <div class="pied-confidentiel">{{ $confidentiel }}</div>
+    <div class="confidentiel">{{ $confidentiel }}</div>
     <div class="entete">
         @if ($logo)<img src="{{ $logo }}" alt="">@endif
         <div class="titre">

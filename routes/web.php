@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbonnementTelephoneController;
 use App\Http\Controllers\CarteController;
+use App\Http\Controllers\CharteController;
 use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
@@ -103,6 +104,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::get('/bureau/charte', [CharteController::class, 'show'])->name('charte');
+    Route::post('/bureau/charte', [CharteController::class, 'accepter'])->name('charte.accepter');
     Route::get('/programmes/{collecte}/export', ProgrammeExportController::class)->name('programmes.export');
     Route::get('/programmes/{collecte}/rapport', ProgrammeRapportController::class)->name('programmes.rapport');
     Route::get('/recus/{paiement}', [RecuController::class, 'show'])->name('recus.show');

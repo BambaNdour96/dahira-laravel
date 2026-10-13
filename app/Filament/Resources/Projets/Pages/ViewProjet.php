@@ -8,9 +8,11 @@ use App\Filament\Resources\Projets\Widgets\IndicateursDuProjet;
 use App\Filament\Resources\Projets\Widgets\JournalDuProjet;
 use App\Filament\Resources\Projets\Widgets\ProjetChiffres;
 use App\Models\Projet;
+use App\Support\Confidentiel;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
+use Livewire\Component;
 
 /** Le tableau de bord d'un projet : chiffres et feu tricolore, étapes, indicateurs, journal. */
 class ViewProjet extends ViewRecord
@@ -25,7 +27,11 @@ class ViewProjet extends ViewRecord
                 ->label('Rapport (PDF)')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
-                ->url(fn (Projet $record): string => route('projets.rapport', $record)),
+                ->requiresConfirmation()
+                ->modalHeading('Télécharger le rapport du projet')
+                ->modalDescription(Confidentiel::AVERTISSEMENT)
+                ->modalSubmitActionLabel('Télécharger')
+                ->action(fn (Projet $record, Component $livewire) => $livewire->redirect(route('projets.rapport', $record))),
             EditAction::make()->label('Modifier ou évaluer'),
         ];
     }

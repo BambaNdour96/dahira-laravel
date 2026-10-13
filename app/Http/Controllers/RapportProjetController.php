@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Projet;
+use App\Models\User;
+use App\Support\Confidentiel;
 use Dompdf\Dompdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
@@ -15,11 +17,16 @@ class RapportProjetController extends Controller
     {
         Gate::authorize('view', $projet);
 
+        $utilisateur = auth()->user();
+        abort_unless($utilisateur instanceof User, 403);
+        Confidentiel::noter($utilisateur, 'Rapport du projet (PDF) : '.$projet->titre);
+
         $logo = public_path('images/logo-ndk.png');
 
         $html = view('pdf.rapport-projet', [
             'projet' => $projet->load(['commission', 'responsable', 'collecte']),
             'diagnostic' => $projet->diagnostic(),
+            'confidentiel' => Confidentiel::mention($utilisateur),
             'jalons' => $projet->jalons()->orderBy('echeance')->get(),
             'indicateurs' => $projet->indicateurs()->get(),
             'journal' => $projet->suivis()->with('auteur')->latest()->limit(30)->get(),

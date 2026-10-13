@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Evenement;
 use App\Models\Presence;
 use App\Models\User;
+use App\Support\Confidentiel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -21,7 +22,10 @@ class ExportPresencesController extends Controller
 
         $nomFichier = 'presences-'.$evenement->debut->format('Y-m-d').'-'.Str::slug($evenement->titre).'.csv';
 
-        return response()->streamDownload(function () use ($evenement): void {
+        Confidentiel::noter($utilisateur, 'Présences (Excel) : '.$evenement->titre);
+        $mention = Confidentiel::mention($utilisateur);
+
+        return response()->streamDownload(function () use ($evenement, $mention): void {
             $sortie = fopen('php://output', 'w');
 
             if ($sortie === false) {
@@ -46,6 +50,8 @@ class ExportPresencesController extends Controller
                     ], ';');
                 });
 
+            fputcsv($sortie, [], ';');
+            fputcsv($sortie, [$mention], ';');
             fclose($sortie);
         }, $nomFichier, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

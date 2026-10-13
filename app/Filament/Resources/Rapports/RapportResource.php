@@ -10,6 +10,7 @@ use App\Filament\Resources\Rapports\Pages\ViewRapport;
 use App\Models\RapportSuivi;
 use App\Models\User;
 use App\Services\RapportService;
+use App\Support\Confidentiel;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -29,6 +30,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
 use UnitEnum;
 
 /** Les rapports rédigés par la commission Suivi et Évaluation, publiés au bureau. */
@@ -146,7 +148,11 @@ class RapportResource extends Resource
             ->label('PDF')
             ->icon('heroicon-o-document-arrow-down')
             ->color('gray')
-            ->url(fn (RapportSuivi $record): string => route('rapports.pdf', $record));
+            ->requiresConfirmation()
+            ->modalHeading('Télécharger le rapport')
+            ->modalDescription(Confidentiel::AVERTISSEMENT)
+            ->modalSubmitActionLabel('Télécharger')
+            ->action(fn (RapportSuivi $record, Component $livewire) => $livewire->redirect(route('rapports.pdf', $record)));
     }
 
     /** @return array<string, PageRegistration> */

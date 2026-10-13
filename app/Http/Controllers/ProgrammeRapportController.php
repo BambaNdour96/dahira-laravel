@@ -6,6 +6,7 @@ use App\Models\Collecte;
 use App\Models\User;
 use App\Policies\CollectePolicy;
 use App\Services\CollecteService;
+use App\Support\Confidentiel;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,12 +20,14 @@ class ProgrammeRapportController extends Controller
         $utilisateur = $request->user();
         abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole([...CollectePolicy::BUREAU, 'suivi_evaluation']), 403);
 
+        Confidentiel::noter($utilisateur, 'Rapport du programme (PDF) : '.$collecte->titre);
         $collecte->load('evenement');
         $evenement = $collecte->evenement;
         $logo = public_path('images/logo-ndk.png');
 
         $html = view('pdf.rapport-programme', [
             'collecte' => $collecte,
+            'confidentiel' => Confidentiel::mention($utilisateur),
             'chiffres' => $service->statistiques($collecte),
             'cellules' => $service->parCellule($collecte),
             'engagements' => $collecte->engagements()->with(['membre.cellule', 'collecte'])->get()
