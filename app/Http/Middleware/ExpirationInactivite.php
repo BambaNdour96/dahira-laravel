@@ -79,7 +79,7 @@ class ExpirationInactivite
 
     public static function estDuBureau(User $utilisateur): bool
     {
-        return $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'super_administrateur', 'representant_finance']);
+        return $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'super_administrateur', 'representant_finance', 'comite_directeur']);
     }
 
     /** Durée d'inactivité autorisée, en minutes, selon le profil. */
@@ -87,7 +87,7 @@ class ExpirationInactivite
     {
         return match (true) {
             $utilisateur->hasRole('super_administrateur') => (int) config('dahira.inactivite_super_admin', 25),
-            $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'representant_finance']) => (int) config('dahira.inactivite_bureau', 10),
+            $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'representant_finance', 'comite_directeur']) => (int) config('dahira.inactivite_bureau', 10),
             default => (int) config('dahira.inactivite_membres', 2),
         };
     }

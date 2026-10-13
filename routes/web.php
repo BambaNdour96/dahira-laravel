@@ -5,6 +5,7 @@ use App\Http\Controllers\BordereauRemiseController;
 use App\Http\Controllers\CaisseController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\CharteController;
+use App\Http\Controllers\ComitesController;
 use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ProgrammeExportController;
 use App\Http\Controllers\ProgrammeRapportController;
+use App\Http\Controllers\PvReunionController;
 use App\Http\Controllers\RapportProjetController;
 use App\Http\Controllers\RapportSuiviPdfController;
 use App\Http\Controllers\RecuController;
@@ -109,6 +111,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::get('/mes-comites', ComitesController::class.'@index')->name('comites.index');
+    Route::get('/reunions/{reunion}/pv', PvReunionController::class)->name('reunions.pv');
     Route::middleware(ExigerCharteConfidentialite::class)->group(function () {
         Route::get('/caisse', [CaisseController::class, 'index'])->name('caisse.index');
         Route::get('/caisse/membres/{membre}', [CaisseController::class, 'membre'])->name('caisse.membre');
