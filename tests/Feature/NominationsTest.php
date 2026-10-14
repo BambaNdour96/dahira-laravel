@@ -91,7 +91,7 @@ describe('les nominations', function () {
 
         expect($secretaire->user->fresh()->hasRole('secretaire_general'))->toBeTrue()
             ->and(fn () => $this->service->nommer($successeur->user, poste('jewrine_national'), null, $national))
-            ->toThrow(DomainException::class, 'Seul le super administrateur nomme le Jewrine national')
+            ->toThrow(DomainException::class, 'Seul le super administrateur nomme à ce poste (Jewrine national)')
             ->and(fn () => $this->service->nommer($successeur->user, poste('jewrine_finance'), null, $secretaire->user->fresh()))
             ->toThrow(DomainException::class);
     });

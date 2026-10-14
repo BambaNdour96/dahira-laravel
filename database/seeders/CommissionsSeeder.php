@@ -3,17 +3,26 @@
 namespace Database\Seeders;
 
 use App\Models\Commission;
+use App\Services\CommissionService;
 use Illuminate\Database\Seeder;
 
 /**
- * Les six commissions officielles de la Daara, créées aussi en production.
+ * Les commissions permanentes officielles de la Daara, créées aussi en production, chacune avec son espace.
  */
 class CommissionsSeeder extends Seeder
 {
-    public function run(): void
+    public const COMMISSIONS = ['Administration', 'Suivi et Évaluation', 'Communication', 'Sociale', 'Culturelle', 'Finance', 'Organisation'];
+
+    public function run(CommissionService $commissions): void
     {
-        foreach (['Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
-            Commission::query()->firstOrCreate(['nom' => $nom]);
+        foreach (self::COMMISSIONS as $nom) {
+            $commission = Commission::query()->firstOrCreate(['nom' => $nom]);
+
+            if ($nom === 'Suivi et Évaluation' && $commission->code === null) {
+                $commission->forceFill(['code' => Commission::SUIVI_EVALUATION])->save();
+            }
+
+            $commissions->comite($commission);
         }
     }
 }

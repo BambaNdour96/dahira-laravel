@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources\Seances\Pages;
+namespace App\Filament\Resources\Dahiras\Pages;
 
-use App\Filament\Resources\Seances\SeanceResource;
-use App\Filament\Resources\Seances\Widgets\BilanSeance;
-use App\Filament\Resources\Seances\Widgets\ListePresence;
+use App\Filament\Resources\Dahiras\DahiraResource;
+use App\Filament\Resources\Dahiras\Widgets\BilanDahira;
+use App\Filament\Resources\Dahiras\Widgets\ListePresence;
 use App\Models\Evenement;
 use App\Support\Confidentiel;
 use Filament\Actions\Action;
@@ -12,10 +12,10 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Livewire\Component;
 
-/** Une séance : le bilan (Goor Yalla, Sokhnas, excusés, absents) et la liste de présence. */
-class ViewSeance extends ViewRecord
+/** Une dahira : le bilan (Goor Yalla, Sokhnas, excusés, absents) et la liste de présence. */
+class ViewDahira extends ViewRecord
 {
-    protected static string $resource = SeanceResource::class;
+    protected static string $resource = DahiraResource::class;
 
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
@@ -41,7 +41,7 @@ class ViewSeance extends ViewRecord
     /** @return array<int, class-string> */
     protected function getHeaderWidgets(): array
     {
-        return [BilanSeance::class];
+        return [BilanDahira::class];
     }
 
     /** @return array<int, class-string> */

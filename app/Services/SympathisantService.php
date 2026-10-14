@@ -36,7 +36,7 @@ final class SympathisantService
         $this->verifier($evenement, $sexe, $pointeur);
 
         if ($evenement->cellule_id === null) {
-            throw new DomainException('Les sympathisants se rattachent à une cellule : pointez-les lors d\'une séance de cellule.');
+            throw new DomainException('Les sympathisants se rattachent à une cellule : pointez-les lors d\'une dahira.');
         }
 
         $sympathisant = Sympathisant::query()->create([

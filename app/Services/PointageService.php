@@ -45,10 +45,6 @@ final class PointageService
             return 'tous';
         }
 
-        if ($cellule->jewrine_femmes_id === $utilisateur->id) {
-            return 'femmes';
-        }
-
         $pointeur = CellulePointeur::query()->where('cellule_id', $cellule->id)->where('user_id', $utilisateur->id)->first();
 
         return $pointeur?->perimetre;
@@ -101,7 +97,7 @@ final class PointageService
         return $cellule !== null
             && app(CasquettesService::class)->estJewrineDe($utilisateur, $cellule->id)
             && $membre->sexe === Sexe::Femme
-            && $evenement->estSeance() ? 'secours' : null;
+            && $evenement->estDahira() ? 'secours' : null;
     }
 
     /** Pointe un membre présent ou absent excusé ; un nouveau pointage remplace l'ancien. */

@@ -49,7 +49,8 @@ it('propose les vrais postes de la Daara, chacun avec sa casquette', function ()
         'Secrétaire général' => 'secretaire_general',
         'Jewrine finance national' => 'jewrine_finance',
         'Jewrine de cellule' => 'jewrine_cellule',
-        'Membre de Suivi et Évaluation' => 'suivi_evaluation',
+        'Jewrine de commission' => 'jewrine_commission',
+        'Convocateur du Comité directeur' => 'convocateur_comite_directeur',
     ]);
 });
 
@@ -108,8 +109,9 @@ it('confie la dispense de cotisation au Jewrine national', function () {
         ->assertHasNoActionErrors();
 });
 
-it('confie les données de référence au Secrétaire général', function () {
-    expect($this->secretaire->can('create', Cellule::class))->toBeTrue()
+it('réserve les données de référence au super administrateur, pas au Secrétaire général', function () {
+    expect($this->secretaire->can('create', Cellule::class))->toBeFalse()
+        ->and($this->secretaire->can('update', $this->national->membre))->toBeTrue()
         ->and($this->national->can('create', Cellule::class))->toBeFalse()
         ->and($this->tresorier->can('create', Cellule::class))->toBeFalse();
 });

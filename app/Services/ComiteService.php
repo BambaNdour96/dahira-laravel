@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\StatutMembre;
 use App\Models\ActionComite;
+use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\JournalActivite;
@@ -23,39 +24,67 @@ use Illuminate\Support\Facades\DB;
  */
 final class ComiteService
 {
-    /** Créer un comité et en désigner le président (« comites.diriger »). */
+    /** Créer un comité d'organisation et en désigner le président (« comites.diriger » : super administrateur, Jewrine national). */
     public static function peutCreer(User $utilisateur): bool
     {
         return $utilisateur->can('comites.diriger');
     }
 
-    /** Gérer un comité : « comites.diriger », ou son président ; le Comité directeur, seulement « comite_directeur.composer ». */
+    /**
+     * Gérer un comité. Le Comité directeur : « comite_directeur.composer ». L'espace d'une commission permanente :
+     * son Jewrine, ou « commissions.gerer ». Un comité d'organisation : « comites.diriger », ou son président.
+     */
     public static function peutGerer(User $utilisateur, Instance $instance): bool
     {
         if ($instance->estComiteDirecteur()) {
             return $utilisateur->can('comite_directeur.composer');
         }
 
+        if ($instance->estCommission()) {
+            return $utilisateur->can('commissions.gerer')
+                || ($instance->commission !== null && Commission::query()->dirigeesPar($utilisateur)->whereKey($instance->commission->id)->exists());
+        }
+
         return $utilisateur->can('comites.diriger')
             || ($instance->president !== null && $instance->president->user_id === $utilisateur->id);
     }
 
-    /** Organiser les réunions : comme gérer, plus « comites.diriger » pour le Comité directeur. */
+    /** Organiser les réunions (préparer, convoquer) : comme gérer, plus « comite_directeur.convoquer » pour le Comité directeur. */
     public static function peutOrganiser(User $utilisateur, Instance $instance): bool
     {
         return self::peutGerer($utilisateur, $instance)
-            || ($instance->estComiteDirecteur() && $utilisateur->can('comites.diriger'));
+            || ($instance->estComiteDirecteur() && $utilisateur->can('comite_directeur.convoquer'));
     }
 
-    /** Rédiger et publier le PV : l'organisateur ou le secrétaire de séance, tant qu'il n'est pas publié. */
+    /**
+     * Rédiger la réunion. Avant la convocation, l'organisateur la prépare (ordre du jour, secrétaire de séance).
+     * Dès la convocation, seul le secrétaire de séance anime, enregistre les présences, rédige et publie le PV ;
+     * le super administrateur reste le secours.
+     */
     public static function peutRediger(User $utilisateur, Reunion $reunion): bool
     {
         if ($reunion->estPubliee() || $reunion->estAnnule()) {
             return false;
         }
 
-        return self::peutOrganiser($utilisateur, $reunion->instance)
-            || ($reunion->secretaire !== null && $reunion->secretaire->user_id === $utilisateur->id);
+        $estSecretaire = $reunion->secretaire !== null && $reunion->secretaire->user_id === $utilisateur->id;
+
+        if ($reunion->convoquee_le === null) {
+            return $estSecretaire || self::peutOrganiser($utilisateur, $reunion->instance);
+        }
+
+        return $estSecretaire || $utilisateur->can('plateforme.administrer');
+    }
+
+    /**
+     * Les secrétaires de séance possibles : les membres de la commission pour l'espace d'une commission
+     * permanente ; les membres du Comité directeur pour le Comité directeur et les comités d'organisation.
+     *
+     * @return array<int, string>
+     */
+    public static function secretairesPossibles(Instance $instance): array
+    {
+        return self::choixMembres($instance->estCommission() ? $instance : Instance::comiteDirecteur());
     }
 
     /** Lire un comité, ses PV et ses décisions : ses membres et le Comité directeur. */
@@ -267,24 +296,23 @@ final class ComiteService
     }
 
     /**
-     * Le quorum de la réunion.
+     * Le quorum de la réunion, à titre d'information : les présents sur les membres, sans seuil.
      *
-     * @return array{presents: int, membres: int, requis: int, atteint: bool}
+     * @return array{presents: int, membres: int}
      */
     public function quorum(Reunion $reunion): array
     {
-        $membres = $reunion->instance->membres()->count();
-        $presents = $reunion->presences()->where('statut', 'present')->count();
-        $requis = (int) ceil($membres * $reunion->instance->quorum / 100);
-
-        return ['presents' => $presents, 'membres' => $membres, 'requis' => $requis, 'atteint' => $membres > 0 && $presents >= $requis];
+        return [
+            'presents' => $reunion->presences()->where('statut', 'present')->count(),
+            'membres' => $reunion->instance->membres()->count(),
+        ];
     }
 
     /** Publie le PV : il est figé, et les membres du comité sont prévenus. */
     public function publier(Reunion $reunion, User $auteur): void
     {
         if (! self::peutRediger($auteur, $reunion)) {
-            throw new DomainException('Seuls le secrétaire de séance et les organisateurs publient le PV.');
+            throw new DomainException('Seul le secrétaire de séance publie le PV (le super administrateur en secours).');
         }
 
         $reunion->update(['statut' => 'publiee', 'publiee_le' => now(), 'publiee_par' => $auteur->id]);

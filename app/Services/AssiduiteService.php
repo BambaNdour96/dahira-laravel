@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\Sexe;
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Evenement;
@@ -14,18 +13,18 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
-/** L'assiduité aux séances de cellule : taux par membre, absences de suite, alertes et rappels. */
+/** L'assiduité aux dahiras : taux par membre, absences de suite, alertes et rappels. */
 final class AssiduiteService
 {
     /**
-     * Les séances passées d'une cellule, depuis une date.
+     * Les dahiras passées d'une cellule, depuis une date.
      *
      * @return Collection<int, Evenement>
      */
-    public function seancesPassees(int $celluleId, Carbon $depuis): Collection
+    public function dahirasPassees(int $celluleId, Carbon $depuis): Collection
     {
         return Evenement::query()
-            ->where('type', Evenement::SEANCE)
+            ->where('type', Evenement::DAHIRA)
             ->maintenus()
             ->where('cellule_id', $celluleId)
             ->where('debut', '>=', $depuis)
@@ -37,7 +36,7 @@ final class AssiduiteService
     /**
      * L'assiduité d'un membre sur les 3 derniers mois.
      *
-     * @return array{seances: int, presents: int, excuses: int, taux: int, absences_de_suite: int}
+     * @return array{dahiras: int, presents: int, excuses: int, taux: int, absences_de_suite: int}
      */
     public function pour(Membre $membre, int $mois = 3): array
     {
@@ -47,9 +46,9 @@ final class AssiduiteService
             $depuis = $membre->valide_le->copy();
         }
 
-        $seances = $this->seancesPassees($membre->cellule_id, $depuis);
+        $dahiras = $this->dahirasPassees($membre->cellule_id, $depuis);
         $statuts = Presence::query()
-            ->whereIn('evenement_id', $seances->modelKeys())
+            ->whereIn('evenement_id', $dahiras->modelKeys())
             ->where('membre_id', $membre->id)
             ->pluck('statut', 'evenement_id');
 
@@ -57,17 +56,17 @@ final class AssiduiteService
         $excuses = $statuts->filter(fn (mixed $statut): bool => $statut === 'excuse')->count();
 
         $deSuite = 0;
-        foreach ($seances as $seance) {
-            if ($statuts->has($seance->id)) {
+        foreach ($dahiras as $dahira) {
+            if ($statuts->has($dahira->id)) {
                 break;
             }
             $deSuite++;
         }
 
-        $comptees = $seances->count() - $excuses;
+        $comptees = $dahiras->count() - $excuses;
 
         return [
-            'seances' => $seances->count(),
+            'dahiras' => $dahiras->count(),
             'presents' => $presents,
             'excuses' => $excuses,
             'taux' => $comptees > 0 ? (int) round($presents / $comptees * 100) : 100,
@@ -75,11 +74,11 @@ final class AssiduiteService
         ];
     }
 
-    /** La prochaine séance de la cellule du membre. */
-    public function prochaineSeance(Membre $membre): ?Evenement
+    /** La prochaine dahira de la cellule du membre. */
+    public function prochaineDahira(Membre $membre): ?Evenement
     {
         return Evenement::query()
-            ->where('type', Evenement::SEANCE)
+            ->where('type', Evenement::DAHIRA)
             ->maintenus()
             ->where('cellule_id', $membre->cellule_id)
             ->where('debut', '>=', now()->subHours(2))
@@ -88,7 +87,7 @@ final class AssiduiteService
     }
 
     /**
-     * Chaque matin : rappel des séances du jour, et alerte sur les membres absents 3 séances de suite.
+     * Chaque matin : rappel des dahiras du jour, et alerte sur les membres absents 3 dahiras de suite.
      *
      * @return array{rappels: int, alertes: int}
      */
@@ -98,22 +97,22 @@ final class AssiduiteService
         $alertes = 0;
 
         $duJour = Evenement::query()
-            ->where('type', Evenement::SEANCE)
+            ->where('type', Evenement::DAHIRA)
             ->maintenus()
             ->where('avec_rappel', true)
             ->whereDate('debut', now())
             ->with('cellule')
             ->get();
 
-        foreach ($duJour as $seance) {
+        foreach ($duJour as $dahira) {
             $comptes = User::query()->whereIn('id', Membre::query()
                 ->where('statut', StatutMembre::Valide->value)
-                ->where('cellule_id', $seance->cellule_id)
+                ->where('cellule_id', $dahira->cellule_id)
                 ->whereNotNull('user_id')
                 ->select('user_id'))->get();
 
-            $message = 'Dahira de la cellule '.($seance->cellule->nom ?? '').' aujourd\'hui à '.$seance->debut->format('H\hi').', '.$seance->lieu
-                .($seance->description ? '. Programme : '.$seance->description : '').'. Pensez à votre carte de membre.';
+            $message = 'Dahira de la cellule '.($dahira->cellule->nom ?? '').' aujourd\'hui à '.$dahira->debut->format('H\hi').', '.$dahira->lieu
+                .($dahira->description ? '. Programme : '.$dahira->description : '').'. Pensez à votre carte de membre.';
 
             foreach ($comptes as $compte) {
                 $compte->notify(new RappelProgramme('Dahira de la cellule', $message, route('carte'), 'Voir ma carte'));
@@ -122,14 +121,14 @@ final class AssiduiteService
         }
 
         $hier = Evenement::query()
-            ->where('type', Evenement::SEANCE)
+            ->where('type', Evenement::DAHIRA)
             ->maintenus()
             ->whereDate('debut', now()->subDay())
             ->with('cellule')
             ->get();
 
-        foreach ($hier as $seance) {
-            $cellule = $seance->cellule;
+        foreach ($hier as $dahira) {
+            $cellule = $dahira->cellule;
 
             if ($cellule === null) {
                 continue;
@@ -152,16 +151,14 @@ final class AssiduiteService
 
     private function alerter(Cellule $cellule, Membre $membre): void
     {
-        $destinataires = array_filter([
-            $cellule->jewrine()?->id,
-            $membre->sexe === Sexe::Femme ? $cellule->jewrine_femmes_id : null,
-        ]);
+        // Le Jewrine de cellule est responsable de tous ses membres, Goor Yalla et Sokhnas.
+        $destinataires = array_filter([$cellule->jewrine()?->id]);
 
         $comptes = User::query()->whereIn('id', $destinataires)->get();
 
         if ($comptes->isNotEmpty()) {
             Notification::make()
-                ->title($membre->prenom.' '.$membre->nom.' a manqué 3 séances de suite')
+                ->title($membre->prenom.' '.$membre->nom.' a manqué 3 dahiras de suite')
                 ->body('Cellule '.$cellule->nom.'. Prenez de ses nouvelles.')
                 ->warning()
                 ->sendToDatabase($comptes);

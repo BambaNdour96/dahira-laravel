@@ -18,12 +18,14 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property int $poste_id
  * @property int|null $cellule_id
+ * @property int|null $commission_id
  * @property Carbon $debut_le
  * @property int|null $designe_par
  * @property string|null $motif_fin
  * @property-read User $user
  * @property-read Poste $poste
  * @property-read Cellule|null $cellule
+ * @property-read Commission|null $commission
  * @property-read User|null $designePar
  * @property-read User|null $finPar
  */
@@ -31,7 +33,7 @@ class Nomination extends Model
 {
     use Indelebile, Journalise, PrendFin;
 
-    protected $fillable = ['user_id', 'poste_id', 'cellule_id', 'debut_le', 'designe_par'];
+    protected $fillable = ['user_id', 'poste_id', 'cellule_id', 'commission_id', 'debut_le', 'designe_par'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -42,7 +44,9 @@ class Nomination extends Model
     /** « Jewrine de cellule (Kaolack) ». */
     public function libelle(): string
     {
-        return $this->poste->nom.($this->cellule !== null ? ' ('.$this->cellule->nom.')' : '');
+        $lieu = $this->cellule->nom ?? $this->commission->nom ?? null;
+
+        return $this->poste->nom.($lieu !== null ? ' ('.$lieu.')' : '');
     }
 
     /** @return BelongsTo<User, $this> */
@@ -61,6 +65,12 @@ class Nomination extends Model
     public function cellule(): BelongsTo
     {
         return $this->belongsTo(Cellule::class);
+    }
+
+    /** @return BelongsTo<Commission, $this> */
+    public function commission(): BelongsTo
+    {
+        return $this->belongsTo(Commission::class);
     }
 
     /** @return BelongsTo<User, $this> */

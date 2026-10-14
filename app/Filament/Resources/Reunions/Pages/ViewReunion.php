@@ -37,8 +37,7 @@ class ViewReunion extends ViewRecord
 
         $quorum = app(ComiteService::class)->quorum($reunion);
 
-        return ReunionResource::ETATS[$reunion->statut].' · '.$quorum['presents'].' présent(s) sur '.$quorum['membres']
-            .' · quorum '.($quorum['atteint'] ? 'atteint' : 'non atteint').' ('.$quorum['requis'].' requis)';
+        return ReunionResource::ETATS[$reunion->statut].' · '.$quorum['presents'].' présent(s) sur '.$quorum['membres'].' membre(s)';
     }
 
     /** @return array<int, Action> */

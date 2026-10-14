@@ -127,9 +127,9 @@ class EvenementResource extends Resource
         return $utilisateur instanceof User && $utilisateur->can('evenements.voir');
     }
 
-    /** Les séances de cellule ont leur propre écran. @return \Illuminate\Database\Eloquent\Builder<Evenement> */
+    /** Les dahiras ont leur propre écran. @return \Illuminate\Database\Eloquent\Builder<Evenement> */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('type', '!=', Evenement::SEANCE);
+        return parent::getEloquentQuery()->where('type', '!=', Evenement::DAHIRA);
     }
 }

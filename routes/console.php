@@ -23,8 +23,8 @@ Schedule::command('finance:routine')->dailyAt('08:00');
 // Chaque matin à 8 h 15 : actions des comités à échéance, et retards signalés aux présidents.
 Schedule::command('comites:routine')->dailyAt('08:15');
 
-// Chaque matin à 8 h 30 : rappel des séances de cellule du jour, alerte après 3 absences de suite.
-Schedule::command('seances:routine')->dailyAt('08:30');
+// Chaque matin à 8 h 30 : rappel des dahiras du jour, alerte après 3 absences de suite.
+Schedule::command('dahiras:routine')->dailyAt('08:30');
 
 // Chaque matin à 9 h : rappels des programmes (jamais de nuit, jamais en double).
 Schedule::command('programmes:rappeler')->dailyAt('09:00');

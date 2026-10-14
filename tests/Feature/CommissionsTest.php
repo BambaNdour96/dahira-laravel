@@ -38,14 +38,16 @@ function inscriptionAvecCommissions(int $celluleId, array $commissions): array
     ];
 }
 
-it('rattache une commission à l\'inscription', function () {
+it('enregistre la commission choisie à l\'inscription comme un souhait, à accepter par son Jewrine', function () {
     $ids = Commission::factory()->count(1)->create()->pluck('id')->all();
 
     $this->post('/inscription', inscriptionAvecCommissions($this->cellule->id, $ids))
         ->assertRedirect(route('inscription.merci'));
 
-    expect(Membre::query()->firstOrFail()->commissions()->pluck('commissions.id')->sort()->values()->all())
-        ->toBe(collect($ids)->sort()->values()->all());
+    $membre = Membre::query()->firstOrFail();
+
+    expect($membre->commissions()->count())->toBe(0)
+        ->and($membre->appartenances()->souhaits()->pluck('commission_id')->all())->toBe($ids);
 });
 
 it('refuse deux commissions', function () {
@@ -69,9 +71,9 @@ it('exige une commission à l\'inscription', function () {
         ->assertSessionHasErrors('commissions');
 });
 
-it('réserve l\'écran des commissions à l\'administrateur', function () {
+it('réserve l\'écran des commissions au super administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('secretaire_general');
+    $admin->assignRole('super_administrateur');
     $responsable = User::factory()->create();
     $responsable->assignRole('jewrine_cellule');
 
@@ -79,10 +81,12 @@ it('réserve l\'écran des commissions à l\'administrateur', function () {
     $this->actingAs($responsable)->get('/admin/commissions')->assertForbidden();
 });
 
-it('crée les six commissions officielles avec les données de production', function () {
+it('crée les sept commissions permanentes officielles, chacune avec son espace', function () {
     $this->seed(DatabaseSeeder::class);
 
-    expect(Commission::query()->orderBy('id')->pluck('nom')->all())->toBe([
-        'Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse',
-    ]);
+    expect(Commission::query()->orderBy('nom')->pluck('nom')->all())->toBe([
+        'Administration', 'Communication', 'Culturelle', 'Finance', 'Organisation', 'Sociale', 'Suivi et Évaluation',
+    ])
+        ->and(Commission::query()->doesntHave('comite')->exists())->toBeFalse()
+        ->and(Commission::query()->where('code', 'suivi_evaluation')->value('nom'))->toBe('Suivi et Évaluation');
 });

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Cellule;
+use App\Models\Commission;
 use App\Models\Nomination;
 use App\Models\Poste;
 use App\Models\User;
@@ -53,12 +54,13 @@ expect()->extend('toBeOne', function () {
  * Nomme directement une personne à un poste, sans les contrôles de NominationService (préparation d'un test).
  * Le compte reçoit aussitôt les droits du poste.
  */
-function nommerPourLeTest(User $personne, string $code, ?Cellule $cellule = null): User
+function nommerPourLeTest(User $personne, string $code, ?Cellule $cellule = null, ?Commission $commission = null): User
 {
     Nomination::query()->create([
         'user_id' => $personne->id,
         'poste_id' => Poste::query()->where('code', $code)->firstOrFail()->id,
         'cellule_id' => $cellule?->id,
+        'commission_id' => $commission?->id,
         'debut_le' => now(),
     ]);
     app(CasquettesService::class)->synchroniser($personne);

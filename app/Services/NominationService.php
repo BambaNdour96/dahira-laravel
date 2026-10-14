@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
+use App\Models\Commission;
 use App\Models\Nomination;
 use App\Models\Poste;
 use App\Models\User;
@@ -12,8 +13,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Les nominations : le super administrateur ou le Jewrine national nomme aux postes ;
- * le poste de Jewrine national n'est attribué que par le super administrateur.
+ * Les nominations : le super administrateur ou le Jewrine national nomme aux postes ; le Jewrine national,
+ * les Jewrine de commission et les convocateurs du Comité directeur ne sont nommés que par le super administrateur.
  * Une nomination prend fin avec un motif ; elle n'est jamais effacée.
  */
 final class NominationService
@@ -27,18 +28,18 @@ final class NominationService
             return false;
         }
 
-        return $poste->code !== Poste::JEWRINE_NATIONAL || CasquettesService::estSuperAdministrateur($auteur);
+        return ! in_array($poste->code, Poste::RESERVES_AU_SUPER_ADMINISTRATEUR, true) || CasquettesService::estSuperAdministrateur($auteur);
     }
 
     /**
      * Nomme une personne à un poste. Sur un poste à titulaire unique, la nomination précédente
      * (dans la même cellule pour un Jewrine de cellule) prend fin : « remplacé(e) par … ».
      */
-    public function nommer(User $personne, Poste $poste, ?Cellule $cellule, User $auteur, ?Carbon $debut = null): Nomination
+    public function nommer(User $personne, Poste $poste, ?Cellule $cellule, User $auteur, ?Carbon $debut = null, ?Commission $commission = null): Nomination
     {
         if (! self::peutNommer($auteur, $poste)) {
-            throw new DomainException($poste->code === Poste::JEWRINE_NATIONAL
-                ? 'Seul le super administrateur nomme le Jewrine national.'
+            throw new DomainException(in_array($poste->code, Poste::RESERVES_AU_SUPER_ADMINISTRATEUR, true)
+                ? 'Seul le super administrateur nomme à ce poste ('.$poste->nom.').'
                 : 'Seuls le super administrateur et le Jewrine national nomment aux postes.');
         }
 
@@ -56,21 +57,28 @@ final class NominationService
             throw new DomainException('Choisissez la cellule de ce '.$poste->nom.'.');
         }
 
+        if ($poste->estDeCommission() && $commission === null) {
+            throw new DomainException('Choisissez la commission de ce '.$poste->nom.'.');
+        }
+
         $cellule = $poste->estDeCellule() ? $cellule : null;
+        $commission = $poste->estDeCommission() ? $commission : null;
 
         $dejaNomme = Nomination::query()
             ->where('user_id', $personne->id)
             ->where('poste_id', $poste->id)
             ->where('cellule_id', $cellule?->id)
+            ->where('commission_id', $commission?->id)
             ->exists();
 
         if ($dejaNomme) {
             throw new DomainException($membre->prenom.' '.$membre->nom.' occupe déjà ce poste.');
         }
 
-        $nomination = DB::transaction(function () use ($personne, $poste, $cellule, $auteur, $debut, $membre): Nomination {
+        $nomination = DB::transaction(function () use ($personne, $poste, $cellule, $commission, $auteur, $debut, $membre): Nomination {
             if ($poste->titulaire_unique) {
-                $precedentes = Nomination::query()->where('poste_id', $poste->id)->where('cellule_id', $cellule?->id)->get();
+                $precedentes = Nomination::query()->where('poste_id', $poste->id)
+                    ->where('cellule_id', $cellule?->id)->where('commission_id', $commission?->id)->get();
 
                 foreach ($precedentes as $precedente) {
                     $this->clore($precedente, 'Remplacé(e) par '.$membre->prenom.' '.$membre->nom, $auteur);
@@ -81,6 +89,7 @@ final class NominationService
                 'user_id' => $personne->id,
                 'poste_id' => $poste->id,
                 'cellule_id' => $cellule?->id,
+                'commission_id' => $commission?->id,
                 'debut_le' => ($debut ?? now())->toDateString(),
                 'designe_par' => $auteur->id,
             ]);
@@ -95,7 +104,7 @@ final class NominationService
     public function mettreFin(Nomination $nomination, string $motif, User $auteur): void
     {
         if (! self::peutNommer($auteur, $nomination->poste)) {
-            throw new DomainException('Seuls le super administrateur et le Jewrine national mettent fin à une nomination (le Jewrine national : seul le super administrateur).');
+            throw new DomainException('Seuls le super administrateur et le Jewrine national mettent fin à une nomination (pour le Jewrine national, les Jewrine de commission et les convocateurs : seul le super administrateur).');
         }
 
         if ($nomination->estTerminee()) {

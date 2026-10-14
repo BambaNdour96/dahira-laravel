@@ -9,7 +9,6 @@ use Database\Factories\CelluleFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -17,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $nom
  * @property string $ville
  * @property string $pays
- * @property int|null $jewrine_femmes_id
  * @property string|null $whatsapp_lien
  */
 class Cellule extends Model
@@ -27,7 +25,7 @@ class Cellule extends Model
     /** @use HasFactory<CelluleFactory> */
     use HasFactory, Journalise;
 
-    protected $fillable = ['nom', 'ville', 'pays', 'jewrine_femmes_id', 'whatsapp_lien'];
+    protected $fillable = ['nom', 'ville', 'pays', 'whatsapp_lien'];
 
     /** Le Jewrine de la cellule (nomination en cours), s'il y en a un. */
     public function jewrine(): ?User
@@ -66,12 +64,6 @@ class Cellule extends Model
     public function membres(): HasMany
     {
         return $this->hasMany(Membre::class);
-    }
-
-    /** @return BelongsTo<User, $this> */
-    public function jewrineFemmes(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'jewrine_femmes_id');
     }
 
     /** @return HasMany<CellulePointeur, $this> */

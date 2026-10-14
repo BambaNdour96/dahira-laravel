@@ -58,8 +58,12 @@ final class StatutMembreService
             }
 
             // Un membre radié quitte aussi tous ses postes : ses nominations prennent fin, l'historique reste.
-            if ($nouveau === StatutMembre::Radie && $membre->user !== null) {
-                app(NominationService::class)->terminerToutes($membre->user, 'Membre radié', $auteur);
+            if ($nouveau === StatutMembre::Radie) {
+                app(CommissionService::class)->terminerToutes($membre, 'Membre radié');
+
+                if ($membre->user !== null) {
+                    app(NominationService::class)->terminerToutes($membre->user, 'Membre radié', $auteur);
+                }
             }
         });
     }

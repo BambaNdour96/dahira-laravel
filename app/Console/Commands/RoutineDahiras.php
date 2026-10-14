@@ -5,11 +5,11 @@ namespace App\Console\Commands;
 use App\Services\AssiduiteService;
 use Illuminate\Console\Command;
 
-class RoutineSeances extends Command
+class RoutineDahiras extends Command
 {
-    protected $signature = 'seances:routine';
+    protected $signature = 'dahiras:routine';
 
-    protected $description = 'Rappelle les séances de cellule du jour et signale les membres absents 3 séances de suite.';
+    protected $description = 'Rappelle les dahiras du jour et signale les membres absents 3 dahiras de suite.';
 
     public function handle(AssiduiteService $assiduite): int
     {

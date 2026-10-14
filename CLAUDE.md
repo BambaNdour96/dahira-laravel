@@ -108,3 +108,12 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 | R7 | Projets, Suivi et Évaluation (questionnaires), tableau de bord du Comité directeur, assemblée générale |
 | R8 | Vie de la Daara : annonces, solidarité, calendrier hégirien, matériel, documents |
 | R9 | Mise en ligne : sécurité, sauvegardes, surveillance, déclaration CDP |
+
+### Corrections de droits prévues (relecture de la matrice, lot R1b)
+
+| Lot | Correction |
+| --- | --- |
+| R3 | Dispense de cotisation : demandée par le Jewrine de cellule, validée par le Jewrine national |
+| R4 | `programmes.parametrer` ouvert au Jewrine national ; suppression de `programmes.attribuer` |
+| R5 | Ordres de dépense du Magal signés par le comité de suivi des dépenses |
+| R7 | Tableau de bord du Comité directeur ; responsable de projet (`projets.gerer` aujourd'hui : SA et JN) |

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Commission;
 use App\Models\Membre;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -54,7 +55,10 @@ final class InscriptionService
                     'consentement_version' => config('dahira.consentement_version'),
                 ]);
 
-                $membre->commissions()->sync($donnees['commissions'] ?? []);
+                // La commission choisie est un souhait : le Jewrine de la commission l'accepte ou le refuse.
+                foreach (Commission::query()->whereIn('id', (array) ($donnees['commissions'] ?? []))->get() as $commission) {
+                    app(CommissionService::class)->souhaiter($membre, $commission);
+                }
 
                 return $user;
             });

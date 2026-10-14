@@ -78,7 +78,7 @@ final class DonneesPersonnellesService
             $valeurs['updated_at'] = now();
 
             DB::table('membres')->where('id', $membre->id)->update($valeurs);
-            $membre->commissions()->detach();
+            app(CommissionService::class)->terminerToutes($membre, 'Données anonymisées');
 
             // La carte devient invalide : son QR affichera « Carte non valide ».
             DB::table('cartes')->where('membre_id', $membre->id)->where('statut', 'active')->update([

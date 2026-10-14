@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Nominations;
 use App\Enums\StatutMembre;
 use App\Filament\Resources\Nominations\Pages\ManageNominations;
 use App\Models\Cellule;
+use App\Models\Commission;
 use App\Models\Membre;
 use App\Models\Nomination;
 use App\Models\Poste;
@@ -82,12 +83,13 @@ class NominationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user.membre', 'poste', 'cellule', 'designePar', 'finPar']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['user.membre', 'poste', 'cellule', 'commission', 'designePar', 'finPar']))
             ->columns([
                 TextColumn::make('user.name')->label('Personne')->searchable()->weight('bold'),
                 TextColumn::make('user.membre.matricule')->label('Matricule')->placeholder('—'),
                 TextColumn::make('poste.nom')->label('Poste')->badge(),
-                TextColumn::make('cellule.nom')->label('Cellule')->placeholder('—'),
+                TextColumn::make('lieu')->label('Cellule ou commission')->placeholder('—')
+                    ->state(fn (Nomination $record): ?string => $record->cellule->nom ?? $record->commission->nom ?? null),
                 TextColumn::make('debut_le')->label('Depuis le')->date('d/m/Y')->sortable(),
                 TextColumn::make('designePar.name')->label('Désigné par')->placeholder('Reprise des données'),
                 TextColumn::make('fin_le')->label('Fin le')->date('d/m/Y')->placeholder('—')->sortable(),
@@ -136,6 +138,11 @@ class NominationResource extends Resource
                     ->options(fn (): array => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom', 'id')->all())
                     ->visible(fn (Get $get): bool => self::estDeCellule($get('poste_id')))
                     ->required(fn (Get $get): bool => self::estDeCellule($get('poste_id'))),
+                Select::make('commission_id')
+                    ->label('Commission')
+                    ->options(fn (): array => Commission::query()->orderBy('nom')->pluck('nom', 'id')->all())
+                    ->visible(fn (Get $get): bool => self::portee($get('poste_id')) === 'commission')
+                    ->required(fn (Get $get): bool => self::portee($get('poste_id')) === 'commission'),
                 DatePicker::make('debut_le')->label('À compter du')->default(now())->required()->native(false),
             ])
             ->action(function (array $data): void {
@@ -148,9 +155,10 @@ class NominationResource extends Resource
                 }
 
                 $cellule = filled($data['cellule_id'] ?? null) ? Cellule::query()->whereKey($data['cellule_id'])->first() : null;
+                $commission = filled($data['commission_id'] ?? null) ? Commission::query()->whereKey($data['commission_id'])->first() : null;
 
                 try {
-                    app(NominationService::class)->nommer($personne, $poste, $cellule, $auteur, Carbon::parse((string) $data['debut_le']));
+                    app(NominationService::class)->nommer($personne, $poste, $cellule, $auteur, Carbon::parse((string) $data['debut_le']), $commission);
                 } catch (DomainException $e) {
                     Notification::make()->title($e->getMessage())->danger()->send();
 
@@ -237,7 +245,14 @@ class NominationResource extends Resource
 
     private static function estDeCellule(mixed $posteId): bool
     {
-        return filled($posteId) && Poste::query()->whereKey($posteId)->value('perimetre') === 'cellule';
+        return self::portee($posteId) === 'cellule';
+    }
+
+    private static function portee(mixed $posteId): ?string
+    {
+        $perimetre = filled($posteId) ? Poste::query()->whereKey($posteId)->value('perimetre') : null;
+
+        return is_string($perimetre) ? $perimetre : null;
     }
 
     private static function libelle(int $userId): ?string

@@ -27,8 +27,9 @@ final class Capacites
         'secretaire_general' => 'Secrétaire général',
         'jewrine_finance' => 'Jewrine finance national',
         'jewrine_cellule' => 'Jewrine de cellule',
-        'jewrine_femmes' => 'Jewrine des Sokhnas (jusqu\'au lot R1b)',
-        'suivi_evaluation' => 'Membre de Suivi et Évaluation (provisoire)',
+        'jewrine_commission' => 'Jewrine de commission',
+        'suivi_evaluation' => 'Membre de la commission Suivi et Évaluation',
+        'convocateur_comite_directeur' => 'Convocateur du Comité directeur',
         'representant_finance' => 'Représentant finance',
         'comite_directeur' => 'Membre du Comité directeur',
         'membre' => 'Membre',
@@ -38,7 +39,7 @@ final class Capacites
     public const PERSONNELLES = ['caisse.tenir'];
 
     /** Les casquettes qui viennent d'un poste (nomination). */
-    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'suivi_evaluation'];
+    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'jewrine_commission', 'convocateur_comite_directeur'];
 
     /**
      * Les capacités, par domaine : code => libellé.
@@ -52,8 +53,9 @@ final class Capacites
             'panneau.accueil' => 'Arriver sur le panneau du bureau après la connexion',
             'espace.responsable' => 'Charte de confidentialité et déconnexion rapide des responsables',
             'nominations.voir' => 'Voir les nominations',
-            'nominations.gerer' => 'Nommer et mettre fin à une nomination (le Jewrine national : seul le super administrateur)',
-            'referentiel.gerer' => 'Cellules, commissions, exercices, postes, tarifs',
+            'nominations.gerer' => 'Nommer et mettre fin à une nomination (Jewrine national, Jewrine de commission, convocateur : seul le super administrateur)',
+            'referentiel.gerer' => 'Cellules, commissions permanentes, exercices, postes, tarifs',
+            'commissions.gerer' => 'Gérer les membres de toutes les commissions permanentes',
         ],
         'Membres et cartes' => [
             'membres.voir' => 'Voir les fiches des membres',
@@ -102,7 +104,8 @@ final class Capacites
             'statistiques.voir' => 'Statistiques des événements et des sympathisants',
         ],
         'Comités' => [
-            'comites.diriger' => 'Créer et gérer les comités, organiser leurs réunions',
+            'comites.diriger' => 'Créer un comité d\'organisation, en désigner le président, le gérer',
+            'comite_directeur.convoquer' => 'Convoquer le Comité directeur et préparer ses réunions',
             'comites.consulter' => 'Consulter les comités, réunions, décisions et actions',
             'comites.budget_voir' => 'Voir les besoins et les dépenses des commissions',
             'comites.depenses_valider' => 'Valider les dépenses des commissions',
@@ -131,18 +134,18 @@ final class Capacites
             'representants.voir',
             'programmes.voir', 'programmes.cloturer', 'programmes.attribuer', 'programmes.piloter', 'programmes.exporter',
             'evenements.voir', 'evenements.gerer', 'dahiras.voir', 'pointage.partout', 'sympathisants.voir', 'statistiques.voir',
-            'comites.diriger', 'comites.consulter', 'comites.budget_voir',
+            'comites.diriger', 'comite_directeur.convoquer', 'comites.consulter', 'comites.budget_voir',
             'projets.voir', 'projets.gerer', 'rapports.rediger',
         ],
         'secretaire_general' => [
-            'panneau.acceder', 'panneau.accueil', 'espace.responsable', 'referentiel.gerer',
+            'panneau.acceder', 'panneau.accueil', 'espace.responsable',
             'membres.voir', 'membres.inscrire', 'membres.modifier', 'membres.valider',
             'cartes.revoquer', 'membres.importer', 'membres.exporter',
             'paiements.voir', 'paiements.valider_bureau', 'cotisations.suivre', 'finances.voir',
             'programmes.voir', 'programmes.attribuer', 'programmes.piloter', 'programmes.exporter',
             'evenements.voir', 'evenements.gerer', 'dahiras.voir', 'sympathisants.voir', 'statistiques.voir',
-            'comites.diriger', 'comites.consulter', 'comites.budget_voir',
-            'projets.voir', 'projets.gerer', 'rapports.rediger',
+            'comite_directeur.convoquer', 'comites.consulter', 'comites.budget_voir',
+            'projets.voir', 'rapports.rediger',
         ],
         'jewrine_finance' => [
             'panneau.acceder', 'panneau.accueil', 'espace.responsable',
@@ -161,11 +164,7 @@ final class Capacites
             'dahiras.voir.cellule', 'dahiras.gerer.cellule', 'pointeurs.designer.cellule',
             'sympathisants.voir.cellule', 'sympathisants.gerer.cellule',
         ],
-        'jewrine_femmes' => [
-            'panneau.acceder', 'espace.responsable',
-            'dahiras.voir.cellule', 'dahiras.gerer.cellule',
-            'sympathisants.voir.cellule', 'sympathisants.gerer.cellule',
-        ],
+        'jewrine_commission' => ['panneau.acceder', 'espace.responsable'],
         'suivi_evaluation' => [
             'panneau.acceder', 'espace.responsable',
             'cotisations.suivre', 'finances.voir',
@@ -173,6 +172,7 @@ final class Capacites
             'evenements.voir', 'dahiras.voir', 'sympathisants.voir', 'statistiques.voir',
             'projets.voir', 'projets.gerer', 'rapports.rediger', 'rapports.tout_lire',
         ],
+        'convocateur_comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comite_directeur.convoquer'],
         'representant_finance' => ['espace.responsable', 'caisse.tenir'],
         'comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comites.budget_voir'],
         'membre' => [],
@@ -232,8 +232,8 @@ final class Capacites
     /** Abréviations des casquettes, pour le tableau du guide. */
     public const ABREVIATIONS = [
         'super_administrateur' => 'SA', 'jewrine_national' => 'JN', 'secretaire_general' => 'SG', 'jewrine_finance' => 'JF',
-        'jewrine_cellule' => 'JC', 'jewrine_femmes' => 'JS', 'suivi_evaluation' => 'SE', 'representant_finance' => 'RF',
-        'comite_directeur' => 'CD', 'membre' => 'M',
+        'jewrine_cellule' => 'JC', 'jewrine_commission' => 'JCo', 'suivi_evaluation' => 'SE',
+        'convocateur_comite_directeur' => 'CCD', 'representant_finance' => 'RF', 'comite_directeur' => 'CD', 'membre' => 'M',
     ];
 
     /** Le tableau de la matrice, tel qu'il figure dans docs/guide/nominations.md (un test vérifie qu'ils concordent). */

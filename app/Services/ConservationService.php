@@ -72,7 +72,7 @@ final class ConservationService
             'motif_annulation' => $this->motif($motif),
         ])->save();
 
-        if ($evenement->estSeance() && $evenement->avec_rappel && $evenement->debut->isToday()) {
+        if ($evenement->estDahira() && $evenement->avec_rappel && $evenement->debut->isToday()) {
             $this->prevenirDeLAnnulation($evenement);
         }
     }

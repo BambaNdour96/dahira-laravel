@@ -6,6 +6,7 @@ use App\Filament\Resources\Instances\Pages\CreateInstance;
 use App\Filament\Resources\Instances\Pages\EditInstance;
 use App\Filament\Resources\Instances\Pages\ListInstances;
 use App\Filament\Resources\Instances\Pages\ViewInstance;
+use App\Filament\Resources\Reunions\ReunionResource;
 use App\Models\Collecte;
 use App\Models\Instance;
 use App\Models\Membre;
@@ -60,11 +61,26 @@ class InstanceResource extends Resource
         return $utilisateur instanceof User ? $utilisateur : null;
     }
 
+    /** Ceux qui consultent les comités, et ceux qui en organisent un (président, Jewrine de commission). */
     public static function canViewAny(): bool
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && $utilisateur->can('comites.consulter');
+        return $utilisateur !== null && ($utilisateur->can('comites.consulter') || ReunionResource::instancesOrganisables($utilisateur) !== []);
+    }
+
+    /** @return Builder<Instance> */
+    public static function getEloquentQuery(): Builder
+    {
+        /** @var Builder<Instance> $query */
+        $query = parent::getEloquentQuery();
+        $utilisateur = self::utilisateur();
+
+        if ($utilisateur !== null && ! $utilisateur->can('comites.consulter')) {
+            $query->whereIn('id', array_keys(ReunionResource::instancesOrganisables($utilisateur)));
+        }
+
+        return $query;
     }
 
     public static function canView(Model $record): bool
@@ -85,7 +101,8 @@ class InstanceResource extends Resource
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && $record instanceof Instance && ! $record->estComiteDirecteur() && ComiteService::peutGerer($utilisateur, $record);
+        return $utilisateur !== null && $record instanceof Instance && ! $record->estComiteDirecteur() && ! $record->estCommission()
+            && ComiteService::peutGerer($utilisateur, $record);
     }
 
     /** Rien ne se supprime : un comité se clôture (État « Clôturé »). */
@@ -124,7 +141,6 @@ class InstanceResource extends Resource
                         ->options(fn (): array => ComiteService::choixMembres(Instance::comiteDirecteur()))
                         ->searchable()
                         ->required(),
-                    TextInput::make('quorum')->label('Quorum (% des membres)')->numeric()->minValue(1)->maxValue(100)->default(50)->required(),
                     DatePicker::make('mise_en_place')->label('Mise en place le')->native(false)->default(now()),
                     Select::make('statut')->label('État')->options(['active' => 'Actif', 'close' => 'Clôturé'])->default('active')->required(),
                 ]),
@@ -163,7 +179,11 @@ class InstanceResource extends Resource
             ->columns([
                 TextColumn::make('nom')->label('Comité')->weight('bold')->searchable(),
                 TextColumn::make('type')->label('Type')->badge()
-                    ->formatStateUsing(fn (string $state): string => $state === Instance::CDGMT ? 'CDGMT' : (Instance::TYPES[$state] ?? $state)),
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        Instance::CDGMT => 'CDGMT',
+                        Instance::COMMISSION => 'Commission permanente',
+                        default => Instance::TYPES[$state] ?? $state,
+                    }),
                 TextColumn::make('annee')->label('Année')->sortable(),
                 TextColumn::make('president.nom')->label('Président')->placeholder('—')
                     ->formatStateUsing(fn (Instance $record): string => $record->president ? $record->president->prenom.' '.$record->president->nom : '—'),

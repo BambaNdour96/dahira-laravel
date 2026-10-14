@@ -7,6 +7,7 @@ use App\Models\Parametre;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
+use App\Services\CommissionService;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
 use Database\Seeders\ReglesValidationSeeder;
@@ -72,6 +73,28 @@ it('affiche « Mes responsabilités » sur le téléphone, et le poste principal
         ->assertNoJavascriptErrors();
 
     visit('/ma-carte')->on()->mobile()->assertSee('Secrétaire général')->assertNoJavascriptErrors();
+});
+
+it('laisse le Jewrine d\'une commission accepter un souhait et ajouter un membre depuis son téléphone', function () {
+    $commission = Commission::query()->where('nom', 'Organisation')->firstOrFail();
+    nommerPourLeTest($this->compte, 'jewrine_commission', null, $commission);
+    $candidate = Membre::factory()->valide()->create(['prenom' => 'Aminata']);
+    $nouveau = Membre::factory()->valide()->create(['prenom' => 'Babacar']);
+    app(CommissionService::class)->souhaiter($candidate, $commission);
+    $this->actingAs($this->compte->fresh());
+
+    visit('/mes-comites')
+        ->on()->mobile()
+        ->assertSee('Je suis Jewrine')
+        ->assertSee('Souhaits à traiter (1)')
+        ->press('Accepter')
+        ->assertSee('Aminata '.$candidate->nom.' rejoint la commission')
+        ->fill('membre', $nouveau->telephone)
+        ->press('Ajouter')
+        ->assertSee('Babacar '.$nouveau->nom.' rejoint la commission Organisation')
+        ->assertNoJavascriptErrors();
+
+    expect($commission->membres()->count())->toBe(2);
 });
 
 it('change le montant du bouton Wave selon le nombre de mois choisi', function () {

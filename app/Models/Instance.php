@@ -19,12 +19,13 @@ use Illuminate\Support\Carbon;
  * @property int $annee
  * @property int|null $collecte_id
  * @property int|null $president_id
- * @property int $quorum
+ * @property int|null $commission_id
  * @property Carbon|null $mise_en_place
  * @property string $statut
  * @property int|null $cree_par
  * @property-read Membre|null $president
  * @property-read Collecte|null $collecte
+ * @property-read Commission|null $commission
  */
 class Instance extends Model
 {
@@ -34,20 +35,23 @@ class Instance extends Model
 
     public const CDGMT = 'cdgmt';
 
+    public const COMMISSION = 'commission';
+
+    /** Les types que l'on crée à l'écran ; l'espace d'une commission permanente se crée avec elle. */
     public const TYPES = [
         self::COMITE_DIRECTEUR => 'Comité directeur',
         self::CDGMT => 'CDGMT (Comité d\'organisation du Grand Magal de Touba)',
         'autre' => 'Autre comité',
     ];
 
-    protected $attributes = ['quorum' => 50, 'statut' => 'active'];
+    protected $attributes = ['statut' => 'active'];
 
-    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'president_id', 'quorum', 'mise_en_place', 'statut', 'cree_par'];
+    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'commission_id', 'president_id', 'mise_en_place', 'statut', 'cree_par'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['mise_en_place' => 'date', 'annee' => 'integer', 'quorum' => 'integer'];
+        return ['mise_en_place' => 'date', 'annee' => 'integer'];
     }
 
     public static function comiteDirecteur(): self
@@ -58,6 +62,18 @@ class Instance extends Model
     public function estComiteDirecteur(): bool
     {
         return $this->type === self::COMITE_DIRECTEUR;
+    }
+
+    /** L'espace d'une commission permanente. */
+    public function estCommission(): bool
+    {
+        return $this->type === self::COMMISSION;
+    }
+
+    /** @return BelongsTo<Commission, $this> */
+    public function commission(): BelongsTo
+    {
+        return $this->belongsTo(Commission::class);
     }
 
     /** @return BelongsToMany<Membre, $this> */

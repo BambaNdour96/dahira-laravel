@@ -9,6 +9,7 @@ use App\Models\Exercice;
 use App\Models\Membre;
 use App\Models\Poste;
 use App\Models\User;
+use App\Services\CommissionService;
 use App\Services\NominationService;
 use App\Services\StatutMembreService;
 use Illuminate\Database\Seeder;
@@ -24,9 +25,7 @@ class DemoSeeder extends Seeder
         $kaolack = Cellule::query()->where('nom', 'Kaolack')->firstOrFail();
         $dakar = Cellule::query()->where('nom', 'Dakar')->firstOrFail();
 
-        foreach (['Administration', 'Organisation', 'Finances', 'Communication', 'Sociale', 'Culturelle et religieuse'] as $nom) {
-            Commission::firstOrCreate(['nom' => $nom]);
-        }
+        $this->call(CommissionsSeeder::class);
 
         $annee = now()->year;
         $exercice = Exercice::firstOrCreate(
@@ -47,9 +46,8 @@ class DemoSeeder extends Seeder
         $membres = Membre::factory()->count(20)->recycle($cellules)->create();
         $commissions = Commission::all();
 
-        $membres->each(fn (Membre $membre) => $membre->commissions()->sync(
-            $commissions->random(random_int(0, Commission::MAX_PAR_MEMBRE))->pluck('id'),
-        ));
+        // Chaque membre de démonstration exprime un souhait pour une commission, au hasard.
+        $membres->each(fn (Membre $membre) => app(CommissionService::class)->souhaiter($membre, $commissions->random()));
 
         $membres->take(8)->each(
             fn (Membre $membre) => $statuts->changer($membre, StatutMembre::Valide, null),

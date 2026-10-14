@@ -15,13 +15,14 @@ beforeEach(function () {
 
 it('crée la liste officielle des postes, dans l\'ordre, chacun avec sa casquette', function () {
     expect(Poste::query()->orderBy('ordre')->pluck('nom')->first())->toBe('Jewrine national')
-        ->and(Poste::query()->count())->toBe(5)
-        ->and(Poste::query()->whereNull('code')->exists())->toBeFalse();
+        ->and(Poste::query()->where('actif', true)->count())->toBe(6)
+        ->and(Poste::query()->whereNull('code')->exists())->toBeFalse()
+        ->and(Poste::query()->where('code', 'suivi_evaluation')->value('actif'))->toBeFalse();
 });
 
-it('réserve l\'écran des postes à l\'administrateur', function () {
+it('réserve l\'écran des postes au super administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('secretaire_general');
+    $admin->assignRole('super_administrateur');
     $jewrine = User::factory()->create();
     $jewrine->assignRole('jewrine_cellule');
 

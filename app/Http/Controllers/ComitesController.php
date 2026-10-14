@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActionComite;
+use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\Membre;
@@ -45,7 +46,21 @@ class ComitesController extends Controller
             ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))
             ->get();
 
-        return view('espace.comites', ['instances' => $instances, 'actions' => $actions, 'mesCommissions' => $mesCommissions]);
+        // Les commissions permanentes que je dirige : leurs membres et les souhaits à traiter.
+        $commissionsDirigees = Commission::query()
+            ->dirigeesPar($utilisateur)
+            ->with([
+                'appartenances' => fn ($query) => $query->whereNull('refuse_le')->whereNull('fin_le')->with('membre')->orderBy('created_at'),
+            ])
+            ->orderBy('nom')
+            ->get();
+
+        return view('espace.comites', [
+            'instances' => $instances,
+            'actions' => $actions,
+            'mesCommissions' => $mesCommissions,
+            'commissionsDirigees' => $commissionsDirigees,
+        ]);
     }
 
     public function statut(Request $request, ActionComite $action, ComiteService $comites): RedirectResponse

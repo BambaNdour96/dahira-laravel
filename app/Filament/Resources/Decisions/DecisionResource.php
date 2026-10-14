@@ -58,6 +58,7 @@ class DecisionResource extends Resource
             ->columns([
                 TextColumn::make('numero')->label('N°')->weight('bold')->searchable()->sortable(),
                 TextColumn::make('texte')->label('Décision')->wrap()->searchable()->limit(120),
+                TextColumn::make('issue')->label('Prise')->formatStateUsing(fn (string $state): string => Decision::ISSUES[$state] ?? $state),
                 TextColumn::make('instance.nom')->label('Comité')->limit(25),
                 TextColumn::make('reunion.debut')->label('Réunion du')->date('d/m/Y'),
                 TextColumn::make('etat')->label('État')->badge()

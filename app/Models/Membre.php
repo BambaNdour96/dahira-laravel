@@ -181,10 +181,27 @@ class Membre extends Model
             ->first();
     }
 
-    /** @return BelongsToMany<Commission, $this> */
+    /**
+     * Les commissions permanentes dont il est membre aujourd'hui.
+     *
+     * @return BelongsToMany<Commission, $this>
+     */
     public function commissions(): BelongsToMany
     {
-        return $this->belongsToMany(Commission::class)->withTimestamps();
+        return $this->belongsToMany(Commission::class, 'appartenances_commission')
+            ->wherePivotNotNull('debut_le')
+            ->wherePivotNull('refuse_le')
+            ->wherePivotNull('fin_le');
+    }
+
+    /**
+     * Ses souhaits, appartenances, refus et départs, toutes commissions confondues.
+     *
+     * @return HasMany<AppartenanceCommission, $this>
+     */
+    public function appartenances(): HasMany
+    {
+        return $this->hasMany(AppartenanceCommission::class);
     }
 
     /** @return HasMany<Carte, $this> */

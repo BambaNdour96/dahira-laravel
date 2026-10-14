@@ -14,15 +14,15 @@ use Spatie\Permission\PermissionRegistrar;
  * Les casquettes d'une personne et ce qu'elles lui permettent.
  *
  * Les rôles de chacun sont recalculés à partir de ses casquettes en cours : nominations, représentation
- * finance, Comité directeur. Le super administrateur, le rôle « membre » et, jusqu'au lot R1b,
- * le rôle « jewrine_femmes » ne sont pas gérés ici.
+ * finance, Comité directeur, commission Suivi et Évaluation. Le super administrateur et le rôle « membre »
+ * ne sont pas gérés ici.
  *
  * Service à portée de requête (voir AppServiceProvider) : les cellules dirigées sont gardées en mémoire.
  */
 final class CasquettesService
 {
     /** Les rôles recalculés à partir des casquettes. */
-    public const GEREES = [...Capacites::POSTES, 'representant_finance', 'comite_directeur'];
+    public const GEREES = [...Capacites::POSTES, 'representant_finance', 'comite_directeur', 'suivi_evaluation'];
 
     /** @var array<int, list<int>> */
     private array $cellules = [];
@@ -48,6 +48,11 @@ final class CasquettesService
             $voulus[] = 'comite_directeur';
         }
 
+        // Suivi et Évaluation est une commission : ses membres ont la casquette du même nom.
+        if ($membre !== null && $membre->commissions()->where('code', 'suivi_evaluation')->exists()) {
+            $voulus[] = 'suivi_evaluation';
+        }
+
         $autres = $utilisateur->getRoleNames()->diff(self::GEREES)->values()->all();
         $utilisateur->syncRoles(array_values(array_unique([...$autres, ...$voulus])));
 
@@ -56,16 +61,13 @@ final class CasquettesService
     }
 
     /**
-     * Les cellules que cette personne dirige : Jewrine de cellule, et Jewrine des Sokhnas jusqu'au lot R1b.
+     * Les cellules dont cette personne est le Jewrine.
      *
      * @return list<int>
      */
     public function cellulesDirigees(User $utilisateur): array
     {
-        return $this->cellules[$utilisateur->id] ??= array_values(array_unique(array_map('intval', [
-            ...Cellule::query()->dirigeesPar($utilisateur)->pluck('id')->all(),
-            ...Cellule::query()->where('jewrine_femmes_id', $utilisateur->id)->pluck('id')->all(),
-        ])));
+        return $this->cellules[$utilisateur->id] ??= array_values(array_map('intval', Cellule::query()->dirigeesPar($utilisateur)->pluck('id')->all()));
     }
 
     /** Est-il le Jewrine de cette cellule (nomination en cours) ? */
@@ -74,7 +76,7 @@ final class CasquettesService
         return $celluleId !== null && Cellule::query()->dirigeesPar($utilisateur)->whereKey($celluleId)->exists();
     }
 
-    /** Dirige-t-il cette cellule (Jewrine de cellule, ou Jewrine des Sokhnas jusqu'au lot R1b) ? */
+    /** Dirige-t-il cette cellule ? */
     public function dirige(User $utilisateur, ?int $celluleId): bool
     {
         return $celluleId !== null && in_array($celluleId, $this->cellulesDirigees($utilisateur), true);
@@ -102,11 +104,10 @@ final class CasquettesService
         return ! $utilisateur->can($capacite);
     }
 
-    /** Un responsable : super administrateur, ou titulaire d'un poste en cours (ou Jewrine des Sokhnas jusqu'au lot R1b). */
+    /** Un responsable : super administrateur, ou titulaire d'un poste en cours. */
     public function estDuBureau(User $utilisateur): bool
     {
         return $utilisateur->hasRole('super_administrateur')
-            || $utilisateur->hasRole('jewrine_femmes')
             || Nomination::query()->where('user_id', $utilisateur->id)->exists();
     }
 

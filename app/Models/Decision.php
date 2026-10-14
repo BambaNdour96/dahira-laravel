@@ -14,9 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $reunion_id
  * @property string $numero
  * @property string $texte
- * @property int|null $pour
- * @property int|null $contre
- * @property int|null $abstention
+ * @property string $issue
  * @property string $etat
  * @property-read Instance $instance
  * @property-read Reunion $reunion
@@ -27,9 +25,12 @@ class Decision extends Model
 
     public const ETATS = ['en_vigueur' => 'En vigueur', 'modifiee' => 'Modifiée', 'annulee' => 'Annulée'];
 
-    protected $attributes = ['etat' => 'en_vigueur'];
+    /** Pas de vote : la décision est prise à l'unanimité, ou tranchée par le Jewrine national, qui a le dernier mot. */
+    public const ISSUES = ['unanimite' => 'Unanimité', 'jewrine_national' => 'Tranchée par le Jewrine national'];
 
-    protected $fillable = ['instance_id', 'reunion_id', 'numero', 'texte', 'pour', 'contre', 'abstention', 'etat'];
+    protected $attributes = ['etat' => 'en_vigueur', 'issue' => 'unanimite'];
+
+    protected $fillable = ['instance_id', 'reunion_id', 'numero', 'texte', 'issue', 'etat'];
 
     protected static function booted(): void
     {
@@ -45,13 +46,9 @@ class Decision extends Model
         });
     }
 
-    public function vote(): ?string
+    public function libelleIssue(): string
     {
-        if ($this->pour === null && $this->contre === null && $this->abstention === null) {
-            return null;
-        }
-
-        return 'Pour : '.(int) $this->pour.' · Contre : '.(int) $this->contre.' · Abstention : '.(int) $this->abstention;
+        return self::ISSUES[$this->issue] ?? $this->issue;
     }
 
     /** @return BelongsTo<Instance, $this> */

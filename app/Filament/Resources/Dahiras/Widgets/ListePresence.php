@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Seances\Widgets;
+namespace App\Filament\Resources\Dahiras\Widgets;
 
 use App\Enums\Sexe;
 use App\Enums\StatutMembre;
@@ -22,7 +22,7 @@ class ListePresence extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    private function seance(): Evenement
+    private function dahira(): Evenement
     {
         abort_unless($this->record instanceof Evenement, 404);
 
@@ -32,7 +32,7 @@ class ListePresence extends TableWidget
     public function table(Table $table): Table
     {
         $presences = fn (): Collection => Presence::query()
-            ->where('evenement_id', $this->seance()->id)
+            ->where('evenement_id', $this->dahira()->id)
             ->with('controleur')
             ->get()
             ->keyBy('membre_id');
@@ -41,7 +41,7 @@ class ListePresence extends TableWidget
             ->heading('Liste de présence')
             ->query(fn (): Builder => Membre::query()
                 ->where('statut', StatutMembre::Valide->value)
-                ->where('cellule_id', $this->seance()->cellule_id)
+                ->where('cellule_id', $this->dahira()->cellule_id)
                 ->orderBy('nom'))
             ->columns([
                 TextColumn::make('prenom')->label('Prénom')->searchable(),

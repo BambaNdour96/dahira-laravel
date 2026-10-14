@@ -42,6 +42,11 @@ class MembresInstance extends TableWidget
             return false;
         }
 
+        // Les membres de l'espace d'une commission permanente suivent la commission : ils se gèrent dans la commission.
+        if ($this->instance()->estCommission()) {
+            return false;
+        }
+
         return $this->instance()->estComiteDirecteur()
             ? $utilisateur->can('comite_directeur.composer')
             : ComiteService::peutGerer($utilisateur, $this->instance());

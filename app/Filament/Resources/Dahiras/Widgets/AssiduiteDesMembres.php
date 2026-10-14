@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Resources\Seances\Widgets;
+namespace App\Filament\Resources\Dahiras\Widgets;
 
-use App\Enums\Sexe;
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Membre;
@@ -35,13 +34,6 @@ class AssiduiteDesMembres extends TableWidget
 
                 if ($utilisateur instanceof User && ! $utilisateur->can('dahiras.voir')) {
                     $query->whereIn('cellule_id', app(CasquettesService::class)->cellulesDirigees($utilisateur));
-
-                    $seulementSoeurs = Cellule::query()->where('jewrine_femmes_id', $utilisateur->id)->exists()
-                        && ! Cellule::query()->dirigeesPar($utilisateur)->exists();
-
-                    if ($seulementSoeurs) {
-                        $query->where('sexe', Sexe::Femme->value);
-                    }
                 }
 
                 return $query->orderBy('nom');
@@ -51,7 +43,7 @@ class AssiduiteDesMembres extends TableWidget
                 TextColumn::make('nom')->label('Nom')->searchable(),
                 TextColumn::make('cellule.nom')->label('Cellule'),
                 TextColumn::make('presences_3_mois')->label('Présent')
-                    ->state(fn (Membre $record): string => $assiduite->pour($record)['presents'].' / '.$assiduite->pour($record)['seances']),
+                    ->state(fn (Membre $record): string => $assiduite->pour($record)['presents'].' / '.$assiduite->pour($record)['dahiras']),
                 TextColumn::make('excuses_3_mois')->label('Excusé')
                     ->state(fn (Membre $record): int => $assiduite->pour($record)['excuses']),
                 TextColumn::make('taux_assiduite')->label('Assiduité')->badge()

@@ -12,6 +12,6 @@ class ManageSympathisants extends ManageRecords
 
     public function getSubheading(): ?string
     {
-        return 'Les sympathisants s\'enregistrent pendant le pointage d\'une séance, avec leur accord. Ceux qui ne reviennent pas pendant 2 ans sont effacés automatiquement.';
+        return 'Les sympathisants s\'enregistrent pendant le pointage d\'une dahira, avec leur accord. Ceux qui ne reviennent pas pendant 2 ans sont effacés automatiquement.';
     }
 }

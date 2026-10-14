@@ -26,7 +26,14 @@ class Poste extends Model
 
     public const JEWRINE_CELLULE = 'jewrine_cellule';
 
-    public const PERIMETRES = ['national' => 'Toute la Daara', 'cellule' => 'Une cellule'];
+    public const JEWRINE_COMMISSION = 'jewrine_commission';
+
+    public const CONVOCATEUR_COMITE_DIRECTEUR = 'convocateur_comite_directeur';
+
+    /** Les postes que seul le super administrateur attribue. */
+    public const RESERVES_AU_SUPER_ADMINISTRATEUR = [self::JEWRINE_NATIONAL, self::JEWRINE_COMMISSION, self::CONVOCATEUR_COMITE_DIRECTEUR];
+
+    public const PERIMETRES = ['national' => 'Toute la Daara', 'cellule' => 'Une cellule', 'commission' => 'Une commission permanente'];
 
     protected $fillable = ['nom', 'ordre', 'actif', 'perimetre', 'titulaire_unique'];
 
@@ -45,6 +52,11 @@ class Poste extends Model
     public function estDeCellule(): bool
     {
         return $this->perimetre === 'cellule';
+    }
+
+    public function estDeCommission(): bool
+    {
+        return $this->perimetre === 'commission';
     }
 
     public static function parCode(string $code): ?self

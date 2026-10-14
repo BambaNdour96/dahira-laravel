@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Seances;
+namespace App\Filament\Resources\Dahiras;
 
 use App\Filament\Actions\ConservationActions;
-use App\Filament\Resources\Seances\Pages\CreateSeance;
-use App\Filament\Resources\Seances\Pages\EditSeance;
-use App\Filament\Resources\Seances\Pages\ListSeances;
-use App\Filament\Resources\Seances\Pages\ViewSeance;
+use App\Filament\Resources\Dahiras\Pages\CreateDahira;
+use App\Filament\Resources\Dahiras\Pages\EditDahira;
+use App\Filament\Resources\Dahiras\Pages\ListDahiras;
+use App\Filament\Resources\Dahiras\Pages\ViewDahira;
 use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\User;
@@ -34,10 +34,10 @@ use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 /**
- * Les séances de dahira des cellules, créées par leurs Jewrine quand elles ont lieu.
- * Chaque cellule ne voit que ses séances ; le bureau et Suivi et Évaluation voient tout.
+ * Les dahiras des cellules, créées par leurs Jewrine quand elles ont lieu.
+ * Chaque cellule ne voit que ses dahiras ; le bureau et Suivi et Évaluation voient tout.
  */
-class SeanceResource extends Resource
+class DahiraResource extends Resource
 {
     protected static ?string $model = Evenement::class;
 
@@ -49,11 +49,11 @@ class SeanceResource extends Resource
 
     protected static ?int $navigationSort = 0;
 
-    protected static ?string $navigationLabel = 'Séances de cellule';
+    protected static ?string $navigationLabel = 'Dahiras';
 
-    protected static ?string $modelLabel = 'séance';
+    protected static ?string $modelLabel = 'dahira';
 
-    protected static ?string $pluralModelLabel = 'séances';
+    protected static ?string $pluralModelLabel = 'dahiras';
 
     private static function utilisateur(): ?User
     {
@@ -113,10 +113,10 @@ class SeanceResource extends Resource
         );
     }
 
-    /** Un Jewrine ne voit que les séances de sa cellule. @return Builder<Evenement> */
+    /** Un Jewrine ne voit que les dahiras de sa cellule. @return Builder<Evenement> */
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->where('type', Evenement::SEANCE);
+        $query = parent::getEloquentQuery()->where('type', Evenement::DAHIRA);
         $utilisateur = self::utilisateur();
 
         if ($utilisateur !== null && ! $utilisateur->can('dahiras.voir')) {
@@ -153,7 +153,7 @@ class SeanceResource extends Resource
             Textarea::make('description')->label('Thème ou programme')->rows(3)->maxLength(500)
                 ->placeholder('Exemple : récital de Xassaïdes, causerie sur le Mawlid')
                 ->columnSpanFull(),
-            Toggle::make('avec_rappel')->label('Rappeler la séance aux membres de la cellule le jour même')->default(true)->columnSpanFull(),
+            Toggle::make('avec_rappel')->label('Rappeler la dahira aux membres de la cellule le jour même')->default(true)->columnSpanFull(),
         ])->columns(2);
     }
 
@@ -185,10 +185,10 @@ class SeanceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListSeances::route('/'),
-            'create' => CreateSeance::route('/create'),
-            'view' => ViewSeance::route('/{record}'),
-            'edit' => EditSeance::route('/{record}/edit'),
+            'index' => ListDahiras::route('/'),
+            'create' => CreateDahira::route('/create'),
+            'view' => ViewDahira::route('/{record}'),
+            'edit' => EditDahira::route('/{record}/edit'),
         ];
     }
 }

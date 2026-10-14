@@ -7,6 +7,7 @@ use App\Filament\Resources\Reunions\Pages\CreateReunion;
 use App\Filament\Resources\Reunions\Pages\EditReunion;
 use App\Filament\Resources\Reunions\Pages\ListReunions;
 use App\Filament\Resources\Reunions\Pages\ViewReunion;
+use App\Models\Decision;
 use App\Models\Instance;
 use App\Models\Reunion;
 use App\Models\User;
@@ -69,7 +70,21 @@ class ReunionResource extends Resource
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && $utilisateur->can('comites.consulter');
+        return $utilisateur !== null && ($utilisateur->can('comites.consulter') || self::instancesOrganisables($utilisateur) !== []);
+    }
+
+    /** @return Builder<Reunion> */
+    public static function getEloquentQuery(): Builder
+    {
+        /** @var Builder<Reunion> $query */
+        $query = parent::getEloquentQuery();
+        $utilisateur = self::utilisateur();
+
+        if ($utilisateur !== null && ! $utilisateur->can('comites.consulter')) {
+            $query->whereIn('instance_id', array_keys(self::instancesOrganisables($utilisateur)));
+        }
+
+        return $query;
     }
 
     public static function canView(Model $record): bool
@@ -153,8 +168,11 @@ class ReunionResource extends Resource
                     TextInput::make('lieu')->label('Lieu')->required()->maxLength(150),
                     TextInput::make('lien')->label('Lien de visioconférence (facultatif)')->url()->maxLength(255),
                     Select::make('secretaire_id')
-                        ->label('Secrétaire de séance (membre du Comité directeur)')
-                        ->options(fn (): array => ComiteService::choixMembres(Instance::comiteDirecteur()))
+                        ->label('Secrétaire de séance')
+                        ->helperText('Un membre du Comité directeur ; pour une commission permanente, un membre de la commission. Dès la convocation, lui seul rédige et publie le PV.')
+                        ->options(fn (Get $get): array => ($instance = Instance::query()->whereKey($get('instance_id'))->first()) !== null
+                            ? ComiteService::secretairesPossibles($instance)
+                            : ComiteService::choixMembres(Instance::comiteDirecteur()))
                         ->searchable()
                         ->required(),
                 ]),
@@ -182,9 +200,7 @@ class ReunionResource extends Resource
                         ->columns(4)
                         ->schema([
                             Textarea::make('texte')->label('Décision')->required()->rows(2)->columnSpanFull(),
-                            TextInput::make('pour')->label('Pour')->numeric()->minValue(0),
-                            TextInput::make('contre')->label('Contre')->numeric()->minValue(0),
-                            TextInput::make('abstention')->label('Abstention')->numeric()->minValue(0),
+                            Select::make('issue')->label('Prise')->options(Decision::ISSUES)->default('unanimite')->required()->columnSpan(2),
                             TextInput::make('numero')->label('Numéro')->disabled()->dehydrated(false)->placeholder('Attribué à l\'enregistrement'),
                         ]),
                 ]),

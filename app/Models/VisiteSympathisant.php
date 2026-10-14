@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * La venue d'un sympathisant à une séance ou à un jour J.
+ * La venue d'un sympathisant à une dahira ou à un jour J.
  *
  * @property int $id
  * @property int $evenement_id

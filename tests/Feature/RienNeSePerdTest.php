@@ -8,11 +8,11 @@ use App\Enums\StatutCollecte;
 use App\Filament\Resources\Cellules\Pages\ManageCellules;
 use App\Filament\Resources\Collectes\Pages\EditCollecte;
 use App\Filament\Resources\Collectes\Pages\ViewCollecte;
+use App\Filament\Resources\Dahiras\Pages\ListDahiras;
 use App\Filament\Resources\Instances\Widgets\AvancementCommissions;
 use App\Filament\Resources\Pointeurs\Pages\ManagePointeurs;
 use App\Filament\Resources\Projets\Widgets\EtapesDuProjet;
 use App\Filament\Resources\Reunions\Pages\ViewReunion;
-use App\Filament\Resources\Seances\Pages\ListSeances;
 use App\Filament\Resources\Sympathisants\Pages\ManageSympathisants;
 use App\Models\ActionComite;
 use App\Models\Cellule;
@@ -72,7 +72,7 @@ function programmeConserve(array $attributs = []): Collecte
 function dahiraConservee(Cellule $cellule, array $attributs = []): Evenement
 {
     return Evenement::query()->create(array_merge([
-        'type' => Evenement::SEANCE, 'titre' => 'Dahira', 'lieu' => 'Médina', 'debut' => now(), 'cellule_id' => $cellule->id,
+        'type' => Evenement::DAHIRA, 'titre' => 'Dahira', 'lieu' => 'Médina', 'debut' => now(), 'cellule_id' => $cellule->id,
     ], $attributs));
 }
 
@@ -180,14 +180,14 @@ describe('les dahiras et les événements', function () {
         $dahira = dahiraConservee($this->kaolack);
         $this->actingAs($this->jewrineCompte);
 
-        Livewire::test(ListSeances::class)
+        Livewire::test(ListDahiras::class)
             ->assertActionDoesNotExist(TestAction::make('delete')->table($dahira))
             ->callAction(TestAction::make('annuler')->table($dahira), data: ['motif' => 'Décès dans la cellule']);
 
         expect($dahira->refresh()->estAnnule())->toBeTrue()
             ->and($dahira->scanOuvert())->toBeFalse()
             ->and(app(PointageService::class)->rendezVousDuMoment($this->jewrineCompte))->toHaveCount(0)
-            ->and(app(AssiduiteService::class)->prochaineSeance($this->awa))->toBeNull();
+            ->and(app(AssiduiteService::class)->prochaineDahira($this->awa))->toBeNull();
 
         Notification::assertSentTo(
             User::query()->findOrFail($this->awa->user_id),

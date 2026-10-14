@@ -259,8 +259,8 @@ describe('les réglages', function () {
     });
 });
 
-it('ouvre le formulaire de création de chaque donnée de référence', function (string $page) {
-    $this->actingAs($this->admin);
+it('ouvre le formulaire de création de chaque donnée de référence au super administrateur', function (string $page) {
+    $this->actingAs($this->super);
 
     Livewire::test($page)
         ->mountAction('create')

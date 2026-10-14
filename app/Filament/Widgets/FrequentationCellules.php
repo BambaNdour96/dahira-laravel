@@ -10,7 +10,7 @@ use App\Services\PointageService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 
-/** Le taux de présence aux 10 dernières séances de chaque cellule. */
+/** Le taux de présence aux 10 dernières dahiras de chaque cellule. */
 class FrequentationCellules extends ChartWidget
 {
     protected static ?int $sort = 6;
@@ -23,12 +23,12 @@ class FrequentationCellules extends ChartWidget
 
         return $utilisateur instanceof User
             && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'dahiras.voir')
-            && Evenement::query()->where('type', Evenement::SEANCE)->exists();
+            && Evenement::query()->where('type', Evenement::DAHIRA)->exists();
     }
 
     public function getHeading(): string
     {
-        return 'Présence aux séances de cellule (%)';
+        return 'Présence aux dahiras (%)';
     }
 
     /** @return array<string, mixed> */
@@ -40,8 +40,8 @@ class FrequentationCellules extends ChartWidget
         $libelles = [];
 
         foreach (Cellule::query()->enActivite()->orderBy('nom')->get() as $index => $cellule) {
-            $seances = Evenement::query()
-                ->where('type', Evenement::SEANCE)
+            $dahiras = Evenement::query()
+                ->where('type', Evenement::DAHIRA)
                 ->maintenus()
                 ->where('cellule_id', $cellule->id)
                 ->where('debut', '<', now())
@@ -51,16 +51,16 @@ class FrequentationCellules extends ChartWidget
                 ->reverse()
                 ->values();
 
-            if ($seances->isEmpty()) {
+            if ($dahiras->isEmpty()) {
                 continue;
             }
 
-            $libelles = count($libelles) >= $seances->count() ? $libelles : $seances->map(fn (Evenement $seance): string => $seance->debut->format('d/m'))->all();
+            $libelles = count($libelles) >= $dahiras->count() ? $libelles : $dahiras->map(fn (Evenement $dahira): string => $dahira->debut->format('d/m'))->all();
             $couleur = $couleurs[$index % count($couleurs)];
 
             $datasets[] = [
                 'label' => $cellule->nom,
-                'data' => $seances->map(fn (Evenement $seance): int => $pointage->bilan($seance)['taux'])->all(),
+                'data' => $dahiras->map(fn (Evenement $dahira): int => $pointage->bilan($dahira)['taux'])->all(),
                 'borderColor' => $couleur,
                 'backgroundColor' => $couleur,
                 'tension' => 0.3,

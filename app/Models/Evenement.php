@@ -35,7 +35,7 @@ class Evenement extends Model
     /** Le contrôle des présences ouvre 3 heures avant le début et ferme 3 heures après la fin. */
     public const MARGE_HEURES = 3;
 
-    public const SEANCE = 'seance';
+    public const DAHIRA = 'dahira';
 
     protected $fillable = ['type', 'titre', 'description', 'lieu', 'debut', 'fin', 'cellule_id', 'avec_rappel', 'visiteurs', 'auteur_id'];
 
@@ -126,8 +126,8 @@ class Evenement extends Model
         return $this->hasMany(VisiteSympathisant::class);
     }
 
-    public function estSeance(): bool
+    public function estDahira(): bool
     {
-        return $this->type === self::SEANCE;
+        return $this->type === self::DAHIRA;
     }
 }

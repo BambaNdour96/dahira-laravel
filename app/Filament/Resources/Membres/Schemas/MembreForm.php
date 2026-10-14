@@ -7,7 +7,6 @@ use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
 use App\Filament\Resources\Membres\MembreResource;
-use App\Models\Commission;
 use App\Models\Membre;
 use App\Services\TelephoneNormalizer;
 use App\Support\Langues;
@@ -123,13 +122,6 @@ class MembreForm
                         ->searchable()
                         ->preload()
                         ->required(),
-                    Select::make('commissions')
-                        ->label('Commissions')
-                        ->relationship('commissions', 'nom')
-                        ->multiple()
-                        ->preload()
-                        ->maxItems(Commission::MAX_PAR_MEMBRE)
-                        ->helperText('Une seule commission par membre.'),
                     DatePicker::make('date_adhesion')
                         ->label('Date d\'adhésion')
                         ->helperText('Remplie automatiquement à la validation si elle est vide.'),

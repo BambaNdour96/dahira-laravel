@@ -47,9 +47,9 @@ dataset('roles', [
     'membre' => [['membre'], 'membre'],
 ]);
 
-it('réserve les données de référence au Secrétaire général', function (array $roles, string $profil) {
+it('réserve les données de référence au super administrateur', function (array $roles, string $profil) {
     $compte = compteAvecRoles($roles);
-    $attendu = in_array($profil, ['super', 'secretaire'], true);
+    $attendu = $profil === 'super';
 
     foreach ([Cellule::class, Commission::class, Exercice::class, Poste::class, Tarif::class] as $modele) {
         $objet = new $modele;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Seances\Widgets;
+namespace App\Filament\Resources\Dahiras\Widgets;
 
 use App\Models\Evenement;
 use App\Services\PointageService;
@@ -8,7 +8,7 @@ use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Model;
 
-class BilanSeance extends StatsOverviewWidget
+class BilanDahira extends StatsOverviewWidget
 {
     public ?Model $record = null;
 

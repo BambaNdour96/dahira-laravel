@@ -35,19 +35,19 @@ beforeEach(function () {
     $jewrine = Membre::factory()->for($compte)->for($this->cellule)->valide()->create(['sexe' => Sexe::Homme]);
     $this->jewrine = nommerPourLeTest($compte, 'jewrine_cellule', $this->cellule);
 
-    $this->seance = Evenement::query()->create([
-        'type' => Evenement::SEANCE, 'titre' => 'Dahira de la cellule Kaolack', 'lieu' => 'Médina',
+    $this->dahira = Evenement::query()->create([
+        'type' => Evenement::DAHIRA, 'titre' => 'Dahira de la cellule Kaolack', 'lieu' => 'Médina',
         'debut' => now(), 'cellule_id' => $this->cellule->id,
     ]);
     $this->service = app(SympathisantService::class);
 });
 
 it('enregistre un nouveau sympathisant au pointage, avec son accord', function () {
-    $this->actingAs($this->jewrine)->post(route('pointage.sympathisant.nouveau', $this->seance), [
+    $this->actingAs($this->jewrine)->post(route('pointage.sympathisant.nouveau', $this->dahira), [
         'prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'telephone' => '77 123 45 67',
     ])->assertSessionHasErrors('accord');
 
-    $this->actingAs($this->jewrine)->post(route('pointage.sympathisant.nouveau', $this->seance), [
+    $this->actingAs($this->jewrine)->post(route('pointage.sympathisant.nouveau', $this->dahira), [
         'prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'telephone' => '77 123 45 67', 'accord' => '1',
     ])->assertSessionHas('pointage_succes');
 
@@ -56,12 +56,12 @@ it('enregistre un nouveau sympathisant au pointage, avec son accord', function (
         ->and($sympathisant->telephone)->toBe('+221771234567')
         ->and(VisiteSympathisant::query()->count())->toBe(1);
 
-    $this->actingAs($this->jewrine)->post(route('pointage.visiteur', $this->seance), ['ecart' => '1']);
-    $this->actingAs($this->jewrine)->post(route('pointage.visiteur', $this->seance), ['ecart' => '1']);
+    $this->actingAs($this->jewrine)->post(route('pointage.visiteur', $this->dahira), ['ecart' => '1']);
+    $this->actingAs($this->jewrine)->post(route('pointage.visiteur', $this->dahira), ['ecart' => '1']);
 
-    expect(app(PointageService::class)->bilan($this->seance->fresh()))->toMatchArray(['sympathisants' => 1, 'visiteurs' => 2, 'total' => 3]);
+    expect(app(PointageService::class)->bilan($this->dahira->fresh()))->toMatchArray(['sympathisants' => 1, 'visiteurs' => 2, 'total' => 3]);
 
-    $this->actingAs($this->jewrine)->get(route('pointage.show', $this->seance))
+    $this->actingAs($this->jewrine)->get(route('pointage.show', $this->dahira))
         ->assertSee('Fréquentation totale')->assertSee('Ousmane')->assertSee('Nouveau sympathisant');
 });
 
@@ -71,17 +71,17 @@ it('respecte le périmètre : une pointeuse n\'enregistre que des sœurs', funct
     Membre::factory()->for($compte)->for($this->cellule)->valide()->create(['sexe' => Sexe::Femme]);
     CellulePointeur::query()->create(['cellule_id' => $this->cellule->id, 'user_id' => $compte->id, 'perimetre' => 'femmes']);
 
-    expect(fn () => $this->service->accueillir($this->seance, ['prenom' => 'Ali', 'nom' => 'Ba', 'sexe' => 'H', 'accord' => true], $compte))
+    expect(fn () => $this->service->accueillir($this->dahira, ['prenom' => 'Ali', 'nom' => 'Ba', 'sexe' => 'H', 'accord' => true], $compte))
         ->toThrow(DomainException::class)
-        ->and($this->service->accueillir($this->seance, ['prenom' => 'Khady', 'nom' => 'Ba', 'sexe' => 'F', 'accord' => true], $compte)->sexe)
+        ->and($this->service->accueillir($this->dahira, ['prenom' => 'Khady', 'nom' => 'Ba', 'sexe' => 'F', 'accord' => true], $compte)->sexe)
         ->toBe(Sexe::Femme);
 });
 
 it('repère les fidèles à inviter et relie le sympathisant qui devient membre', function () {
-    $sympathisant = $this->service->accueillir($this->seance, ['prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'telephone' => '771234567', 'accord' => true], $this->jewrine);
+    $sympathisant = $this->service->accueillir($this->dahira, ['prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'telephone' => '771234567', 'accord' => true], $this->jewrine);
 
     foreach ([7, 14] as $jours) {
-        $passee = Evenement::query()->create(['type' => Evenement::SEANCE, 'titre' => 'Dahira', 'lieu' => 'Médina', 'debut' => now()->subDays($jours), 'cellule_id' => $this->cellule->id]);
+        $passee = Evenement::query()->create(['type' => Evenement::DAHIRA, 'titre' => 'Dahira', 'lieu' => 'Médina', 'debut' => now()->subDays($jours), 'cellule_id' => $this->cellule->id]);
         VisiteSympathisant::query()->create(['evenement_id' => $passee->id, 'sympathisant_id' => $sympathisant->id]);
     }
 
@@ -100,7 +100,7 @@ it('repère les fidèles à inviter et relie le sympathisant qui devient membre'
 });
 
 it('enregistre la participation d\'un sympathisant, avec reçu, comptée à part dans la collecte', function () {
-    $sympathisant = $this->service->accueillir($this->seance, ['prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'accord' => true], $this->jewrine);
+    $sympathisant = $this->service->accueillir($this->dahira, ['prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'accord' => true], $this->jewrine);
     $collecte = Collecte::query()->create([
         'titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
@@ -125,9 +125,9 @@ it('enregistre la participation d\'un sympathisant, avec reçu, comptée à part
 });
 
 it('affiche les chiffres au bureau et anonymise les absents depuis 2 ans', function () {
-    $ancien = $this->service->accueillir($this->seance, ['prenom' => 'Ancien', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
+    $ancien = $this->service->accueillir($this->dahira, ['prenom' => 'Ancien', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
     $ancien->forceFill(['derniere_visite_le' => now()->subYears(3)])->save();
-    $this->service->accueillir($this->seance, ['prenom' => 'Récent', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
+    $this->service->accueillir($this->dahira, ['prenom' => 'Récent', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
 
     $super = User::factory()->create();
     $super->assignRole('super_administrateur');

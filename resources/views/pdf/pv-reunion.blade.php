@@ -40,7 +40,7 @@
         <tr><td class="l">Lieu</td><td>{{ $reunion->lieu }}{{ $reunion->lien ? ' — '.$reunion->lien : '' }}</td></tr>
         <tr><td class="l">Président</td><td>{{ $reunion->instance->president ? $reunion->instance->president->prenom.' '.$reunion->instance->president->nom : '—' }}</td></tr>
         <tr><td class="l">Secrétaire de séance</td><td>{{ $reunion->secretaire ? $reunion->secretaire->prenom.' '.$reunion->secretaire->nom : '—' }}</td></tr>
-        <tr><td class="l">Quorum</td><td>{{ $quorum['presents'] }} présent(s) sur {{ $quorum['membres'] }} membre(s) · {{ $quorum['atteint'] ? 'atteint' : 'non atteint' }} ({{ $quorum['requis'] }} requis)</td></tr>
+        <tr><td class="l">Présences</td><td>{{ $quorum['presents'] }} présent(s) sur {{ $quorum['membres'] }} membre(s)</td></tr>
         <tr><td class="l">Présents</td><td>{{ $reunion->presences->where('statut', 'present')->map(fn ($presence) => $presence->membre->prenom.' '.$presence->membre->nom)->implode(', ') ?: '—' }}</td></tr>
         <tr><td class="l">Excusés</td><td>{{ $reunion->presences->where('statut', 'excuse')->map(fn ($presence) => $presence->membre->prenom.' '.$presence->membre->nom)->implode(', ') ?: '—' }}</td></tr>
     </table>
@@ -65,9 +65,7 @@
                 <tr>
                     <td class="num">{{ $decision->numero }}</td>
                     <td>{!! nl2br(e($decision->texte)) !!}
-                        @if ($decision->vote())
-                            <div class="petit">{{ $decision->vote() }}</div>
-                        @endif
+                        <div class="petit">{{ $decision->libelleIssue() }}</div>
                     </td>
                 </tr>
             @endforeach

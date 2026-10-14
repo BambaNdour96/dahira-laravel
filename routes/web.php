@@ -7,6 +7,7 @@ use App\Http\Controllers\CaisseController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\CharteController;
 use App\Http\Controllers\ComitesController;
+use App\Http\Controllers\CommissionsController;
 use App\Http\Controllers\ConfirmationEmailController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\CotisationController;
@@ -121,6 +122,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/comites/{instance}/bilan', [BudgetComiteController::class, 'bilan'])->name('comites.bilan');
     Route::post('/comites/actions/{action}/statut', [ComitesController::class, 'statut'])->name('comites.actions.statut');
     Route::get('/mes-comites', ComitesController::class.'@index')->name('comites.index');
+    Route::post('/commissions/{commission}/membres', [CommissionsController::class, 'ajouter'])->name('commissions.membres.ajouter');
+    Route::post('/commissions/appartenances/{appartenance}/accepter', [CommissionsController::class, 'accepter'])->name('commissions.souhaits.accepter');
+    Route::post('/commissions/appartenances/{appartenance}/refuser', [CommissionsController::class, 'refuser'])->name('commissions.souhaits.refuser');
+    Route::post('/commissions/appartenances/{appartenance}/retirer', [CommissionsController::class, 'retirer'])->name('commissions.membres.retirer');
     Route::get('/reunions/{reunion}/pv', PvReunionController::class)->name('reunions.pv');
     Route::middleware(ExigerCharteConfidentialite::class)->group(function () {
         Route::get('/caisse', [CaisseController::class, 'index'])->name('caisse.index');

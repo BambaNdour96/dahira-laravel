@@ -129,9 +129,9 @@ it('affiche le tableau de bord du CDGMT : compte à rebours, actions, commission
     Livewire::test(ViewInstance::class, ['record' => $this->cdgmt->getRouteKey()])->assertOk();
 });
 
-it('signale un quorum non atteint, change l\'état d\'une décision et refuse une reprise impossible', function () {
+it('affiche les présents sur les membres sans seuil, change l\'état d\'une décision et refuse une reprise impossible', function () {
     $this->actingAs($this->national);
-    Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])->assertSee('quorum non atteint');
+    Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])->assertSee('présent(s) sur')->assertDontSee('quorum');
 
     $decision = Decision::query()->create(['reunion_id' => $this->reunion->id, 'texte' => 'Budget de 1 500 000 FCFA']);
     Livewire::test(ListDecisions::class)

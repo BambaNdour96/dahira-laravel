@@ -43,6 +43,63 @@
         </section>
     @endif
 
+    @foreach ($commissionsDirigees as $permanente)
+        @php
+            $souhaits = $permanente->appartenances->filter(fn ($appartenance) => $appartenance->estSouhait());
+            $membresPermanents = $permanente->appartenances->filter(fn ($appartenance) => $appartenance->estActive());
+        @endphp
+        <section class="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-200" data-test="commission-permanente">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Je suis Jewrine</p>
+            <h2 class="text-lg font-semibold text-emerald-950">Commission {{ $permanente->nom }}</h2>
+
+            @if ($souhaits->isNotEmpty())
+                <h3 class="mt-4 font-semibold text-amber-900">Souhaits à traiter ({{ $souhaits->count() }})</h3>
+                <ul class="mt-2 space-y-2 text-sm">
+                    @foreach ($souhaits as $souhait)
+                        <li class="rounded-lg bg-amber-50 p-3 ring-1 ring-amber-200">
+                            <p class="font-semibold">{{ $souhait->membre->prenom }} {{ $souhait->membre->nom }}</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <form method="POST" action="{{ route('commissions.souhaits.accepter', $souhait) }}">
+                                    @csrf
+                                    <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Accepter</button>
+                                </form>
+                                <form method="POST" action="{{ route('commissions.souhaits.refuser', $souhait) }}" class="flex min-w-0 flex-1 gap-2">
+                                    @csrf
+                                    <input type="text" name="motif" maxlength="255" placeholder="Motif (facultatif)"
+                                           class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-base">
+                                    <button type="submit" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-red-800 ring-1 ring-red-200">Refuser</button>
+                                </form>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            <h3 class="mt-4 font-semibold text-emerald-900">Membres ({{ $membresPermanents->count() }})</h3>
+            <ul class="mt-2 space-y-2 text-sm">
+                @forelse ($membresPermanents as $appartenance)
+                    <li class="rounded-lg bg-stone-50 p-2">
+                        <span>{{ $appartenance->membre->prenom }} {{ $appartenance->membre->nom }} <span class="text-xs text-stone-500">{{ $appartenance->membre->matricule }}</span></span>
+                        <form method="POST" action="{{ route('commissions.membres.retirer', $appartenance) }}" class="mt-1 flex gap-2">
+                            @csrf
+                            <input type="text" name="motif" required maxlength="255" placeholder="Motif du départ"
+                                   class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-1.5 text-base">
+                            <button type="submit" class="text-xs font-semibold text-red-700">Retirer</button>
+                        </form>
+                    </li>
+                @empty
+                    <li class="text-stone-500">Aucun membre pour le moment.</li>
+                @endforelse
+            </ul>
+            <form method="POST" action="{{ route('commissions.membres.ajouter', $permanente) }}" class="mt-3 flex gap-2 text-sm">
+                @csrf
+                <input type="text" name="membre" required maxlength="30" placeholder="Matricule ou téléphone du membre"
+                       class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Ajouter</button>
+            </form>
+        </section>
+    @endforeach
+
     @foreach ($mesCommissions as $commission)
         <section class="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-200">
             <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Je dirige</p>
