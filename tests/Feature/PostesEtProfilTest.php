@@ -13,16 +13,17 @@ beforeEach(function () {
     $this->seed([RolesSeeder::class, PostesSeeder::class]);
 });
 
-it('crée la liste officielle des postes, dans l\'ordre', function () {
+it('crée la liste officielle des postes, dans l\'ordre, chacun avec sa casquette', function () {
     expect(Poste::query()->orderBy('ordre')->pluck('nom')->first())->toBe('Jewrine national')
-        ->and(Poste::query()->count())->toBe(8);
+        ->and(Poste::query()->count())->toBe(5)
+        ->and(Poste::query()->whereNull('code')->exists())->toBeFalse();
 });
 
 it('réserve l\'écran des postes à l\'administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
+    $jewrine->assignRole('jewrine_cellule');
 
     $this->actingAs($admin)->get('/admin/postes')->assertOk();
     $this->actingAs($jewrine)->get('/admin/postes')->assertForbidden();

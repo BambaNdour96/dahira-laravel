@@ -56,7 +56,7 @@ final class CarteService
         }
 
         $carte = Carte::query()
-            ->with(['membre.cellule', 'membre.poste'])
+            ->with('membre.cellule')
             ->where('jeton', $jeton)
             ->first();
 

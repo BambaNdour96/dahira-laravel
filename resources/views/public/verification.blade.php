@@ -40,8 +40,8 @@
                 @endif
                 <div>
                     <p class="text-lg font-bold text-emerald-950">{{ $membre->prenom }} {{ $membre->nom }}</p>
-                    @if ($membre->poste)
-                        <p class="text-sm text-or-600">{{ $membre->poste->nom }}</p>
+                    @if ($postePrincipal = $membre->postePrincipal())
+                        <p class="text-sm text-or-600">{{ $postePrincipal->nom }}</p>
                     @endif
                     <p class="mt-2 text-sm text-stone-600">Cellule {{ $membre->cellule->nom }}</p>
                     <p class="font-mono text-sm">{{ $membre->matricule }}</p>

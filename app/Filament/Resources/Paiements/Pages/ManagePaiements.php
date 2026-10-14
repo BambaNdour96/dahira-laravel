@@ -62,9 +62,7 @@ class ManagePaiements extends ManageRecords
      */
     private static function aVerifier(Builder $query): Builder
     {
-        return $query
-            ->where('statut', StatutPaiement::Declare->value)
-            ->whereDoesntHave('membre', fn (Builder $membre) => $membre->whereIn('poste_id', RegleValidation::query()->select('poste_id')));
+        return RegleValidation::paiementsSoumis($query->where('statut', StatutPaiement::Declare->value), soumis: false);
     }
 
     /**
@@ -77,8 +75,6 @@ class ManagePaiements extends ManageRecords
      */
     private static function duBureau(Builder $query): Builder
     {
-        return $query
-            ->where('statut', StatutPaiement::Declare->value)
-            ->whereHas('membre', fn (Builder $membre) => $membre->whereIn('poste_id', RegleValidation::query()->select('poste_id')));
+        return RegleValidation::paiementsSoumis($query->where('statut', StatutPaiement::Declare->value));
     }
 }

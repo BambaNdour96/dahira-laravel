@@ -8,7 +8,7 @@ use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\User;
 use App\Services\AssiduiteService;
-use App\Services\PointageService;
+use App\Services\CasquettesService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -33,11 +33,11 @@ class AssiduiteDesMembres extends TableWidget
                 $query = Membre::query()->where('statut', StatutMembre::Valide->value)->with('cellule');
                 $utilisateur = Auth::user();
 
-                if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])) {
-                    $query->whereIn('cellule_id', PointageService::cellulesDirigees($utilisateur));
+                if ($utilisateur instanceof User && ! $utilisateur->can('dahiras.voir')) {
+                    $query->whereIn('cellule_id', app(CasquettesService::class)->cellulesDirigees($utilisateur));
 
                     $seulementSoeurs = Cellule::query()->where('jewrine_femmes_id', $utilisateur->id)->exists()
-                        && ! Cellule::query()->where('responsable_id', $utilisateur->id)->exists();
+                        && ! Cellule::query()->dirigeesPar($utilisateur)->exists();
 
                     if ($seulementSoeurs) {
                         $query->where('sexe', Sexe::Femme->value);

@@ -14,7 +14,7 @@ class RecuSympathisantController extends Controller
     public function __invoke(Request $request, ParticipationSympathisant $participation): Response
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(['tresorier', 'super_administrateur']), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->can('sympathisants.participations'), 403);
 
         $participation->load(['collecte', 'sympathisant', 'auteur']);
         $logo = public_path('images/logo-ndk.png');

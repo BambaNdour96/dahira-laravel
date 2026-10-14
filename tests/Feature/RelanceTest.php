@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\User;
 use App\Notifications\RappelCotisation;
@@ -17,7 +16,7 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 });
 
 function membreEnRetard(int $moisEcoules = 3, array $attributs = []): Membre
@@ -57,8 +56,8 @@ it('note la relance puis ouvre WhatsApp avec le message prêt', function () {
 
 it('interdit à un Jewrine de relancer un membre d\'une autre cellule', function () {
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
-    Cellule::factory()->create(['responsable_id' => $jewrine->id]);
+    $jewrine->assignRole('jewrine_cellule');
+    celluleDirigeePar($jewrine);
 
     $autre = membreEnRetard();
 

@@ -10,6 +10,7 @@ use App\Filament\Resources\Seances\Pages\ViewSeance;
 use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\ConservationService;
 use App\Services\PointageService;
 use BackedEnum;
@@ -54,10 +55,6 @@ class SeanceResource extends Resource
 
     protected static ?string $pluralModelLabel = 'séances';
 
-    public const LECTURE = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation', 'responsable_section', 'jewrine_femmes'];
-
-    public const GESTION = ['super_administrateur', 'responsable_section', 'jewrine_femmes'];
-
     private static function utilisateur(): ?User
     {
         $utilisateur = Auth::user();
@@ -67,12 +64,12 @@ class SeanceResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::utilisateur()?->hasAnyRole(self::LECTURE) ?? false;
+        return ($utilisateur = self::utilisateur()) !== null && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'dahiras.voir');
     }
 
     public static function canCreate(): bool
     {
-        return self::utilisateur()?->hasAnyRole(self::GESTION) ?? false;
+        return ($utilisateur = self::utilisateur()) !== null && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'dahiras.gerer');
     }
 
     public static function canEdit(Model $record): bool
@@ -83,8 +80,7 @@ class SeanceResource extends Resource
             return false;
         }
 
-        return $utilisateur->hasRole('super_administrateur')
-            || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true);
+        return app(CasquettesService::class)->peut($utilisateur, 'dahiras.gerer', $record->cellule_id);
     }
 
     public static function canView(Model $record): bool
@@ -95,8 +91,7 @@ class SeanceResource extends Resource
             return false;
         }
 
-        return $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])
-            || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true);
+        return app(CasquettesService::class)->peut($utilisateur, 'dahiras.voir', $record->cellule_id);
     }
 
     /** Rien ne se supprime : une dahira s'annule, avec un motif (voir annuler). */
@@ -124,8 +119,8 @@ class SeanceResource extends Resource
         $query = parent::getEloquentQuery()->where('type', Evenement::SEANCE);
         $utilisateur = self::utilisateur();
 
-        if ($utilisateur !== null && ! $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])) {
-            $query->whereIn('cellule_id', PointageService::cellulesDirigees($utilisateur));
+        if ($utilisateur !== null && ! $utilisateur->can('dahiras.voir')) {
+            $query->whereIn('cellule_id', app(CasquettesService::class)->cellulesDirigees($utilisateur));
         }
 
         return $query;
@@ -137,8 +132,8 @@ class SeanceResource extends Resource
         $utilisateur = self::utilisateur();
         $query = Cellule::query()->enActivite()->orderBy('nom');
 
-        if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
-            $query->whereIn('id', PointageService::cellulesDirigees($utilisateur));
+        if ($utilisateur !== null && ! $utilisateur->can('dahiras.gerer')) {
+            $query->whereIn('id', app(CasquettesService::class)->cellulesDirigees($utilisateur));
         }
 
         return $query->pluck('nom', 'id')->all();

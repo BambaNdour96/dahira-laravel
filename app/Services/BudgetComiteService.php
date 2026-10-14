@@ -32,7 +32,7 @@ final class BudgetComiteService
 
     public static function peutValider(User $utilisateur, DepenseCommission $depense): bool
     {
-        return $utilisateur->hasAnyRole(['tresorier', 'super_administrateur']) && $depense->declaree_par !== $utilisateur->id;
+        return $utilisateur->can('comites.depenses_valider') && $depense->declaree_par !== $utilisateur->id;
     }
 
     /** @param  array{designation: string, quantite: int, prix_unitaire: int}  $donnees */
@@ -78,7 +78,7 @@ final class BudgetComiteService
             'declaree_par' => $auteur->id,
         ]);
 
-        $tresoriers = User::role(['tresorier', 'super_administrateur'])->where('id', '!=', $auteur->id)->get();
+        $tresoriers = User::role(['jewrine_finance', 'super_administrateur'])->where('id', '!=', $auteur->id)->get();
 
         if ($tresoriers->isNotEmpty()) {
             Notification::make()
@@ -102,7 +102,7 @@ final class BudgetComiteService
         $budget = $commission->budget();
 
         if ($budget > 0 && $commission->depense() > $budget) {
-            $alertes = User::role(['tresorier', 'super_administrateur'])->get();
+            $alertes = User::role(['jewrine_finance', 'super_administrateur'])->get();
             $president = $commission->instance->president;
 
             if ($president !== null && $president->user_id !== null && ($compte = User::query()->find($president->user_id)) !== null) {

@@ -17,7 +17,7 @@ class EspaceController extends Controller
     {
         $user = $request->user();
         $membre = $user instanceof User
-            ? $user->membre()->with(['cellule', 'poste', 'commissions'])->first()
+            ? $user->membre()->with(['cellule', 'commissions'])->first()
             : null;
 
         return view('espace.index', [

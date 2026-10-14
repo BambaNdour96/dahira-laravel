@@ -21,7 +21,7 @@ class ProchainsEvenements extends TableWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation']);
+            && $utilisateur->can('evenements.voir');
     }
 
     public function table(Table $table): Table

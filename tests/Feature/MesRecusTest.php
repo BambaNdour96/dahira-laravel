@@ -16,7 +16,7 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->user = User::factory()->create();
     $this->user->assignRole('membre');

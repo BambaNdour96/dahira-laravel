@@ -27,7 +27,7 @@ final class PointageService
     /** Le périmètre de cette personne pour cet événement : « tous », « hommes », « femmes », ou null. */
     public function perimetre(User $utilisateur, Evenement $evenement): ?string
     {
-        if ($utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national'])) {
+        if ($utilisateur->can('pointage.partout')) {
             return 'tous';
         }
 
@@ -41,7 +41,7 @@ final class PointageService
             return null;
         }
 
-        if ($cellule->responsable_id === $utilisateur->id) {
+        if (app(CasquettesService::class)->estJewrineDe($utilisateur, $cellule->id)) {
             return 'tous';
         }
 
@@ -66,7 +66,7 @@ final class PointageService
 
     public function peutCorriger(User $utilisateur): bool
     {
-        return $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national']);
+        return $utilisateur->can('pointage.partout');
     }
 
     /**
@@ -99,7 +99,7 @@ final class PointageService
         $cellule = $evenement->cellule;
 
         return $cellule !== null
-            && $cellule->responsable_id === $utilisateur->id
+            && app(CasquettesService::class)->estJewrineDe($utilisateur, $cellule->id)
             && $membre->sexe === Sexe::Femme
             && $evenement->estSeance() ? 'secours' : null;
     }
@@ -203,21 +203,5 @@ final class PointageService
             'visiteurs' => $evenement->visiteurs,
             'total' => $presents->count() + $sympathisants + $evenement->visiteurs,
         ];
-    }
-
-    /**
-     * Les cellules que cette personne dirige (Jewrine ou Jewrine des Sokhnas).
-     *
-     * @return list<int>
-     */
-    public static function cellulesDirigees(User $utilisateur): array
-    {
-        return array_values(Cellule::query()
-            ->where('responsable_id', $utilisateur->id)
-            ->orWhere('jewrine_femmes_id', $utilisateur->id)
-            ->pluck('id')
-            ->map(fn (mixed $id): int => (int) $id)
-            ->values()
-            ->all());
     }
 }

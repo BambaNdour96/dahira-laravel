@@ -45,7 +45,7 @@ class ActionComiteResource extends Resource
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && (ComiteService::estDuComiteDirecteur($utilisateur) || $utilisateur->hasAnyRole(ComiteService::DIRECTION));
+        return $utilisateur instanceof User && $utilisateur->can('comites.consulter');
     }
 
     public static function canCreate(): bool

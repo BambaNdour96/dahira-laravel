@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Collecte;
 use App\Models\User;
-use App\Policies\CollectePolicy;
 use App\Services\CollecteService;
 use App\Support\Confidentiel;
 use Dompdf\Dompdf;
@@ -18,7 +17,7 @@ class ProgrammeRapportController extends Controller
     public function __invoke(Request $request, Collecte $collecte, CollecteService $service): Response
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole([...CollectePolicy::BUREAU, 'suivi_evaluation']), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->can('programmes.exporter'), 403);
 
         Confidentiel::noter($utilisateur, 'Rapport du programme (PDF) : '.$collecte->titre);
         $collecte->load('evenement');

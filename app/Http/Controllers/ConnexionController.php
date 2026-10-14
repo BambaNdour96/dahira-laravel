@@ -38,8 +38,7 @@ class ConnexionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        $estDuBureau = $user instanceof User
-            && $user->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+        $estDuBureau = $user instanceof User && $user->can('panneau.accueil');
 
         return redirect()->intended($estDuBureau ? '/admin' : route('espace'));
     }

@@ -69,7 +69,7 @@ class BudgetComiteController extends Controller
     {
         $utilisateur = $this->utilisateur($request);
         abort_unless($depense->justificatif_path !== null, 404);
-        abort_unless(ComiteService::peutLire($utilisateur, $depense->commission->instance) || $utilisateur->hasRole('tresorier'), 403);
+        abort_unless(ComiteService::peutLire($utilisateur, $depense->commission->instance) || $utilisateur->can('comites.depenses_valider'), 403);
 
         return Storage::disk('local')->response($depense->justificatif_path);
     }

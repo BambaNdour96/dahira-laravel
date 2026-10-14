@@ -8,35 +8,36 @@ use App\Support\AntiFraude;
 use DomainException;
 
 /**
- * Le Jewrine finance gère les paiements des membres. La direction les consulte,
- * et valide seulement les paiements du bureau qui lui sont confiés (validation croisée).
+ * Le Jewrine finance gère les paiements des membres (« paiements.valider »). La direction les consulte,
+ * et valide seulement les paiements des responsables qui lui sont confiés (« paiements.valider_bureau »,
+ * validation croisée). Le super administrateur valide en secours (« paiements.secours »).
  */
 class PaiementPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['administrateur', 'tresorier']);
+        return $user->can('paiements.voir');
     }
 
     public function view(User $user, Paiement $paiement): bool
     {
-        return $user->hasAnyRole(['administrateur', 'tresorier']);
+        return $user->can('paiements.voir');
     }
 
     /** Enregistrer un paiement en espèces. */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['tresorier', 'super_administrateur']);
+        return $user->can('paiements.encaisser');
     }
 
     /** Confirmer ou refuser une déclaration. */
     public function update(User $user, Paiement $paiement): bool
     {
-        if ($user->hasAnyRole(['tresorier', 'super_administrateur'])) {
+        if ($user->can('paiements.valider') || $user->can('paiements.secours')) {
             return true;
         }
 
-        if (! $paiement->exists || ! $user->hasRole('administrateur')) {
+        if (! $paiement->exists || ! $user->can('paiements.valider_bureau')) {
             return false;
         }
 

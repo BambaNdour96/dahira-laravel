@@ -32,12 +32,9 @@ function compteAvecPoste(string $poste, array $roles): User
 {
     $compte = User::factory()->create();
     $compte->assignRole([...$roles, 'membre']);
-    Membre::factory()->for($compte)->valide()->create([
-        'poste_id' => Poste::query()->where('nom', $poste)->value('id'),
-        'valide_le' => now()->subMonths(2),
-    ]);
+    Membre::factory()->for($compte)->valide()->create(['valide_le' => now()->subMonths(2)]);
 
-    return $compte->fresh();
+    return nommerPourLeTest($compte, ['Jewrine finance' => 'jewrine_finance', 'Secrétaire général' => 'secretaire_general', 'Jewrine national' => 'jewrine_national'][$poste]);
 }
 
 beforeEach(function () {
@@ -46,10 +43,10 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole(['secretaire_general', 'administrateur']);
+    $this->admin->assignRole('secretaire_general');
 });
 
 describe('les événements', function () {
@@ -77,7 +74,7 @@ describe('les événements', function () {
 
     it('réserve les événements à la direction et au super administrateur', function () {
         $tresorier = User::factory()->create();
-        $tresorier->assignRole('tresorier');
+        $tresorier->assignRole('jewrine_finance');
 
         expect($this->super->can('view', $this->evenement))->toBeTrue()
             ->and($this->super->can('update', $this->evenement))->toBeTrue()
@@ -92,8 +89,8 @@ describe('les événements', function () {
 it('modifie une règle de validation sans jamais laisser un poste se valider lui-même', function () {
     $this->actingAs($this->super);
 
-    $jewrineFinance = Poste::query()->where('nom', 'Jewrine finance')->value('id');
-    $secretaire = Poste::query()->where('nom', 'Secrétaire général')->value('id');
+    $jewrineFinance = Poste::query()->where('code', 'jewrine_finance')->value('id');
+    $secretaire = Poste::query()->where('code', 'secretaire_general')->value('id');
     $regle = RegleValidation::query()->where('poste_id', $jewrineFinance)->firstOrFail();
 
     Livewire::test(ManageReglesValidation::class)
@@ -109,8 +106,8 @@ it('modifie une règle de validation sans jamais laisser un poste se valider lui
 });
 
 it('montre aux validateurs les paiements du bureau qui les attendent', function () {
-    $secretaire = compteAvecPoste('Secrétaire général', ['secretaire_general', 'administrateur']);
-    $jewrineFinance = compteAvecPoste('Jewrine finance', ['tresorier']);
+    $secretaire = compteAvecPoste('Secrétaire général', ['secretaire_general']);
+    $jewrineFinance = compteAvecPoste('Jewrine finance', ['jewrine_finance']);
 
     app(CotisationService::class)->declarer($jewrineFinance->membre, 'T_COUVERTURE000001', 1);
 
@@ -163,7 +160,7 @@ it('présente la page de suppression du compte, puis la demande en cours', funct
 
 it('relie chaque cotisation à son membre et à son paiement', function () {
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     $membre = Membre::factory()->valide()->create(['valide_le' => now()->subMonths(2)]);
 
     $paiement = app(CotisationService::class)->enregistrerEspeces($membre, 1, $tresorier);

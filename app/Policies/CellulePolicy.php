@@ -12,22 +12,22 @@ class CellulePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function view(User $user, Cellule $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function update(User $user, Cellule $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     /** Rien ne se supprime : une cellule vide s'archive (voir archiver). */
@@ -38,6 +38,6 @@ class CellulePolicy
 
     public function archiver(User $user, Cellule $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 }

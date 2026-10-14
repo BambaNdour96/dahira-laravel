@@ -38,9 +38,9 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
     $this->national = User::factory()->create();
-    $this->national->assignRole(['jewrine_national', 'administrateur']);
+    $this->national->assignRole('jewrine_national');
 
     $this->ousmane = membreComite('Ousmane');
     $this->modou = membreComite('Modou');

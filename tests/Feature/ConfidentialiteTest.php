@@ -22,7 +22,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create(['name' => 'Bamba Ndour']);
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->membre = Membre::factory()->valide()->create(['prenom' => 'Awa', 'telephone' => '+221770009999']);
     $this->collecte = Collecte::query()->create([
@@ -34,7 +34,7 @@ beforeEach(function () {
 
 it('fait accepter la charte de confidentialité avant l\'accès au panneau', function () {
     $tresorier = User::factory()->create(['charte_acceptee_le' => null]);
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $this->actingAs($tresorier)->get('/admin')->assertRedirect(route('charte'));
     $this->actingAs($tresorier)->get(route('charte'))->assertOk()->assertSee('Charte de confidentialité du bureau');
@@ -90,7 +90,7 @@ it('trace chaque rapport téléchargé et montre le journal au seul super admini
     Livewire::test(ListJournalExports::class)->assertOk()->assertSee('Rapport du programme (PDF) : Magal 2026');
 
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     $this->actingAs($tresorier);
     Livewire::test(ListJournalExports::class)->assertForbidden();
 });

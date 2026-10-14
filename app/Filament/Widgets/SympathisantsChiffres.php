@@ -22,7 +22,7 @@ class SympathisantsChiffres extends StatsOverviewWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'])
+            && $utilisateur->can('statistiques.voir')
             && Sympathisant::query()->exists();
     }
 

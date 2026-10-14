@@ -24,7 +24,7 @@ function membreTache(string $prenom): Membre
 beforeEach(function () {
     $this->seed(RolesSeeder::class);
     $super = User::factory()->create();
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
 
     $this->president = membreTache('Ousmane');
     $this->fatou = membreTache('Fatou');

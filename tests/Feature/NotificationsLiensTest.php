@@ -15,7 +15,7 @@ it('donne le matricule dans le message de bienvenue, et des liens sans adresse d
     $this->seed([RolesSeeder::class, TarifsSeeder::class]);
 
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     $compte = User::factory()->create();
     $compte->assignRole('membre');
     $membre = Membre::factory()->for($compte)->accepte()->create();

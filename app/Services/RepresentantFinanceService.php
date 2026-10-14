@@ -30,7 +30,7 @@ final class RepresentantFinanceService
 
     public function designer(Cellule $cellule, string $perimetre, User $designe, User $auteur): RepresentantFinance
     {
-        if (! $auteur->hasAnyRole(['tresorier', 'super_administrateur'])) {
+        if (! $auteur->can('representants.designer')) {
             throw new DomainException('Seul le Jewrine finance désigne ses représentants.');
         }
 
@@ -58,7 +58,7 @@ final class RepresentantFinanceService
             ['user_id' => $designe->id, 'designe_par' => $auteur->id],
         );
 
-        $designe->assignRole('representant_finance');
+        app(CasquettesService::class)->synchroniser($designe);
 
         return $representant;
     }
@@ -167,7 +167,7 @@ final class RepresentantFinanceService
     /** Le Jewrine finance national reçoit les espèces d'un représentant : la caisse revient à zéro. */
     public function recevoirRemise(User $representant, User $receveur): RemiseFonds
     {
-        if (! $receveur->hasAnyRole(['tresorier', 'super_administrateur']) || $receveur->id === $representant->id) {
+        if (! $receveur->can('caisses.recevoir') || $receveur->id === $representant->id) {
             throw new DomainException('La remise est reçue par le Jewrine finance national.');
         }
 
@@ -243,7 +243,7 @@ final class RepresentantFinanceService
             }
         }
 
-        $nationaux = User::role(['tresorier', 'super_administrateur'])->get();
+        $nationaux = User::role(['jewrine_finance', 'super_administrateur'])->get();
 
         if ($nationaux->isNotEmpty() && ($enAttente > 0 || $caisses > 0)) {
             Notification::make()

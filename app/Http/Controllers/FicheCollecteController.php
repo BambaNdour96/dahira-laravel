@@ -6,7 +6,6 @@ use App\Enums\ModeCollecte;
 use App\Enums\ProgrammeCollecte;
 use App\Models\Cellule;
 use App\Models\User;
-use App\Policies\CollectePolicy;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,7 +19,7 @@ class FicheCollecteController extends Controller
     public function __invoke(Request $request): Response
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole(CollectePolicy::BUREAU), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->can('programmes.piloter'), 403);
 
         $logo = public_path('images/logo-ndk.png');
 

@@ -19,10 +19,10 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->user = User::factory()->create();
     $this->user->assignRole('membre');
@@ -64,14 +64,14 @@ it('refuse un numéro Wave invalide', function () {
 });
 
 it('interdit au Jewrine finance de confirmer son propre paiement', function () {
-    $this->user->assignRole('tresorier');
+    $this->user->assignRole('jewrine_finance');
     $paiement = app(CotisationService::class)->declarer($this->membre, 'TMOIMEME1', 1);
 
     app(PaiementService::class)->confirmer($paiement, $this->user);
 })->throws(DomainException::class);
 
 it('interdit au Jewrine finance d\'enregistrer ses propres espèces', function () {
-    $this->user->assignRole('tresorier');
+    $this->user->assignRole('jewrine_finance');
 
     app(CotisationService::class)->enregistrerEspeces($this->membre, 1, $this->user);
 })->throws(DomainException::class);

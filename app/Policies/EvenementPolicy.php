@@ -13,22 +13,22 @@ class EvenementPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur', 'suivi_evaluation']);
+        return $user->can('evenements.voir');
     }
 
     public function view(User $user, Evenement $evenement): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur', 'suivi_evaluation']);
+        return $user->can('evenements.voir');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']);
+        return $user->can('evenements.gerer');
     }
 
     public function update(User $user, Evenement $evenement): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']);
+        return $user->can('evenements.gerer');
     }
 
     /** Rien ne se supprime : un événement s'annule (voir annuler). */
@@ -39,6 +39,6 @@ class EvenementPolicy
 
     public function annuler(User $user, Evenement $evenement): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']) && ! $evenement->estAnnule();
+        return $user->can('evenements.gerer') && ! $evenement->estAnnule();
     }
 }

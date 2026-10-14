@@ -17,8 +17,8 @@ final class ConnexionEnTantQue
 
     public function demarrer(User $superAdmin, User $cible): void
     {
-        if (! $superAdmin->hasRole('super_administrateur')
-            || $cible->hasRole('super_administrateur')
+        if (! $superAdmin->can('plateforme.administrer')
+            || CasquettesService::estSuperAdministrateur($cible)
             || $cible->is($superAdmin)) {
             throw new AuthorizationException('Action non autorisée.');
         }

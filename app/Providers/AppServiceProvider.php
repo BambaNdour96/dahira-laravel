@@ -10,6 +10,7 @@ use App\Observers\AvisMembreObserver;
 use App\Observers\CoherenceProfilObserver;
 use App\Observers\EmailUtilisateurObserver;
 use App\Observers\TachesObserver;
+use App\Services\CasquettesService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Les cellules dirigées sont gardées en mémoire le temps d'une requête.
+        $this->app->scoped(CasquettesService::class);
     }
 
     public function boot(): void

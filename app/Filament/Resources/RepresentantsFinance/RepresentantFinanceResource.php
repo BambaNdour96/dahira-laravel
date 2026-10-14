@@ -55,14 +55,14 @@ class RepresentantFinanceResource extends Resource
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['tresorier', 'super_administrateur', 'jewrine_national']);
+        return $utilisateur instanceof User && $utilisateur->can('representants.voir');
     }
 
     public static function peutGerer(): bool
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['tresorier', 'super_administrateur']);
+        return $utilisateur instanceof User && $utilisateur->can('representants.designer');
     }
 
     public static function canCreate(): bool

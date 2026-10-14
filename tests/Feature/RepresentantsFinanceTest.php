@@ -46,7 +46,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->national = User::factory()->create(['name' => 'Fatou Ndiaye']);
-    $this->national->assignRole('tresorier');
+    $this->national->assignRole('jewrine_finance');
 
     $this->kaolack = Cellule::factory()->create(['nom' => 'Kaolack']);
     $this->dakar = Cellule::factory()->create(['nom' => 'Dakar']);

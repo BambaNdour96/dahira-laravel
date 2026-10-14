@@ -25,7 +25,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 it('crée un programme avec son jour J, en un seul formulaire', function () {

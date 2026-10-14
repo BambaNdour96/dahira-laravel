@@ -27,7 +27,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->compte = User::factory()->create();
     $this->compte->assignRole('membre');

@@ -13,6 +13,7 @@ use App\Filament\Resources\ComptesBureau\Pages\ManageComptesBureau;
 use App\Filament\Resources\Exercices\Pages\ManageExercices;
 use App\Filament\Resources\Membres\Pages\EditMembre;
 use App\Filament\Resources\Membres\Pages\ListMembres;
+use App\Filament\Resources\Nominations\Pages\ManageNominations;
 use App\Filament\Resources\Paiements\Pages\ManagePaiements;
 use App\Filament\Resources\Parametres\Pages\ManageParametres;
 use App\Filament\Resources\Postes\Pages\ManagePostes;
@@ -21,6 +22,7 @@ use App\Models\Carte;
 use App\Models\Cotisation;
 use App\Models\Membre;
 use App\Models\Parametre;
+use App\Models\Poste;
 use App\Models\User;
 use App\Services\CarteService;
 use App\Services\CotisationService;
@@ -46,13 +48,13 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole(['secretaire_general', 'administrateur']);
+    $this->admin->assignRole('secretaire_general');
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 });
 
 function membreAvecCompte(string $etat = 'valide'): Membre
@@ -203,31 +205,31 @@ describe('les membres', function () {
     });
 });
 
-describe('les comptes du bureau', function () {
-    it('nomme un membre validé au bureau', function () {
+describe('les comptes', function () {
+    it('nomme un membre validé depuis l\'écran des nominations', function () {
         $membre = membreAvecCompte();
 
         $this->actingAs($this->super);
 
-        Livewire::test(ManageComptesBureau::class)
-            ->callAction('nommer', data: ['membre_id' => $membre->id, 'role' => 'tresorier'])
+        Livewire::test(ManageNominations::class)
+            ->callAction('nommer', data: [
+                'user_id' => $membre->user_id,
+                'poste_id' => Poste::query()->where('code', 'jewrine_finance')->value('id'),
+                'debut_le' => now()->toDateString(),
+            ])
             ->assertHasNoActionErrors();
 
-        expect($membre->user->fresh()->hasRole('tresorier'))->toBeTrue();
+        expect($membre->user->fresh()->hasRole('jewrine_finance'))->toBeTrue();
     });
 
-    it('retire un membre du bureau et lui donne un nouveau mot de passe', function () {
+    it('donne un nouveau mot de passe à un responsable', function () {
         $this->actingAs($this->super);
 
         Livewire::test(ManageComptesBureau::class)
             ->callAction(TestAction::make('reinitialiserMotDePasse')->table($this->tresorier))
-            ->callAction(TestAction::make('retirerDuBureau')->table($this->tresorier))
             ->assertHasNoActionErrors();
 
-        $compte = $this->tresorier->fresh();
-
-        expect($compte->hasRole('tresorier'))->toBeFalse()
-            ->and((bool) $compte->getAttribute('doit_changer_mot_de_passe'))->toBeTrue();
+        expect((bool) $this->tresorier->fresh()->getAttribute('doit_changer_mot_de_passe'))->toBeTrue();
     });
 });
 
@@ -273,7 +275,7 @@ it('ouvre le formulaire de création de chaque donnée de référence', function
 
 it('connecte un administrateur au panneau avec son numéro de téléphone', function () {
     $compte = User::factory()->create(['telephone' => '+221770001122', 'password' => 'motdepasse1']);
-    $compte->assignRole(['secretaire_general', 'administrateur']);
+    $compte->assignRole('secretaire_general');
 
     $this->get('/admin/login')->assertOk();
 

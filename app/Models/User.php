@@ -9,6 +9,7 @@ use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -57,14 +58,23 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->actif
-            && $this->hasAnyRole(['administrateur', 'tresorier', 'responsable_section', 'jewrine_femmes', 'suivi_evaluation', 'comite_directeur']);
+        return $this->actif && $this->can('panneau.acceder');
     }
 
     /** @return HasOne<Membre, $this> */
     public function membre(): HasOne
     {
         return $this->hasOne(Membre::class);
+    }
+
+    /**
+     * Ses nominations en cours (l'historique : withoutGlobalScope(Nomination::EN_COURS)).
+     *
+     * @return HasMany<Nomination, $this>
+     */
+    public function nominations(): HasMany
+    {
+        return $this->hasMany(Nomination::class);
     }
 
     // Double authentification (application Google Authenticator, Microsoft Authenticator…)

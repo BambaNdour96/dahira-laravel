@@ -21,7 +21,6 @@
         .photo { width: 17mm; height: 22mm; border: 0.5mm solid #047857; border-radius: 1.5mm; }
         .prenom { font-size: 7pt; font-weight: bold; color: #44403c; }
         .nom { font-size: 10pt; font-weight: bold; color: #064e3b; }
-        .poste { display: inline-block; background: #d4a017; color: #022c22; font-size: 5.5pt; font-weight: bold; padding: 0.4mm 1mm; border-radius: 0.8mm; margin: 0.8mm 0; }
         .etiquette { font-size: 4.8pt; font-weight: bold; color: #047857; text-transform: uppercase; }
         .valeur { font-size: 6.5pt; font-weight: bold; }
         .qr { width: 20mm; height: 20mm; }
@@ -51,7 +50,6 @@
                 <td>
                     <div class="prenom">{{ $membre->prenom }}</div>
                     <div class="nom">{{ $membre->nom }}</div>
-                    @if ($membre->poste)<div class="poste">{{ $membre->poste->nom }}</div>@endif
                     <div class="etiquette">Matricule</div>
                     <div class="valeur">{{ $membre->matricule }}</div>
                     <div class="etiquette">Cellule</div>

@@ -12,22 +12,22 @@ class ExercicePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function view(User $user, Exercice $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function update(User $user, Exercice $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     /** Rien ne se supprime : un exercice reste dans l'historique. */

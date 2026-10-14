@@ -35,7 +35,7 @@
             </a>
             <nav class="flex flex-wrap items-center justify-end gap-1 text-sm">
                 @auth
-                    @if (auth()->user()->hasAnyRole(\App\Services\CompteBureauService::ROLES_BUREAU))
+                    @if (auth()->user()->can('panneau.acceder'))
                         <a href="/admin" class="rounded-lg bg-or-500 px-3 py-2 font-semibold text-emerald-950 hover:bg-or-400">Panneau du bureau</a>
                     @endif
                     <a href="{{ route('espace') }}" class="rounded-lg px-3 py-2 hover:bg-white/10">Mon espace</a>

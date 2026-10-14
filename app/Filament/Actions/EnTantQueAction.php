@@ -4,6 +4,7 @@ namespace App\Filament\Actions;
 
 use App\Models\Membre;
 use App\Models\User;
+use App\Services\CasquettesService;
 use Filament\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
@@ -20,7 +21,7 @@ final class EnTantQueAction
             ->label('Voir en tant que')
             ->icon('heroicon-o-eye')
             ->color('gray')
-            ->hidden(fn (User $record): bool => $record->hasRole('super_administrateur') || ! self::autorise())
+            ->hidden(fn (User $record): bool => CasquettesService::estSuperAdministrateur($record) || ! self::autorise())
             ->url(fn (User $record): string => self::lien($record->id));
     }
 
@@ -38,7 +39,7 @@ final class EnTantQueAction
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasRole('super_administrateur');
+        return $utilisateur instanceof User && $utilisateur->can('plateforme.administrer');
     }
 
     private static function lien(int $userId): string

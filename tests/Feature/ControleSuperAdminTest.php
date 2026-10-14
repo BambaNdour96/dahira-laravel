@@ -14,10 +14,10 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole(['secretaire_general', 'administrateur']);
+    $this->admin->assignRole('secretaire_general');
 
     $this->membre = User::factory()->create();
     $this->membre->assignRole('membre');
@@ -50,7 +50,7 @@ it('permet au super administrateur de voir la plateforme comme un membre, puis d
 
     $this->withSession([ConnexionEnTantQue::CLE => $this->super->id])
         ->post('/retour-mon-compte')
-        ->assertRedirect('/admin/comptes-bureau');
+        ->assertRedirect('/admin/comptes');
     $this->assertAuthenticatedAs($this->super);
 
     expect(JournalActivite::query()->where('evenement', 'en_tant_que')->exists())->toBeTrue();

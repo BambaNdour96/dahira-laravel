@@ -7,6 +7,7 @@ use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\User;
 use App\Policies\CollectePolicy;
+use App\Services\CasquettesService;
 use App\Services\CotisationService;
 use App\Support\MessagesRelance;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class RelanceController extends Controller
 
         abort_unless(
             $utilisateur instanceof User
-                && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier', 'responsable_section'])
+                && app(CasquettesService::class)->peut($utilisateur, 'relances.envoyer', $membre->cellule_id)
                 && Gate::allows('view', $membre),
             403,
         );

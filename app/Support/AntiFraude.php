@@ -26,33 +26,32 @@ final class AntiFraude
 
     /**
      * Règle complète : jamais soi-même ; le paiement d'un membre est confirmé par le Jewrine finance ;
-     * pour un poste clé du bureau, seulement les postes désignés. Le super administrateur peut tout, en secours.
+     * pour un responsable, seulement par une personne autorisée par toutes les règles de ses postes.
+     * Le super administrateur valide en secours (jamais son propre paiement).
      */
     public static function verifierValidateur(Membre $payeur, ?User $validateur): void
     {
         self::verifierPasSoiMeme($payeur, $validateur);
 
-        if ($validateur === null || $validateur->hasRole('super_administrateur')) {
+        if ($validateur === null || $validateur->can('paiements.secours')) {
             return;
         }
 
-        $regle = $payeur->poste_id === null
-            ? null
-            : RegleValidation::query()->where('poste_id', $payeur->poste_id)->first();
+        $regles = RegleValidation::pour($payeur);
 
-        if ($regle === null) {
-            if (! $validateur->hasRole('tresorier') && ! RepresentantFinance::represente($validateur, $payeur)) {
+        if ($regles->isEmpty()) {
+            if (! $validateur->can('paiements.valider') && ! RepresentantFinance::represente($validateur, $payeur)) {
                 throw new DomainException('Seul le Jewrine finance ou son représentant dans la cellule confirme les paiements des membres (ou le super administrateur, en secours).');
             }
 
             return;
         }
 
-        $posteDuValidateur = $validateur->membre?->poste_id;
-
-        if ($posteDuValidateur === null || ! in_array((int) $posteDuValidateur, $regle->idsValidateurs(), true)) {
-            throw new DomainException('Le paiement de ce membre du bureau doit être validé par : '
-                .$regle->libelleValidateurs().', ou par le super administrateur.');
+        // Le payeur cumule peut-être plusieurs postes : le validateur doit être autorisé par toutes leurs règles.
+        if (! RegleValidation::autorise($validateur, $payeur)) {
+            throw new DomainException('Le paiement de ce responsable doit être validé par : '
+                .$regles->map(fn (RegleValidation $regle): string => $regle->libelleValidateurs())->join(' ; et par ')
+                .', ou par le super administrateur.');
         }
     }
 

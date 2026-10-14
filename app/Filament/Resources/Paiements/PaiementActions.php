@@ -211,7 +211,7 @@ final class PaiementActions
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'super_administrateur']);
+        return $utilisateur instanceof User && $utilisateur->can('cotisations.dispenser');
     }
 
     private static function fcfa(int $montant): string

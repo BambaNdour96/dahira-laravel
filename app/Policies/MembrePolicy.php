@@ -5,30 +5,34 @@ namespace App\Policies;
 use App\Enums\StatutMembre;
 use App\Models\Membre;
 use App\Models\User;
-use App\Services\CompteBureauService;
+use App\Services\CasquettesService;
 
+/**
+ * Le registre des membres. Une capacité vaut pour toute la Daara ; le Jewrine de cellule
+ * l'a pour sa cellule seulement (voir App\Support\Capacites).
+ */
 class MembrePolicy
 {
+    public function __construct(private readonly CasquettesService $casquettes) {}
+
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+        return $this->casquettes->peutQuelquePart($user, 'membres.voir');
     }
 
     public function view(User $user, Membre $membre): bool
     {
-        return $user->hasAnyRole(['administrateur', 'tresorier'])
-            || $this->estResponsableDe($user, $membre);
+        return $this->casquettes->peut($user, 'membres.voir', $membre->cellule_id);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['administrateur', 'responsable_section']);
+        return $this->casquettes->peutQuelquePart($user, 'membres.inscrire');
     }
 
     public function update(User $user, Membre $membre): bool
     {
-        return $user->hasRole('administrateur')
-            || $this->estResponsableDe($user, $membre);
+        return $this->casquettes->peut($user, 'membres.modifier', $membre->cellule_id);
     }
 
     /** Rien ne se supprime : une fiche rejetée est anonymisée au terme de sa durée de conservation. */
@@ -48,15 +52,15 @@ class MembrePolicy
         return $membre->user_id === $user->id || $this->view($user, $membre);
     }
 
-    /** Seul l'administrateur révoque une carte (perte, vol). */
+    /** Révoquer une carte (perte, vol). */
     public function revoquerCarte(User $user, Membre $membre): bool
     {
-        return $user->hasRole('administrateur');
+        return $user->can('cartes.revoquer');
     }
 
     /**
-     * L'administrateur peut tout faire, y compris valider sans paiement.
-     * Le Jewrine accepte, fait corriger ou rejette les demandes de sa cellule.
+     * Pour toute la Daara : tout changement de statut, y compris valider sans paiement.
+     * Le Jewrine de cellule accepte, fait corriger ou rejette les demandes de sa cellule.
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
     {
@@ -65,28 +69,22 @@ class MembrePolicy
             return false;
         }
 
-        // Le statut d'un membre du bureau ne change que par le super administrateur.
-        if ($membre->user?->hasAnyRole(CompteBureauService::ROLES_BUREAU) === true && ! $user->hasRole('super_administrateur')) {
+        // Le statut d'un responsable ne change que par le super administrateur.
+        if ($membre->user !== null && $this->casquettes->estDuBureau($membre->user) && ! $user->can('membres.statut_responsables')) {
             return false;
         }
 
         // Suspendre un membre, ou réactiver un membre suspendu : décision de direction.
         if ($cible === StatutMembre::Suspendu || $membre->statut === StatutMembre::Suspendu) {
-            return $user->hasAnyRole(['jewrine_national', 'super_administrateur']);
+            return $user->can('membres.suspendre');
         }
 
-        if ($user->hasRole('administrateur')) {
+        if ($user->can('membres.valider')) {
             return true;
         }
 
-        return $this->estResponsableDe($user, $membre)
+        return $this->casquettes->peut($user, 'membres.valider', $membre->cellule_id)
             && $membre->statut === StatutMembre::EnAttente
             && in_array($cible, [StatutMembre::Accepte, StatutMembre::ACorriger, StatutMembre::Rejete], true);
-    }
-
-    private function estResponsableDe(User $user, Membre $membre): bool
-    {
-        return $user->hasRole('responsable_section')
-            && $membre->cellule()->where('responsable_id', $user->id)->exists();
     }
 }

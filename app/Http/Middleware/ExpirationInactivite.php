@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
-use App\Services\CompteBureauService;
+use App\Services\CasquettesService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -79,15 +79,15 @@ class ExpirationInactivite
 
     public static function estDuBureau(User $utilisateur): bool
     {
-        return $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'super_administrateur', 'representant_finance', 'comite_directeur']);
+        return $utilisateur->can('espace.responsable');
     }
 
     /** Durée d'inactivité autorisée, en minutes, selon le profil. */
     public static function minutesPour(User $utilisateur): int
     {
         return match (true) {
-            $utilisateur->hasRole('super_administrateur') => (int) config('dahira.inactivite_super_admin', 25),
-            $utilisateur->hasAnyRole([...CompteBureauService::ROLES_BUREAU, 'representant_finance', 'comite_directeur']) => (int) config('dahira.inactivite_bureau', 10),
+            CasquettesService::estSuperAdministrateur($utilisateur) => (int) config('dahira.inactivite_super_admin', 25),
+            $utilisateur->can('espace.responsable') => (int) config('dahira.inactivite_bureau', 10),
             default => (int) config('dahira.inactivite_membres', 2),
         };
     }

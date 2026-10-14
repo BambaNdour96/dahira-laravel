@@ -27,7 +27,7 @@ it('laisse la vérification des cartes accessible', function () {
 
 it('laisse passer le super administrateur', function () {
     $super = User::factory()->create();
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
 
     $this->actingAs($super)->get('/')->assertOk();
 });

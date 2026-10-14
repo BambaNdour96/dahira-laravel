@@ -7,7 +7,6 @@ use App\Filament\Resources\Cellules\Pages\ManageCellules;
 use App\Models\Cellule;
 use BackedEnum;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
@@ -42,11 +41,6 @@ class CelluleResource extends Resource
             TextInput::make('nom')->label('Nom')->required()->maxLength(100)->unique(ignoreRecord: true),
             TextInput::make('ville')->label('Ville')->required()->maxLength(100),
             TextInput::make('pays')->label('Pays')->required()->default('Sénégal')->maxLength(100),
-            Select::make('responsable_id')
-                ->label('Jewrine')
-                ->relationship('responsable', 'name')
-                ->searchable()
-                ->preload(),
             TextInput::make('whatsapp_lien')
                 ->label('Lien du groupe WhatsApp')
                 ->url()
@@ -65,7 +59,9 @@ class CelluleResource extends Resource
             ->columns([
                 TextColumn::make('nom')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('ville')->label('Ville')->searchable(),
-                TextColumn::make('responsable.name')->label('Jewrine')->placeholder('—'),
+                TextColumn::make('jewrine')->label('Jewrine')->placeholder('—')
+                    ->state(fn (Cellule $record): ?string => $record->jewrine()?->name)
+                    ->tooltip('Se nomme dans Paramètres → Nominations'),
                 TextColumn::make('membres_count')->label('Membres')->counts('membres')->sortable(),
                 TextColumn::make('archive_le')->label('Archivée le')->date('d/m/Y')->placeholder('—')->toggleable(),
                 IconColumn::make('whatsapp_lien')

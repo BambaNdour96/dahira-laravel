@@ -4,113 +4,91 @@ namespace App\Filament\Resources\ComptesBureau;
 
 use App\Filament\Actions\EnTantQueAction;
 use App\Filament\Resources\ComptesBureau\Pages\ManageComptesBureau;
-use App\Models\Cellule;
 use App\Models\User;
-use App\Services\CompteBureauService;
+use App\Services\CasquettesService;
+use App\Services\CompteService;
 use App\Support\AffichageMotDePasse;
+use App\Support\Capacites;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\Action;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
+/**
+ * Les comptes des responsables, pour le super administrateur : casquettes en cours, activation,
+ * mot de passe provisoire, « voir en tant que ». Les droits se règlent dans « Nominations ».
+ */
 class CompteBureauResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static bool $hasTitleCaseModelLabel = false;
 
-    protected static ?string $slug = 'comptes-bureau';
+    protected static ?string $slug = 'comptes';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-key';
 
     protected static string|UnitEnum|null $navigationGroup = 'Paramètres';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $modelLabel = 'compte du bureau';
+    protected static ?string $modelLabel = 'compte';
 
-    protected static ?string $pluralModelLabel = 'comptes du bureau';
+    protected static ?string $pluralModelLabel = 'comptes';
 
-    protected static ?string $navigationLabel = 'Comptes du bureau';
-
-    /**
-     * Champs communs à la nomination et à la modification.
-     *
-     * @return list<Select>
-     */
-    public static function champsRole(): array
-    {
-        return [
-            Select::make('role')
-                ->label('Rôle')
-                ->options(CompteBureauService::ROLES)
-                ->required()
-                ->live(),
-            Select::make('cellule_id')
-                ->label('Cellule de ce Jewrine')
-                ->options(fn (): array => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom', 'id')->all())
-                ->visible(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
-                ->required(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
-                ->helperText('Si cette cellule avait déjà quelqu\'un à ce poste, il sera remplacé.'),
-        ];
-    }
-
-    public static function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            ...self::champsRole(),
-            Toggle::make('actif')
-                ->label('Compte actif')
-                ->helperText('Un compte désactivé ne peut plus se connecter, ni au panneau ni à son compte de membre.'),
-        ]);
-    }
+    protected static ?string $navigationLabel = 'Comptes';
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query
-                ->whereHas('roles', fn ($roles) => $roles->whereIn('name', CompteBureauService::ROLES_BUREAU))
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', '!=', 'membre'))
                 ->with(['roles', 'membre']))
             ->columns([
                 TextColumn::make('name')->label('Nom')->searchable()->sortable(),
                 TextColumn::make('telephone')->label('Téléphone')->searchable(),
                 TextColumn::make('membre.matricule')->label('Matricule')->placeholder('—'),
-                TextColumn::make('poste_bureau')
-                    ->label('Poste')
+                TextColumn::make('casquettes')
+                    ->label('Casquettes')
                     ->badge()
                     ->state(fn (User $record): array => $record->getRoleNames()
-                        ->diff(['administrateur', 'membre'])
-                        ->map(fn (string $role): string => CompteBureauService::LIBELLES[$role] ?? $role)
+                        ->diff(['membre'])
+                        ->map(fn (string $role): string => Capacites::CASQUETTES[$role] ?? $role)
                         ->values()
                         ->all()),
-                TextColumn::make('cellule')
-                    ->label('Cellule dirigée')
-                    ->state(fn (User $record): string => (string) (Cellule::query()->where('responsable_id', $record->id)->orWhere('jewrine_femmes_id', $record->id)->value('nom') ?? '—')),
                 IconColumn::make('actif')->label('Actif')->boolean(),
                 TextColumn::make('derniere_connexion_at')->label('Dernière connexion')->since()->placeholder('Jamais'),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->label('Modifier le rôle')
-                    ->hidden(fn (User $record): bool => $record->hasRole('super_administrateur'))
-                    ->mutateRecordDataUsing(fn (array $data, User $record): array => [
-                        ...$data,
-                        'role' => $record->getRoleNames()->intersect(array_keys(CompteBureauService::ROLES))->first(),
-                        'cellule_id' => Cellule::query()->where('responsable_id', $record->id)->orWhere('jewrine_femmes_id', $record->id)->value('id'),
-                    ])
-                    ->using(fn (User $record, array $data): User => app(CompteBureauService::class)->mettreAJour($record, $data)),
-
                 EnTantQueAction::pourCompte(),
+
+                Action::make('changerEtat')
+                    ->label(fn (User $record): string => $record->actif ? 'Désactiver' : 'Réactiver')
+                    ->icon(fn (User $record): string => $record->actif ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
+                    ->color(fn (User $record): string => $record->actif ? 'danger' : 'success')
+                    ->hidden(fn (User $record): bool => CasquettesService::estSuperAdministrateur($record))
+                    ->requiresConfirmation()
+                    ->modalDescription(fn (User $record): string => $record->actif
+                        ? 'La personne ne pourra plus se connecter, ni au panneau ni à son compte de membre. Ses nominations ne changent pas.'
+                        : 'La personne pourra de nouveau se connecter.')
+                    ->action(function (User $record): void {
+                        try {
+                            app(CompteService::class)->changerEtat($record, ! $record->actif);
+                        } catch (DomainException $e) {
+                            Notification::make()->title($e->getMessage())->danger()->send();
+
+                            return;
+                        }
+
+                        Notification::make()->title($record->actif ? 'Compte réactivé.' : 'Compte désactivé.')->success()->send();
+                    }),
 
                 Action::make('reinitialiserMotDePasse')
                     ->label('Nouveau mot de passe')
@@ -119,7 +97,7 @@ class CompteBureauResource extends Resource
                     ->requiresConfirmation()
                     ->modalDescription('Un nouveau mot de passe provisoire sera généré. L\'ancien ne fonctionnera plus.')
                     ->action(function (User $record): void {
-                        $motDePasse = app(CompteBureauService::class)->reinitialiserMotDePasse($record);
+                        $motDePasse = app(CompteService::class)->reinitialiserMotDePasse($record);
 
                         Notification::make()
                             ->title('Nouveau mot de passe de '.$record->name)
@@ -127,25 +105,6 @@ class CompteBureauResource extends Resource
                             ->success()
                             ->persistent()
                             ->send();
-                    }),
-
-                Action::make('retirerDuBureau')
-                    ->label('Retirer du bureau')
-                    ->icon('heroicon-o-user-minus')
-                    ->color('danger')
-                    ->hidden(fn (User $record): bool => $record->hasRole('super_administrateur'))
-                    ->requiresConfirmation()
-                    ->modalDescription('La personne perd ses droits dans le panneau, mais reste membre, avec sa carte.')
-                    ->action(function (User $record): void {
-                        try {
-                            app(CompteBureauService::class)->retirerDuBureau($record);
-                        } catch (DomainException $e) {
-                            Notification::make()->title($e->getMessage())->danger()->send();
-
-                            return;
-                        }
-
-                        Notification::make()->title($record->name.' a été retiré du bureau.')->success()->send();
                     }),
             ])
             ->defaultSort('name');

@@ -69,7 +69,7 @@ class ReunionResource extends Resource
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && (ComiteService::estDuComiteDirecteur($utilisateur) || $utilisateur->hasAnyRole(ComiteService::DIRECTION));
+        return $utilisateur !== null && $utilisateur->can('comites.consulter');
     }
 
     public static function canView(Model $record): bool

@@ -73,10 +73,6 @@ class MembreImporter extends Importer
                 ->castStateUsing(fn (?string $state): ?string => self::date($state))
                 ->rules(['nullable', 'date'])
                 ->example('01/01/2015'),
-            ImportColumn::make('poste')
-                ->label('Poste')
-                ->relationship(resolveUsing: 'nom')
-                ->example('Commissaire'),
             ImportColumn::make('adresse')
                 ->label('Adresse ou quartier')
                 ->rules(['nullable', 'max:255'])

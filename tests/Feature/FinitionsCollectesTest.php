@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->engagement = app(CollecteService::class)->fixerParMembre($this->collecte, $this->membre, 20000);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 });
 
 it('relance un engagement sur WhatsApp, avec le reste à verser', function () {
@@ -50,7 +50,7 @@ it('relance un engagement sur WhatsApp, avec le reste à verser', function () {
 
 it('réserve la relance des collectes au Jewrine finance et au super administrateur', function () {
     $secretaire = User::factory()->create();
-    $secretaire->assignRole(['secretaire_general', 'administrateur']);
+    $secretaire->assignRole('secretaire_general');
 
     $this->actingAs($secretaire)->get(route('relances.collecte', $this->engagement))->assertForbidden();
 });

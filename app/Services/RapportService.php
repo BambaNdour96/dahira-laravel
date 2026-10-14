@@ -15,7 +15,7 @@ final class RapportService
     {
         $rapport->update(['statut' => 'publie', 'publie_le' => now()]);
 
-        $destinataires = User::role(['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier'])
+        $destinataires = User::role(['super_administrateur', 'jewrine_national', 'secretaire_general', 'jewrine_finance'])
             ->where('id', '!=', $auteur->id)
             ->get();
 

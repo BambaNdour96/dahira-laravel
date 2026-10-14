@@ -56,6 +56,11 @@ final class StatutMembreService
                 $this->matricules->attribuer($membre);
                 $this->cartes->emettre($membre);
             }
+
+            // Un membre radié quitte aussi tous ses postes : ses nominations prennent fin, l'historique reste.
+            if ($nouveau === StatutMembre::Radie && $membre->user !== null) {
+                app(NominationService::class)->terminerToutes($membre->user, 'Membre radié', $auteur);
+            }
         });
     }
 }

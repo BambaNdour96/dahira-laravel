@@ -19,7 +19,7 @@ final class Taches
     /** Une demande à examiner : le Jewrine de la cellule. */
     public static function demandeAExaminer(Membre $membre, string $titre): void
     {
-        $jewrine = User::query()->find($membre->cellule->responsable_id);
+        $jewrine = $membre->cellule->jewrine();
 
         if (! $jewrine instanceof User) {
             return;
@@ -37,20 +37,13 @@ final class Taches
     public static function paiementAVerifier(Paiement $paiement): void
     {
         $payeur = $paiement->membre;
-        $regle = $payeur->poste_id !== null
-            ? RegleValidation::query()->where('poste_id', $payeur->poste_id)->first()
-            : null;
 
-        if ($regle !== null) {
+        if (RegleValidation::pour($payeur)->isNotEmpty()) {
             $titre = 'Paiement d\'un membre du bureau à valider';
-            $destinataires = User::query()
-                ->whereHas('membre', fn ($membre) => $membre->whereIn('poste_id', $regle->idsValidateurs()))
-                ->get();
+            $destinataires = RegleValidation::validateursDe($payeur);
         } else {
             $titre = 'Paiement à vérifier';
-            $destinataires = User::query()
-                ->whereHas('roles', fn ($roles) => $roles->where('name', 'tresorier'))
-                ->get();
+            $destinataires = User::permission('paiements.valider')->whereDoesntHave('roles', fn ($roles) => $roles->where('name', 'super_administrateur'))->get();
         }
 
         self::envoyer(

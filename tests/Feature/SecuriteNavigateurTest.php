@@ -41,7 +41,7 @@ it('exige HTTPS dans la durée une fois la connexion chiffrée', function () {
 
 it('protège aussi le panneau du bureau contre l\'intégration dans une autre page', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
 
     $this->actingAs($admin)->get('/admin')
         ->assertOk()

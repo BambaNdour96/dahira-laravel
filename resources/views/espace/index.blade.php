@@ -197,8 +197,10 @@
                         <dd class="font-medium">{{ $membre->cellule->nom }}</dd>
                     </div>
                     <div>
-                        <dt class="text-stone-500">Poste dans la Daara</dt>
-                        <dd class="font-medium">{{ $membre->poste?->nom ?? '—' }}</dd>
+                        <dt class="text-stone-500">Mes responsabilités</dt>
+                        <dd class="font-medium" data-test="mes-responsabilites">
+                            {{ $compte?->nominations()->with(['poste', 'cellule'])->get()->map(fn ($nomination) => $nomination->libelle())->join(', ') ?: '—' }}
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-stone-500">Commissions</dt>

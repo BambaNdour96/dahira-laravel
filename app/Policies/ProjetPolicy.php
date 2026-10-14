@@ -6,33 +6,28 @@ use App\Models\Projet;
 use App\Models\User;
 
 /**
- * Projets : la commission Suivi et Évaluation et la direction les créent et les suivent ;
- * le Jewrine finance les consulte ; seul le super administrateur supprime.
+ * Projets : capacités « projets.voir » et « projets.gerer » (voir App\Support\Capacites).
  */
 class ProjetPolicy
 {
-    public const LECTURE = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'suivi_evaluation'];
-
-    public const GESTION = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'];
-
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(self::LECTURE);
+        return $user->can('projets.voir');
     }
 
     public function view(User $user, Projet $projet): bool
     {
-        return $user->hasAnyRole(self::LECTURE);
+        return $user->can('projets.voir');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(self::GESTION);
+        return $user->can('projets.gerer');
     }
 
     public function update(User $user, Projet $projet): bool
     {
-        return $user->hasAnyRole(self::GESTION);
+        return $user->can('projets.gerer');
     }
 
     /** Rien ne se supprime : un projet arrêté passe à l'état « Abandonné ». */

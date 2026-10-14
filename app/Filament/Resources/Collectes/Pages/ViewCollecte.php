@@ -11,7 +11,6 @@ use App\Filament\Resources\Collectes\Widgets\EngagementsDesMembres;
 use App\Filament\Resources\Collectes\Widgets\JourJDuProgramme;
 use App\Models\Collecte;
 use App\Models\User;
-use App\Policies\CollectePolicy;
 use App\Services\JourJService;
 use App\Support\Confidentiel;
 use Filament\Actions\Action;
@@ -31,7 +30,7 @@ class ViewCollecte extends ViewRecord
     protected function getHeaderActions(): array
     {
         $lecteur = fn (): bool => auth()->user() instanceof User
-            && auth()->user()->hasAnyRole([...CollectePolicy::BUREAU, 'suivi_evaluation']);
+            && auth()->user()->can('programmes.exporter');
 
         return [
             Action::make('exporter')

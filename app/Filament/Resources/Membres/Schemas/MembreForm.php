@@ -130,10 +130,6 @@ class MembreForm
                         ->preload()
                         ->maxItems(Commission::MAX_PAR_MEMBRE)
                         ->helperText('Une seule commission par membre.'),
-                    Select::make('poste_id')
-                        ->label('Poste dans la Daara')
-                        ->relationship('poste', 'nom', modifyQueryUsing: fn ($query) => $query->orderBy('ordre'))
-                        ->preload(),
                     DatePicker::make('date_adhesion')
                         ->label('Date d\'adhésion')
                         ->helperText('Remplie automatiquement à la validation si elle est vide.'),

@@ -39,6 +39,10 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
   pour pouvoir être réutilisée par une future API.
 - Les droits se vérifient dans les services (exceptions `DomainException` avec un message clair en français)
   et dans les `can*()` des ressources Filament.
+- **Droits par capacités, jamais par rôle** : `$user->can('membres.voir')`, et pour une portée cellule
+  `CasquettesService::peut($user, 'membres.voir', $celluleId)`. La matrice casquettes × capacités vit dans
+  `app/Support/Capacites.php` (après une modification : `php artisan droits:synchroniser`, et mettre à jour le
+  tableau de `docs/guide/nominations.md`). Les postes se donnent par des nominations (`NominationService`).
 - Principe de la conception : **une seule vérité** (une donnée saisie une fois, visible partout),
   **la validation de la Finance fait foi**, **rien ne se supprime** (on corrige par une opération nouvelle, tracée).
 

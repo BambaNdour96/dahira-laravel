@@ -14,9 +14,9 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->responsable = User::factory()->create();
-    $this->responsable->assignRole('responsable_section');
+    $this->responsable->assignRole('jewrine_cellule');
 
-    $this->celluleA = Cellule::factory()->create(['responsable_id' => $this->responsable->id]);
+    $this->celluleA = celluleDirigeePar($this->responsable);
     $this->celluleB = Cellule::factory()->create();
 
     $this->membreA = Membre::factory()->for($this->celluleA)->create();
@@ -37,7 +37,7 @@ it('interdit au responsable les écrans réservés à l\'administrateur', functi
 
 it('interdit au trésorier de modifier un membre', function () {
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $this->actingAs($tresorier)->get('/admin/membres')->assertOk();
     $this->actingAs($tresorier)->get("/admin/membres/{$this->membreA->id}/edit")->assertForbidden();
@@ -51,7 +51,7 @@ it('laisse le responsable valider une inscription de sa cellule', function () {
 
 it('refuse le panneau à un compte désactivé', function () {
     $admin = User::factory()->create(['actif' => false]);
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
 
     $this->actingAs($admin)->get('/admin')->assertForbidden();
 });

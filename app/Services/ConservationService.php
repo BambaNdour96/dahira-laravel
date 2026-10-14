@@ -142,9 +142,8 @@ final class ConservationService
         DB::transaction(function () use ($designation, $auteur): void {
             $designation->forceFill(['fin_le' => now(), 'fin_par' => $auteur->id])->save();
 
-            if ($designation instanceof RepresentantFinance
-                && ! RepresentantFinance::query()->where('user_id', $designation->user_id)->exists()) {
-                $designation->user->removeRole('representant_finance');
+            if ($designation instanceof RepresentantFinance) {
+                app(CasquettesService::class)->synchroniser($designation->user);
             }
         });
     }

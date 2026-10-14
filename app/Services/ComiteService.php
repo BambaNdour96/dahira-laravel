@@ -23,39 +23,28 @@ use Illuminate\Support\Facades\DB;
  */
 final class ComiteService
 {
-    /** Postes qui créent un comité et en désignent le président. */
-    public const DIRECTION = ['super_administrateur', 'jewrine_national', 'secretaire_general'];
-
-    public static function estDuComiteDirecteur(User $utilisateur): bool
-    {
-        return $utilisateur->hasAnyRole(['comite_directeur', 'super_administrateur']);
-    }
-
+    /** Créer un comité et en désigner le président (« comites.diriger »). */
     public static function peutCreer(User $utilisateur): bool
     {
-        return $utilisateur->hasAnyRole(self::DIRECTION);
+        return $utilisateur->can('comites.diriger');
     }
 
-    /** Gérer un comité : la direction, ou son président (sauf le Comité directeur, tenu par le super administrateur). */
+    /** Gérer un comité : « comites.diriger », ou son président ; le Comité directeur, seulement « comite_directeur.composer ». */
     public static function peutGerer(User $utilisateur, Instance $instance): bool
     {
-        if ($utilisateur->hasRole('super_administrateur')) {
-            return true;
-        }
-
         if ($instance->estComiteDirecteur()) {
-            return false;
+            return $utilisateur->can('comite_directeur.composer');
         }
 
-        return $utilisateur->hasAnyRole(self::DIRECTION)
+        return $utilisateur->can('comites.diriger')
             || ($instance->president !== null && $instance->president->user_id === $utilisateur->id);
     }
 
-    /** Organiser les réunions : comme gérer, plus la direction pour le Comité directeur. */
+    /** Organiser les réunions : comme gérer, plus « comites.diriger » pour le Comité directeur. */
     public static function peutOrganiser(User $utilisateur, Instance $instance): bool
     {
         return self::peutGerer($utilisateur, $instance)
-            || ($instance->estComiteDirecteur() && $utilisateur->hasAnyRole(self::DIRECTION));
+            || ($instance->estComiteDirecteur() && $utilisateur->can('comites.diriger'));
     }
 
     /** Rédiger et publier le PV : l'organisateur ou le secrétaire de séance, tant qu'il n'est pas publié. */
@@ -72,7 +61,7 @@ final class ComiteService
     /** Lire un comité, ses PV et ses décisions : ses membres et le Comité directeur. */
     public static function peutLire(User $utilisateur, Instance $instance): bool
     {
-        if (self::estDuComiteDirecteur($utilisateur) || $utilisateur->hasAnyRole(self::DIRECTION)) {
+        if ($utilisateur->can('comites.consulter')) {
             return true;
         }
 
@@ -88,7 +77,7 @@ final class ComiteService
      */
     public function definirComiteDirecteur(array $membres, User $auteur): void
     {
-        if (! $auteur->hasRole('super_administrateur')) {
+        if (! $auteur->can('comite_directeur.composer')) {
             throw new DomainException('Seul le super administrateur tient la liste du Comité directeur.');
         }
 
@@ -115,19 +104,18 @@ final class ComiteService
         $this->definirComiteDirecteur(array_values(array_diff($actuels, [$membre->id])), $auteur);
     }
 
-    /** Le rôle « comite_directeur » suit exactement la liste du Comité directeur. */
+    /** La casquette « comite_directeur » suit exactement la liste du Comité directeur. */
     public function synchroniserRoles(): void
     {
         $comptes = Instance::comiteDirecteur()->membres()->whereNotNull('user_id')->pluck('user_id')->map(fn (mixed $id): int => (int) $id)->all();
+        $casquettes = app(CasquettesService::class);
 
-        foreach (User::role('comite_directeur')->get() as $utilisateur) {
-            if (! in_array($utilisateur->id, $comptes, true)) {
-                $utilisateur->removeRole('comite_directeur');
-            }
+        foreach (User::role('comite_directeur')->whereNotIn('id', $comptes)->get() as $utilisateur) {
+            $casquettes->synchroniser($utilisateur);
         }
 
         foreach (User::query()->whereIn('id', $comptes)->get() as $utilisateur) {
-            $utilisateur->assignRole('comite_directeur');
+            $casquettes->synchroniser($utilisateur);
         }
     }
 

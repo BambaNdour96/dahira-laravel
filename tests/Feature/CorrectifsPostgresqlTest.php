@@ -29,7 +29,7 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
     $this->cellule = Cellule::factory()->create(['nom' => 'Kaolack']);
     $this->collecte = Collecte::query()->create([
         'titre' => 'Magal de Touba 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,

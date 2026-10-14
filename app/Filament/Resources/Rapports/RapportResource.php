@@ -117,7 +117,7 @@ class RapportResource extends Resource
     {
         $utilisateur = Auth::user();
 
-        if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['super_administrateur', 'suivi_evaluation'])) {
+        if ($utilisateur instanceof User && ! $utilisateur->can('rapports.tout_lire')) {
             $query->whereRaw('(statut = ? or auteur_id = ?)', ['publie', $utilisateur->id]);
         }
 

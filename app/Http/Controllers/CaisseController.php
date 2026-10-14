@@ -119,7 +119,7 @@ class CaisseController extends Controller
     private function representant(Request $request): User
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasRole('representant_finance'), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->can('caisse.tenir'), 403);
 
         return $utilisateur;
     }

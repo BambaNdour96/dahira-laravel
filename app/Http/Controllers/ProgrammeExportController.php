@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Collecte;
 use App\Models\Engagement;
 use App\Models\User;
-use App\Policies\CollectePolicy;
 use App\Support\Confidentiel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,7 +16,7 @@ class ProgrammeExportController extends Controller
     public function __invoke(Request $request, Collecte $collecte): StreamedResponse
     {
         $utilisateur = $request->user();
-        abort_unless($utilisateur instanceof User && $utilisateur->hasAnyRole([...CollectePolicy::BUREAU, 'suivi_evaluation']), 403);
+        abort_unless($utilisateur instanceof User && $utilisateur->can('programmes.exporter'), 403);
 
         $engagements = $collecte->engagements()->with(['membre.cellule', 'collecte'])->get()
             ->sortBy(fn (Engagement $engagement): string => $engagement->membre->cellule->nom.' '.$engagement->membre->nom);

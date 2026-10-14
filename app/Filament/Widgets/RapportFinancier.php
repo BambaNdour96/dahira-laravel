@@ -23,7 +23,7 @@ class RapportFinancier extends StatsOverviewWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'suivi_evaluation']);
+        return $utilisateur instanceof User && $utilisateur->can('finances.voir');
     }
 
     /** @return array<Stat> */

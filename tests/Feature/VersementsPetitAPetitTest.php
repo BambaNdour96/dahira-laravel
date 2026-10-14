@@ -63,7 +63,7 @@ it('accepte plusieurs versements successifs, sans jamais dépasser le reste', fu
 
 it('fait avancer la jauge quand le Jewrine finance confirme', function () {
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $paiement = $this->service->declarer($this->collecte, $this->membre, 5000, 'T_PETITAPETIT00004');
     $engagement = $this->service->engagementDe($this->collecte, $this->membre);

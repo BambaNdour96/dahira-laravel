@@ -20,7 +20,7 @@ beforeEach(function () {
     $this->user->assignRole('membre');
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 function tenterConnexion(string $motDePasse): TestResponse

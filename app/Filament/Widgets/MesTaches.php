@@ -46,35 +46,32 @@ class MesTaches extends StatsOverviewWidget
 
         $taches = [];
 
-        if ($utilisateur->hasRole('responsable_section')) {
+        if ($utilisateur->can('membres.valider.cellule')) {
             $demandes = MembreResource::getEloquentQuery()->where('statut', StatutMembre::EnAttente->value);
             $taches[] = self::tache('Demandes à examiner', (clone $demandes)->count(), (clone $demandes)->min('updated_at'), '/admin/membres');
         }
 
-        if ($utilisateur->hasAnyRole(['tresorier', 'super_administrateur'])) {
-            $paiements = Paiement::query()
-                ->where('statut', StatutPaiement::Declare->value)
-                ->whereDoesntHave('membre', fn ($membre) => $membre->whereIn('poste_id', RegleValidation::query()->select('poste_id')));
+        if ($utilisateur->can('paiements.valider')) {
+            $paiements = RegleValidation::paiementsSoumis(Paiement::query()->where('statut', StatutPaiement::Declare->value), soumis: false);
             $taches[] = self::tache('Paiements à vérifier', (clone $paiements)->count(), (clone $paiements)->min('declare_le'), '/admin/paiements');
         }
 
-        $poste = $utilisateur->membre?->poste_id;
+        $sesPostes = $utilisateur->nominations()->pluck('poste_id')->map(fn (mixed $id): int => (int) $id)->all();
+        $estValidateur = RegleValidation::query()->get()
+            ->contains(fn (RegleValidation $regle): bool => array_intersect($sesPostes, $regle->idsValidateurs()) !== []);
 
-        if ($poste !== null) {
-            $postesSuivis = RegleValidation::query()->get()
-                ->filter(fn (RegleValidation $regle): bool => in_array((int) $poste, $regle->idsValidateurs(), true))
-                ->pluck('poste_id')
-                ->all();
+        if ($estValidateur) {
+            // Les paiements des responsables que cette personne est autorisée à valider (validation croisée).
+            $bureau = RegleValidation::paiementsSoumis(Paiement::query()->where('statut', StatutPaiement::Declare->value))
+                ->with('membre')
+                ->get()
+                ->filter(fn (Paiement $paiement): bool => $paiement->membre->user_id !== $utilisateur->id
+                    && RegleValidation::autorise($utilisateur, $paiement->membre));
 
-            if ($postesSuivis !== []) {
-                $bureau = Paiement::query()
-                    ->where('statut', StatutPaiement::Declare->value)
-                    ->whereHas('membre', fn ($membre) => $membre->whereIn('poste_id', $postesSuivis)->where('user_id', '!=', $utilisateur->id));
-                $taches[] = self::tache('Paiements du bureau à valider', (clone $bureau)->count(), (clone $bureau)->min('declare_le'), '/admin/paiements');
-            }
+            $taches[] = self::tache('Paiements du bureau à valider', $bureau->count(), $bureau->min('declare_le'), '/admin/paiements');
         }
 
-        if ($utilisateur->hasRole('super_administrateur')) {
+        if ($utilisateur->can('plateforme.administrer')) {
             $suppressions = DemandeSuppression::query()->where('statut', DemandeSuppression::EN_ATTENTE);
             $taches[] = self::tache('Demandes de suppression', (clone $suppressions)->count(), (clone $suppressions)->min('created_at'), '/admin/demandes-suppression');
 

@@ -15,7 +15,7 @@ class BordereauRemiseController extends Controller
     {
         $utilisateur = $request->user();
         abort_unless($utilisateur instanceof User
-            && ($utilisateur->hasAnyRole(['tresorier', 'super_administrateur']) || $utilisateur->id === $remise->representant_id), 403);
+            && ($utilisateur->can('caisses.recevoir') || $utilisateur->id === $remise->representant_id), 403);
 
         $remise->load(['cellule', 'representant', 'receveur', 'paiements.membre', 'paiements.collecte']);
         $logo = public_path('images/logo-ndk.png');

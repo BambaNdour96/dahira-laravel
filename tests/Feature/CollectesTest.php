@@ -13,7 +13,6 @@ use App\Models\Parametre;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
 use App\Services\CollecteService;
-use App\Services\CompteBureauService;
 use App\Services\PaiementService;
 use Database\Seeders\RolesSeeder;
 use Filament\Facades\Filament;
@@ -41,7 +40,7 @@ function membreDuBureau(string $role): User
     $compte->assignRole('membre');
     $membre = Membre::factory()->for($compte)->valide()->create();
 
-    return app(CompteBureauService::class)->nommer($membre, $role)->fresh();
+    return nommerPourLeTest($compte, $role);
 }
 
 beforeEach(function () {
@@ -53,7 +52,7 @@ beforeEach(function () {
     $this->membre = Membre::factory()->for($this->compte)->valide()->create();
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 it('laisse le membre fixer son engagement une seule fois, puis le bureau le modifie avec une trace', function () {
@@ -66,7 +65,7 @@ it('laisse le membre fixer son engagement une seule fois, puis le bureau le modi
         ->and(fn () => $this->service->fixerParMembre($collecte, $this->membre, 10000))
         ->toThrow(DomainException::class, 'adressez-vous au bureau');
 
-    $tresorier = membreDuBureau('tresorier');
+    $tresorier = membreDuBureau('jewrine_finance');
     $this->service->modifier($engagement, 15000, 'Situation familiale', $tresorier);
 
     $trace = HistoriqueEngagement::query()->latest('id')->first();
@@ -113,7 +112,7 @@ it('laisse le bureau attribuer des montants (Ziar), et les autres membres fixer 
 it('compte les versements confirmés, avec un reçu EVT, même après la date limite', function () {
     $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre, ['date_limite' => now()->subDays(3)]);
     $engagement = $this->service->fixerParMembre($collecte, $this->membre, 10000);
-    $tresorier = membreDuBureau('tresorier');
+    $tresorier = membreDuBureau('jewrine_finance');
 
     expect($collecte->estOuverte())->toBeTrue()
         ->and($engagement->situation())->toBe('En retard');
@@ -136,7 +135,7 @@ it('répartit les droits, du super administrateur au Jewrine finance', function 
     $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre);
     $national = membreDuBureau('jewrine_national');
     $secretaire = membreDuBureau('secretaire_general');
-    $tresorier = membreDuBureau('tresorier');
+    $tresorier = membreDuBureau('jewrine_finance');
 
     expect($this->super->can('create', Collecte::class))->toBeTrue()
         ->and($national->can('create', Collecte::class))->toBeFalse()

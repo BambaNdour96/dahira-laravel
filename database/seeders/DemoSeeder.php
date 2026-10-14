@@ -9,7 +9,7 @@ use App\Models\Exercice;
 use App\Models\Membre;
 use App\Models\Poste;
 use App\Models\User;
-use App\Services\CompteBureauService;
+use App\Services\NominationService;
 use App\Services\StatutMembreService;
 use Illuminate\Database\Seeder;
 
@@ -18,7 +18,7 @@ use Illuminate\Database\Seeder;
  */
 class DemoSeeder extends Seeder
 {
-    public function run(StatutMembreService $statuts, CompteBureauService $bureau): void
+    public function run(StatutMembreService $statuts, NominationService $bureau): void
     {
         $cellules = Cellule::query()->get();
         $kaolack = Cellule::query()->where('nom', 'Kaolack')->firstOrFail();
@@ -39,9 +39,9 @@ class DemoSeeder extends Seeder
         }
 
         // Le bureau de démonstration : des membres validés, puis nommés.
-        $this->membreDuBureau($statuts, $bureau, '+221770000001', 'Modou', 'Fall', $kaolack, 'Jewrine cellule', 'responsable_section');
-        $this->membreDuBureau($statuts, $bureau, '+221770000002', 'Awa', 'Sarr', $kaolack, 'Jewrine finance', 'tresorier');
-        $this->membreDuBureau($statuts, $bureau, '+221770000003', 'Ibrahima', 'Diop', $dakar, 'Jewrine cellule', 'responsable_section');
+        $this->membreDuBureau($statuts, $bureau, '+221770000001', 'Modou', 'Fall', $kaolack, 'jewrine_cellule');
+        $this->membreDuBureau($statuts, $bureau, '+221770000002', 'Awa', 'Sarr', $kaolack, 'jewrine_finance');
+        $this->membreDuBureau($statuts, $bureau, '+221770000003', 'Ibrahima', 'Diop', $dakar, 'jewrine_cellule');
 
         // Les autres membres : 8 validés, 4 acceptés qui doivent payer, les autres en attente.
         $membres = Membre::factory()->count(20)->recycle($cellules)->create();
@@ -61,13 +61,12 @@ class DemoSeeder extends Seeder
 
     private function membreDuBureau(
         StatutMembreService $statuts,
-        CompteBureauService $bureau,
+        NominationService $bureau,
         string $telephone,
         string $prenom,
         string $nom,
         Cellule $cellule,
         string $poste,
-        string $role,
     ): void {
         $user = User::updateOrCreate(['telephone' => $telephone], [
             'name' => $prenom.' '.$nom,
@@ -80,10 +79,15 @@ class DemoSeeder extends Seeder
             'prenom' => $prenom,
             'nom' => $nom,
             'telephone' => $telephone,
-            'poste_id' => Poste::query()->where('nom', $poste)->value('id'),
         ]);
 
         $statuts->changer($membre, StatutMembre::Valide, null);
-        $bureau->nommer($membre->refresh(), $role, $role === 'responsable_section' ? $cellule->id : null);
+
+        // Les nominations de démonstration sont faites au nom du super administrateur.
+        $auteur = User::role('super_administrateur')->first();
+
+        if ($auteur !== null) {
+            $bureau->nommer($user, Poste::query()->where('code', $poste)->firstOrFail(), $cellule, $auteur);
+        }
     }
 }

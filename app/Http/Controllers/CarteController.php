@@ -57,7 +57,7 @@ class CarteController extends Controller
     {
         $user = $request->user();
         $membre = $user instanceof User
-            ? $user->membre()->with(['cellule', 'poste', 'carteActive'])->first()
+            ? $user->membre()->with(['cellule', 'carteActive'])->first()
             : null;
 
         abort_unless(

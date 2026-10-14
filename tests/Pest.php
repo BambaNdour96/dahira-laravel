@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Cellule;
+use App\Models\Nomination;
+use App\Models\Poste;
+use App\Models\User;
+use App\Services\CasquettesService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +49,32 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Nomme directement une personne à un poste, sans les contrôles de NominationService (préparation d'un test).
+ * Le compte reçoit aussitôt les droits du poste.
+ */
+function nommerPourLeTest(User $personne, string $code, ?Cellule $cellule = null): User
 {
-    // ..
+    Nomination::query()->create([
+        'user_id' => $personne->id,
+        'poste_id' => Poste::query()->where('code', $code)->firstOrFail()->id,
+        'cellule_id' => $cellule?->id,
+        'debut_le' => now(),
+    ]);
+    app(CasquettesService::class)->synchroniser($personne);
+
+    return $personne->fresh() ?? $personne;
+}
+
+/**
+ * Une cellule dont cette personne est le Jewrine.
+ *
+ * @param  array<string, mixed>  $attributs
+ */
+function celluleDirigeePar(User $jewrine, array $attributs = []): Cellule
+{
+    $cellule = Cellule::factory()->create($attributs);
+    nommerPourLeTest($jewrine, 'jewrine_cellule', $cellule);
+
+    return $cellule;
 }

@@ -26,7 +26,7 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->kaolack = Cellule::factory()->create(['nom' => 'Kaolack']);
     $this->dakar = Cellule::factory()->create(['nom' => 'Dakar']);
@@ -84,7 +84,7 @@ it('refuse une carte révoquée', function () {
 
 it('réserve les événements et l\'export des présences au super administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole('administrateur');
+    $admin->assignRole('jewrine_finance');
 
     $this->actingAs($this->super)->get('/admin/evenements')->assertOk();
     $this->actingAs($admin)->get('/admin/evenements')->assertForbidden();

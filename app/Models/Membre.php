@@ -39,7 +39,6 @@ use Illuminate\Support\Str;
  * @property string|null $ville
  * @property string $pays_residence
  * @property int $cellule_id
- * @property int|null $poste_id
  * @property string|null $photo_path
  * @property NiveauEtudes|null $niveau_etudes
  * @property string|null $diplome
@@ -87,7 +86,7 @@ class Membre extends Model
 
     protected $fillable = [
         'niveau_etudes_autre', 'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
-        'adresse', 'ville', 'pays_residence', 'cellule_id', 'poste_id', 'photo_path',
+        'adresse', 'ville', 'pays_residence', 'cellule_id', 'photo_path',
         'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
         'situation_professionnelle', 'profession', 'secteur_activite',
         'date_adhesion', 'consentement_le', 'consentement_version',
@@ -169,10 +168,17 @@ class Membre extends Model
         return $this->belongsTo(Cellule::class);
     }
 
-    /** @return BelongsTo<Poste, $this> */
-    public function poste(): BelongsTo
+    /** Le premier poste en cours dans l'ordre des postes, affiché sur la carte du téléphone. */
+    public function postePrincipal(): ?Poste
     {
-        return $this->belongsTo(Poste::class);
+        if ($this->user_id === null) {
+            return null;
+        }
+
+        return Poste::query()
+            ->whereIn('id', Nomination::query()->where('user_id', $this->user_id)->select('poste_id'))
+            ->orderBy('ordre')
+            ->first();
     }
 
     /** @return BelongsToMany<Commission, $this> */

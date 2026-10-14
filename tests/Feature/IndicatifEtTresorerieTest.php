@@ -56,7 +56,7 @@ it('ouvre la trésorerie sur les seuls paiements à vérifier', function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $membre = Membre::factory()->valide()->create(['valide_le' => now()->subMonths(2)]);
     $aVerifier = app(CotisationService::class)->declarer($membre, 'T_AVERIFIER00001', 1);
@@ -73,7 +73,7 @@ it('ouvre la trésorerie sur les seuls paiements à vérifier', function () {
 
 it('interdit à quiconque de modifier son propre statut', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
     $saFiche = Membre::factory()->for($admin)->valide()->create();
 
     expect($admin->can('changerStatut', [$saFiche, StatutMembre::Suspendu]))->toBeFalse();

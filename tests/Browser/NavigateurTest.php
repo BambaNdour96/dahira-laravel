@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->carte = app(CarteService::class)->emettre($this->membre);
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 it('ouvre toutes les pages publiques sans erreur dans la console', function () {
@@ -57,6 +57,21 @@ it('ouvre toutes les pages du membre sans erreur dans la console', function () {
         '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications',
         '/evenements', '/mon-compte/mot-de-passe', '/mon-compte/suppression',
     ])->assertNoJavascriptErrors();
+});
+
+it('affiche « Mes responsabilités » sur le téléphone, et le poste principal sur la carte', function () {
+    nommerPourLeTest($this->compte, 'jewrine_cellule', $this->membre->cellule);
+    nommerPourLeTest($this->compte, 'secretaire_general');
+    $this->actingAs($this->compte->fresh());
+
+    visit('/mon-espace')
+        ->on()->mobile()
+        ->assertSee('Mes responsabilités')
+        ->assertSee('Secrétaire général')
+        ->assertSee('Jewrine de cellule ('.$this->membre->cellule->nom.')')
+        ->assertNoJavascriptErrors();
+
+    visit('/ma-carte')->on()->mobile()->assertSee('Secrétaire général')->assertNoJavascriptErrors();
 });
 
 it('change le montant du bouton Wave selon le nombre de mois choisi', function () {

@@ -3,7 +3,8 @@
 namespace App\Filament\Actions;
 
 use App\Models\Membre;
-use App\Services\CompteBureauService;
+use App\Services\CasquettesService;
+use App\Services\CompteService;
 use App\Support\AffichageMotDePasse;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -21,7 +22,7 @@ final class MotDePasseAction
             ->icon('heroicon-o-key')
             ->color('gray')
             ->visible(fn (Membre $record): bool => $record->user !== null
-                && ! $record->user->hasRole('super_administrateur')
+                && ! CasquettesService::estSuperAdministrateur($record->user)
                 && Gate::allows('update', $record))
             ->requiresConfirmation()
             ->modalDescription('Un mot de passe provisoire sera généré. Le membre devra en choisir un nouveau à sa prochaine connexion.')
@@ -32,7 +33,7 @@ final class MotDePasseAction
                     return;
                 }
 
-                $motDePasse = app(CompteBureauService::class)->reinitialiserMotDePasse($utilisateur);
+                $motDePasse = app(CompteService::class)->reinitialiserMotDePasse($utilisateur);
 
                 Notification::make()
                     ->title('Mot de passe provisoire de '.$record->prenom.' '.$record->nom)

@@ -33,7 +33,7 @@ class MembreExporter extends Exporter
             ExportColumn::make('ville')->label('Ville'),
             ExportColumn::make('pays_residence')->label('Pays de résidence'),
             ExportColumn::make('cellule.nom')->label('Cellule'),
-            ExportColumn::make('poste.nom')->label('Poste'),
+            ExportColumn::make('poste')->label('Poste principal')->state(fn (Membre $record): ?string => $record->postePrincipal()?->nom),
             ExportColumn::make('commissions.nom')->label('Commissions'),
             ExportColumn::make('niveau_etudes')->label('Niveau d\'études')->formatStateUsing(fn ($state) => self::libelle($state)),
             ExportColumn::make('diplome')->label('Diplôme'),

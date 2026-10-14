@@ -18,7 +18,6 @@ use App\Models\User;
 use App\Notifications\RappelProgramme;
 use App\Services\AssiduiteService;
 use App\Services\CarteService;
-use App\Services\CompteBureauService;
 use App\Services\PointageService;
 use Database\Seeders\RolesSeeder;
 use Filament\Facades\Filament;
@@ -52,9 +51,12 @@ beforeEach(function () {
     $this->dakar = Cellule::factory()->create(['nom' => 'Dakar']);
 
     $this->jewrine = membreDeCellule($this->kaolack, Sexe::Homme, 'Ibrahima');
-    $this->jewrineCompte = app(CompteBureauService::class)->nommer($this->jewrine, 'responsable_section', $this->kaolack->id)->fresh();
+    $this->jewrineCompte = nommerPourLeTest($this->jewrine->user, 'jewrine_cellule', $this->kaolack);
     $this->jewrineF = membreDeCellule($this->kaolack, Sexe::Femme, 'Aminata');
-    $this->jewrineFCompte = app(CompteBureauService::class)->nommer($this->jewrineF, 'jewrine_femmes', $this->kaolack->id)->fresh();
+    // La Jewrine des Sokhnas existe encore jusqu'au lot R1b : rôle et cellule posés directement.
+    $this->jewrineFCompte = $this->jewrineF->user;
+    $this->jewrineFCompte->assignRole('jewrine_femmes');
+    $this->kaolack->update(['jewrine_femmes_id' => $this->jewrineFCompte->id]);
 
     $this->frere = membreDeCellule($this->kaolack, Sexe::Homme, 'Moussa');
     $this->soeur = membreDeCellule($this->kaolack, Sexe::Femme, 'Awa');
@@ -63,7 +65,7 @@ beforeEach(function () {
 
 it('nomme une Jewrine des femmes, rattachée à sa cellule, avec accès au panneau', function () {
     expect($this->kaolack->fresh()->jewrine_femmes_id)->toBe($this->jewrineFCompte->id)
-        ->and($this->kaolack->fresh()->responsable_id)->toBe($this->jewrineCompte->id)
+        ->and($this->kaolack->fresh()->jewrine()?->id)->toBe($this->jewrineCompte->id)
         ->and($this->jewrineFCompte->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
 });
 
@@ -86,7 +88,7 @@ it('laisse le Jewrine créer une séance de sa seule cellule', function () {
     Livewire::test(ListSeances::class)->assertOk()->assertSee('Chez Serigne Fall');
 
     $super = User::factory()->create();
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
     $this->actingAs($super);
     Livewire::test(ManageEvenements::class)->assertOk()->assertDontSee('Chez Serigne Fall');
 });
@@ -132,7 +134,7 @@ it('pointe à la main, note les absents excusés et calcule le bilan', function 
 it('ferme la liste après la séance, sauf pour la direction', function () {
     $seance = seanceDe($this->kaolack, ['debut' => now()->subDays(2)]);
     $national = User::factory()->create();
-    $national->assignRole(['jewrine_national', 'administrateur']);
+    $national->assignRole('jewrine_national');
 
     expect(fn () => $this->pointage->pointer($seance, $this->frere, $this->jewrineCompte, 'manuel'))->toThrow(DomainException::class, 'close')
         ->and($this->pointage->pointer($seance, $this->frere, $national, 'manuel')->statut)->toBe('present');

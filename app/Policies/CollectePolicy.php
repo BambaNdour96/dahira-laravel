@@ -6,56 +6,48 @@ use App\Enums\StatutCollecte;
 use App\Models\Collecte;
 use App\Models\Engagement;
 use App\Models\User;
+use App\Services\CasquettesService;
 
 /**
- * Droits sur les collectes, du super administrateur au Jewrine finance :
- * - le super administrateur crée et paramètre tout ;
- * - le Jewrine national clôture et rouvre ;
- * - la direction (Jewrine national, Secrétaire général) attribue des montants ;
- * - le bureau entier (avec le Jewrine finance) modifie un engagement, avec motif et trace ;
- * - le Jewrine finance confirme les versements (voir PaiementPolicy).
+ * Droits sur les programmes (voir App\Support\Capacites) :
+ * - « programmes.parametrer » : créer, paramétrer, annuler (super administrateur) ;
+ * - « programmes.cloturer » : clôturer et rouvrir ; « programmes.attribuer » : attribuer des montants ;
+ * - « programmes.piloter » : modifier un engagement, avec motif et trace ;
+ * - « programmes.voir » : toute la Daara, ou sa cellule pour le Jewrine de cellule.
+ * Les versements se confirment selon PaiementPolicy.
  */
 class CollectePolicy
 {
-    public const BUREAU = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier'];
-
-    /** Voient les collectes : le bureau, la commission Suivi et Évaluation (en lecture) et les Jewrine de cellule (leur cellule). */
-    public const LECTURE = [...self::BUREAU, 'suivi_evaluation', 'responsable_section'];
-
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(self::LECTURE);
+        return app(CasquettesService::class)->peutQuelquePart($user, 'programmes.voir');
     }
 
     public function view(User $user, Collecte $collecte): bool
     {
-        return $user->hasAnyRole(self::LECTURE);
+        return app(CasquettesService::class)->peutQuelquePart($user, 'programmes.voir');
     }
 
-    /** Un Jewrine de cellule ne voit que sa cellule ; le reste du bureau et Suivi et Évaluation voient tout. */
+    /** Un Jewrine de cellule ne voit que sa cellule ; ceux qui ont « programmes.voir » voient tout. */
     public static function limiteeACellule(User $user): bool
     {
-        return ! $user->hasAnyRole([...self::BUREAU, 'suivi_evaluation']);
+        return ! $user->can('programmes.voir');
     }
 
-    /** Relancer un engagement : Jewrine finance et super administrateur, ou Jewrine de la cellule du membre. */
+    /** Relancer un engagement : pour toute la Daara, ou le Jewrine de la cellule du membre. */
     public static function peutRelancer(User $user, Engagement $engagement): bool
     {
-        if ($user->hasAnyRole(['super_administrateur', 'tresorier'])) {
-            return true;
-        }
-
-        return $user->hasRole('responsable_section') && $engagement->membre->cellule->responsable_id === $user->id;
+        return app(CasquettesService::class)->peut($user, 'relances.envoyer', $engagement->membre->cellule_id);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('super_administrateur');
+        return $user->can('programmes.parametrer');
     }
 
     public function update(User $user, Collecte $collecte): bool
     {
-        return $user->hasRole('super_administrateur') && $collecte->statut !== StatutCollecte::Annulee;
+        return $user->can('programmes.parametrer') && $collecte->statut !== StatutCollecte::Annulee;
     }
 
     /** Rien ne se supprime : un programme s'annule (voir annuler). */
@@ -66,21 +58,21 @@ class CollectePolicy
 
     public function annuler(User $user, Collecte $collecte): bool
     {
-        return $user->hasRole('super_administrateur') && $collecte->statut !== StatutCollecte::Annulee;
+        return $user->can('programmes.parametrer') && $collecte->statut !== StatutCollecte::Annulee;
     }
 
     public function cloturer(User $user, Collecte $collecte): bool
     {
-        return $user->hasAnyRole(['super_administrateur', 'jewrine_national']);
+        return $user->can('programmes.cloturer');
     }
 
     public function attribuer(User $user, Collecte $collecte): bool
     {
-        return $user->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general']);
+        return $user->can('programmes.attribuer');
     }
 
     public function modifierEngagement(User $user, Collecte $collecte): bool
     {
-        return $user->hasAnyRole(self::BUREAU);
+        return $user->can('programmes.piloter');
     }
 }

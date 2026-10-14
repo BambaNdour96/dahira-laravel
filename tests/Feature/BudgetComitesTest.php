@@ -41,9 +41,9 @@ beforeEach(function () {
     Storage::fake('local');
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->president = membreBudget('Ousmane');
     $this->chef = membreBudget('Fatou');

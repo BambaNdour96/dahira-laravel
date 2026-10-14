@@ -10,8 +10,8 @@ use App\Models\Cellule;
 use App\Models\Collecte;
 use App\Models\Sympathisant;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\ConservationService;
-use App\Services\PointageService;
 use App\Services\SympathisantService;
 use BackedEnum;
 use DomainException;
@@ -56,8 +56,6 @@ class SympathisantResource extends Resource
 
     protected static ?string $pluralModelLabel = 'sympathisants';
 
-    public const LECTURE = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'suivi_evaluation', 'responsable_section', 'jewrine_femmes'];
-
     private static function utilisateur(): ?User
     {
         $utilisateur = Auth::user();
@@ -67,7 +65,7 @@ class SympathisantResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::utilisateur()?->hasAnyRole(self::LECTURE) ?? false;
+        return ($utilisateur = self::utilisateur()) !== null && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'sympathisants.voir');
     }
 
     public static function canCreate(): bool
@@ -80,7 +78,7 @@ class SympathisantResource extends Resource
         $utilisateur = self::utilisateur();
 
         return $utilisateur !== null && $record instanceof Sympathisant
-            && ($utilisateur->hasRole('super_administrateur') || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true));
+            && app(CasquettesService::class)->peut($utilisateur, 'sympathisants.gerer', $record->cellule_id);
     }
 
     /** Rien ne se supprime : un sympathisant est retiré du registre par anonymisation. */
@@ -97,10 +95,10 @@ class SympathisantResource extends Resource
         $query->auRegistre();
         $utilisateur = self::utilisateur();
 
-        if ($utilisateur !== null && ! $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'suivi_evaluation'])) {
-            $query->whereIn('cellule_id', PointageService::cellulesDirigees($utilisateur));
+        if ($utilisateur !== null && ! $utilisateur->can('sympathisants.voir')) {
+            $query->whereIn('cellule_id', app(CasquettesService::class)->cellulesDirigees($utilisateur));
 
-            if (! Cellule::query()->where('responsable_id', $utilisateur->id)->exists()) {
+            if (! Cellule::query()->dirigeesPar($utilisateur)->exists()) {
                 $query->where('sexe', Sexe::Femme->value);
             }
         }
@@ -186,7 +184,7 @@ class SympathisantResource extends Resource
             ->label('Participation')
             ->icon('heroicon-o-banknotes')
             ->color('gray')
-            ->visible(fn (): bool => self::utilisateur()?->hasAnyRole(['tresorier', 'super_administrateur']) ?? false)
+            ->visible(fn (): bool => self::utilisateur()?->can('sympathisants.participations') ?? false)
             ->schema([
                 Select::make('collecte_id')
                     ->label('Programme')

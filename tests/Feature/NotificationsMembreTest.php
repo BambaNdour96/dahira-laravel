@@ -33,7 +33,7 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->compte = User::factory()->create(['telephone' => '+221776665544', 'password' => 'motdepasse1']);
     $this->compte->assignRole('membre');

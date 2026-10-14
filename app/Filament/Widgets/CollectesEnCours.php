@@ -6,7 +6,7 @@ use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\CollecteResource;
 use App\Models\Collecte;
 use App\Models\User;
-use App\Policies\CollectePolicy;
+use App\Services\CasquettesService;
 use App\Services\CollecteService;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -26,7 +26,7 @@ class CollectesEnCours extends StatsOverviewWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(CollectePolicy::LECTURE)
+            && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'programmes.voir')
             && Collecte::query()->where('statut', StatutCollecte::Ouverte->value)->exists();
     }
 

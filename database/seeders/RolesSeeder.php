@@ -2,18 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Support\Capacites;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
+/**
+ * Les casquettes et leurs capacités, d'après la matrice des droits (App\Support\Capacites).
+ */
 class RolesSeeder extends Seeder
 {
     public function run(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        foreach (['super_administrateur', 'administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'responsable_section', 'jewrine_femmes', 'suivi_evaluation', 'representant_finance', 'comite_directeur', 'membre'] as $role) {
-            Role::findOrCreate($role, 'web');
-        }
+        Capacites::synchroniser();
     }
 }

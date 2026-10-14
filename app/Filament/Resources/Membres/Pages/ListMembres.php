@@ -27,12 +27,12 @@ class ListMembres extends ListRecords
                 ->exporter(MembreExporter::class)
                 ->formats([ExportFormat::Xlsx, ExportFormat::Csv])
                 ->visible(fn (): bool => ($utilisateur = Auth::user()) instanceof User
-                    && $utilisateur->hasAnyRole(['administrateur', 'tresorier'])),
+                    && $utilisateur->can('membres.exporter')),
             ImportAction::make()
                 ->label('Importer (CSV)')
                 ->importer(MembreImporter::class)
                 ->visible(fn (): bool => ($utilisateur = Auth::user()) instanceof User
-                    && $utilisateur->hasRole('administrateur')),
+                    && $utilisateur->can('membres.importer')),
             CreateAction::make(),
         ];
     }

@@ -7,8 +7,8 @@ use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\Poste;
 use App\Models\User;
-use App\Services\CompteBureauService;
 use App\Services\CotisationService;
 use App\Services\PaiementService;
 use Database\Seeders\RolesSeeder;
@@ -35,29 +35,28 @@ beforeEach(function () {
         $compte->assignRole('membre');
         $membre = Membre::factory()->for($compte)->valide()->create();
 
-        return app(CompteBureauService::class)->nommer($membre, $role)->fresh();
+        return nommerPourLeTest($compte, $role);
     };
 
     $this->national = $poste('jewrine_national');
     $this->secretaire = $poste('secretaire_general');
-    $this->tresorier = $poste('tresorier');
+    $this->tresorier = $poste('jewrine_finance');
 });
 
-it('propose les vrais postes du bureau, sans « Administrateur »', function () {
-    expect(CompteBureauService::ROLES)->toBe([
-        'jewrine_national' => 'Jewrine national',
-        'secretaire_general' => 'Secrétaire général',
-        'tresorier' => 'Jewrine finance',
-        'responsable_section' => 'Jewrine de cellule',
-        'jewrine_femmes' => 'Jewrine des Sokhnas de cellule',
-        'suivi_evaluation' => 'Membre de Suivi et Évaluation',
+it('propose les vrais postes de la Daara, chacun avec sa casquette', function () {
+    expect(Poste::query()->where('actif', true)->orderBy('ordre')->pluck('code', 'nom')->all())->toBe([
+        'Jewrine national' => 'jewrine_national',
+        'Secrétaire général' => 'secretaire_general',
+        'Jewrine finance national' => 'jewrine_finance',
+        'Jewrine de cellule' => 'jewrine_cellule',
+        'Membre de Suivi et Évaluation' => 'suivi_evaluation',
     ]);
 });
 
-it('donne à la direction le socle commun et son poste propre', function () {
-    expect($this->national->hasAllRoles(['jewrine_national', 'administrateur', 'membre']))->toBeTrue()
-        ->and($this->secretaire->hasAllRoles(['secretaire_general', 'administrateur', 'membre']))->toBeTrue()
-        ->and($this->tresorier->hasRole('administrateur'))->toBeFalse()
+it('donne à chaque poste sa casquette, sans socle « administrateur »', function () {
+    expect($this->national->hasAllRoles(['jewrine_national', 'membre']))->toBeTrue()
+        ->and($this->national->getRoleNames()->all())->not->toContain('administrateur')
+        ->and($this->secretaire->hasAllRoles(['secretaire_general', 'membre']))->toBeTrue()
         ->and($this->national->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
 });
 

@@ -24,7 +24,7 @@ beforeEach(function () {
     $this->service = app(CotisationService::class);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->user = User::factory()->create();
     $this->user->assignRole('membre');

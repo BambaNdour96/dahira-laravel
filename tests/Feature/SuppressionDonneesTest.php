@@ -27,7 +27,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->user = User::factory()->create(['telephone' => '+221775550011', 'password' => 'motdepasse1']);
     $this->user->assignRole('membre');
@@ -119,7 +119,7 @@ it('laisse le super administrateur traiter la demande depuis le panneau', functi
 
 it('réserve l\'écran des demandes au super administrateur', function () {
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $this->actingAs($tresorier)->get('/admin/demandes-suppression')->assertForbidden();
     $this->actingAs($this->super)->get('/admin/demandes-suppression')->assertOk();

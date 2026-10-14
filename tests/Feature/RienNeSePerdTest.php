@@ -88,7 +88,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
     $this->kaolack = Cellule::factory()->create(['nom' => 'Kaolack']);
     $this->service = app(ConservationService::class);
 });
@@ -170,8 +170,8 @@ describe('les dahiras et les événements', function () {
     beforeEach(function () {
         $this->jewrine = membreConserve($this->kaolack, Sexe::Homme, 'Ibrahima');
         $this->jewrineCompte = User::query()->findOrFail($this->jewrine->user_id);
-        $this->jewrineCompte->assignRole('responsable_section');
-        $this->kaolack->update(['responsable_id' => $this->jewrineCompte->id]);
+        $this->jewrineCompte->assignRole('jewrine_cellule');
+        nommerPourLeTest($this->jewrineCompte, 'jewrine_cellule', $this->kaolack);
         $this->awa = membreConserve($this->kaolack, Sexe::Femme, 'Awa');
     });
 
@@ -337,7 +337,7 @@ describe('les cellules, projets et désignations', function () {
 
     it('met fin à un représentant finance sans effacer sa désignation', function () {
         $tresorier = User::factory()->create();
-        $tresorier->assignRole('tresorier');
+        $tresorier->assignRole('jewrine_finance');
         $awa = membreConserve($this->kaolack, Sexe::Femme, 'Awa');
         $fatou = membreConserve($this->kaolack, Sexe::Femme, 'Fatou');
         $representants = app(RepresentantFinanceService::class);
@@ -356,8 +356,8 @@ describe('les sympathisants', function () {
     it('retire un sympathisant du registre en effaçant son nom, pas ses participations', function () {
         $jewrine = membreConserve($this->kaolack, Sexe::Homme, 'Ibrahima');
         $compte = User::query()->findOrFail($jewrine->user_id);
-        $compte->assignRole('responsable_section');
-        $this->kaolack->update(['responsable_id' => $compte->id]);
+        $compte->assignRole('jewrine_cellule');
+        nommerPourLeTest($compte, 'jewrine_cellule', $this->kaolack);
         $dahira = dahiraConservee($this->kaolack);
         $sympathisant = app(SympathisantService::class)->accueillir($dahira, ['prenom' => 'Ali', 'nom' => 'Sarr', 'sexe' => 'H', 'telephone' => '771234567', 'accord' => true], $compte);
         $programme = programmeConserve();

@@ -19,7 +19,7 @@ class EncaissementsParMois extends RepartitionWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'suivi_evaluation']);
+        return $utilisateur instanceof User && $utilisateur->can('finances.voir');
     }
 
     protected function titre(): string

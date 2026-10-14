@@ -71,9 +71,9 @@ it('exige une commission à l\'inscription', function () {
 
 it('réserve l\'écran des commissions à l\'administrateur', function () {
     $admin = User::factory()->create();
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
     $responsable = User::factory()->create();
-    $responsable->assignRole('responsable_section');
+    $responsable->assignRole('jewrine_cellule');
 
     $this->actingAs($admin)->get('/admin/commissions')->assertOk();
     $this->actingAs($responsable)->get('/admin/commissions')->assertForbidden();

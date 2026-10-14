@@ -6,7 +6,6 @@ use App\Enums\StatutProjet;
 use App\Filament\Resources\Projets\ProjetResource;
 use App\Models\Projet;
 use App\Models\User;
-use App\Policies\ProjetPolicy;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +24,7 @@ class ProjetsEnCours extends StatsOverviewWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(ProjetPolicy::LECTURE)
+            && $utilisateur->can('projets.voir')
             && Projet::query()->where('statut', StatutProjet::EnCours->value)->exists();
     }
 

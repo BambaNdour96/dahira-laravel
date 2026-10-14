@@ -6,6 +6,7 @@ use App\Models\Concerns\Archivable;
 use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Database\Factories\CelluleFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $nom
  * @property string $ville
  * @property string $pays
- * @property int|null $responsable_id
  * @property int|null $jewrine_femmes_id
  * @property string|null $whatsapp_lien
  */
@@ -27,12 +27,39 @@ class Cellule extends Model
     /** @use HasFactory<CelluleFactory> */
     use HasFactory, Journalise;
 
-    protected $fillable = ['nom', 'ville', 'pays', 'responsable_id', 'jewrine_femmes_id', 'whatsapp_lien'];
+    protected $fillable = ['nom', 'ville', 'pays', 'jewrine_femmes_id', 'whatsapp_lien'];
 
-    /** @return BelongsTo<User, $this> */
-    public function responsable(): BelongsTo
+    /** Le Jewrine de la cellule (nomination en cours), s'il y en a un. */
+    public function jewrine(): ?User
     {
-        return $this->belongsTo(User::class, 'responsable_id');
+        return User::query()->whereIn('id', Nomination::query()
+            ->where('cellule_id', $this->id)
+            ->whereHas('poste', fn (Builder $poste) => $poste->where('code', Poste::JEWRINE_CELLULE))
+            ->select('user_id'))->first();
+    }
+
+    /**
+     * Les cellules dont cette personne est le Jewrine (nomination en cours).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeDirigeesPar(Builder $query, User $utilisateur): void
+    {
+        $query->whereIn($query->qualifyColumn('id'), Nomination::query()
+            ->where('user_id', $utilisateur->id)
+            ->whereNotNull('cellule_id')
+            ->whereHas('poste', fn (Builder $poste) => $poste->where('code', Poste::JEWRINE_CELLULE))
+            ->select('cellule_id'));
+    }
+
+    /**
+     * Les nominations en cours dans cette cellule.
+     *
+     * @return HasMany<Nomination, $this>
+     */
+    public function nominations(): HasMany
+    {
+        return $this->hasMany(Nomination::class);
     }
 
     /** @return HasMany<Membre, $this> */

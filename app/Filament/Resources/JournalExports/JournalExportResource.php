@@ -34,7 +34,7 @@ class JournalExportResource extends Resource
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasRole('super_administrateur');
+        return $utilisateur instanceof User && $utilisateur->can('plateforme.administrer');
     }
 
     public static function canCreate(): bool

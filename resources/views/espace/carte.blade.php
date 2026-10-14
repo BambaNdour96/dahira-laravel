@@ -7,6 +7,8 @@
         $telephone = preg_match('/^\+221(\d{2})(\d{3})(\d{2})(\d{2})$/', $membre->telephone, $morceaux)
             ? "+221 {$morceaux[1]} {$morceaux[2]} {$morceaux[3]} {$morceaux[4]}"
             : $membre->telephone;
+        // Sur le téléphone, le poste principal en cours ; jamais sur la carte imprimée (elle dure un an).
+        $postePrincipal = $membre->postePrincipal();
     @endphp
 
     <h1 class="text-2xl font-semibold text-emerald-900">Ma carte de membre</h1>
@@ -45,9 +47,9 @@
                         <p class="truncate text-[clamp(13px,4.2vw,20px)] leading-tight font-extrabold tracking-wide text-emerald-900">{{ $membre->nom }}</p>
                     </div>
 
-                    @if ($membre->poste)
+                    @if ($postePrincipal)
                         <p class="inline-block rounded bg-or-500 px-1.5 py-0.5 text-[clamp(8px,2.2vw,10px)] font-semibold text-emerald-950">
-                            {{ $membre->poste->nom }}
+                            {{ $postePrincipal->nom }}
                         </p>
                     @endif
 

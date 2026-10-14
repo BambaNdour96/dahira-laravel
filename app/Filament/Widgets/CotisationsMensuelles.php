@@ -9,6 +9,7 @@ use App\Filament\Resources\Relances\RelanceResource;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\CotisationService;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -27,7 +28,7 @@ class CotisationsMensuelles extends StatsOverviewWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section', 'suivi_evaluation']);
+        return $utilisateur instanceof User && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'cotisations.suivre');
     }
 
     /** @return array<Stat> */

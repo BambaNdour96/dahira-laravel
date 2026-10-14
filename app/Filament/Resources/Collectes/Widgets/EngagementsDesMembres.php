@@ -9,6 +9,7 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Policies\CollectePolicy;
+use App\Services\CasquettesService;
 use App\Services\CollecteService;
 use App\Support\MessagesRelance;
 use DomainException;
@@ -49,7 +50,7 @@ class EngagementsDesMembres extends TableWidget
                 $utilisateur = Auth::user();
 
                 if ($utilisateur instanceof User && CollectePolicy::limiteeACellule($utilisateur)) {
-                    $query->whereIn('membre_id', Membre::query()->select('id')->whereIn('cellule_id', Cellule::query()->select('id')->where('responsable_id', $utilisateur->id)));
+                    $query->whereIn('membre_id', Membre::query()->select('id')->whereIn('cellule_id', app(CasquettesService::class)->cellulesDirigees($utilisateur)));
                 }
 
                 return $query;
@@ -150,7 +151,7 @@ class EngagementsDesMembres extends TableWidget
             ->label('Message pour les groupes')
             ->icon('heroicon-o-megaphone')
             ->color('gray')
-            ->visible(fn (): bool => ! self::auteur()->hasRole('suivi_evaluation') || self::auteur()->hasAnyRole(CollectePolicy::BUREAU))
+            ->visible(fn (): bool => self::auteur()->can('programmes.piloter') || app(CasquettesService::class)->peutQuelquePart(self::auteur(), 'relances.envoyer'))
             ->modalDescription('Copiez ce message et publiez-le dans les groupes WhatsApp de la Daara.')
             ->fillForm(fn (): array => ['message' => MessagesRelance::collecteGroupe($this->collecte())])
             ->schema([

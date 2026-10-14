@@ -8,7 +8,6 @@ use App\Filament\Widgets\RepartitionSexe;
 use App\Filament\Widgets\SituationsProfessionnelles;
 use App\Filament\Widgets\StatistiquesMembres;
 use App\Filament\Widgets\TranchesAge;
-use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\User;
 use Database\Seeders\RolesSeeder;
@@ -21,7 +20,7 @@ beforeEach(function () {
     $this->seed(RolesSeeder::class);
 
     $this->admin = User::factory()->create();
-    $this->admin->assignRole(['secretaire_general', 'administrateur']);
+    $this->admin->assignRole('secretaire_general');
 });
 
 it('ouvre le tableau de bord à l\'administrateur', function () {
@@ -41,8 +40,8 @@ it('compte les inscriptions à valider', function () {
 
 it('limite les compteurs du Jewrine à sa cellule', function () {
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
-    $cellule = Cellule::factory()->create(['responsable_id' => $jewrine->id]);
+    $jewrine->assignRole('jewrine_cellule');
+    $cellule = celluleDirigeePar($jewrine);
 
     Membre::factory()->count(2)->for($cellule)->create();
     Membre::factory()->count(4)->create();

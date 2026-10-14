@@ -12,6 +12,7 @@ use App\Models\Parametre;
 use App\Models\Poste;
 use App\Models\Tarif;
 use App\Models\User;
+use App\Support\Capacites;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -38,11 +39,11 @@ function compteAvecRoles(array $roles): User
 }
 
 dataset('roles', [
-    'super administrateur' => [['super_administrateur', 'administrateur'], 'super'],
-    'Jewrine national' => [['jewrine_national', 'administrateur'], 'national'],
-    'Secrétaire général' => [['secretaire_general', 'administrateur'], 'secretaire'],
-    'Jewrine finance' => [['tresorier'], 'tresorier'],
-    'Jewrine de cellule' => [['responsable_section'], 'jewrine'],
+    'super administrateur' => [['super_administrateur'], 'super'],
+    'Jewrine national' => [['jewrine_national'], 'national'],
+    'Secrétaire général' => [['secretaire_general'], 'secretaire'],
+    'Jewrine finance' => [['jewrine_finance'], 'jewrine_finance'],
+    'Jewrine de cellule' => [['jewrine_cellule'], 'jewrine'],
     'membre' => [['membre'], 'membre'],
 ]);
 
@@ -103,8 +104,8 @@ it('réserve les comptes du bureau au super administrateur, sans suppression', f
 
 it('confie les paiements au Jewrine finance, la direction les consulte, sans suppression', function (array $roles, string $profil) {
     $compte = compteAvecRoles($roles);
-    $consulte = in_array($profil, ['super', 'national', 'secretaire', 'tresorier'], true);
-    $gere = in_array($profil, ['super', 'tresorier'], true);
+    $consulte = in_array($profil, ['super', 'national', 'secretaire', 'jewrine_finance'], true);
+    $gere = in_array($profil, ['super', 'jewrine_finance'], true);
     $paiement = new Paiement;
 
     expect($compte->can('viewAny', Paiement::class))->toBe($consulte)
@@ -116,15 +117,15 @@ it('confie les paiements au Jewrine finance, la direction les consulte, sans sup
 
 describe('les membres', function () {
     beforeEach(function () {
-        $this->jewrine = compteAvecRoles(['responsable_section']);
-        $this->saCellule = Cellule::factory()->create(['responsable_id' => $this->jewrine->id]);
+        $this->jewrine = compteAvecRoles(['jewrine_cellule']);
+        $this->saCellule = celluleDirigeePar($this->jewrine);
         $this->autreCellule = Cellule::factory()->create();
 
         $this->membreDeSaCellule = Membre::factory()->for($this->saCellule)->create(['statut' => StatutMembre::EnAttente]);
         $this->membreAilleurs = Membre::factory()->for($this->autreCellule)->create(['statut' => StatutMembre::EnAttente]);
 
-        $this->admin = compteAvecRoles(['secretaire_general', 'administrateur']);
-        $this->tresorier = compteAvecRoles(['tresorier']);
+        $this->admin = compteAvecRoles(['secretaire_general']);
+        $this->tresorier = compteAvecRoles(['jewrine_finance']);
         $this->membre = compteAvecRoles(['membre']);
     });
 
@@ -184,4 +185,25 @@ describe('les membres', function () {
             ->and($this->admin->can('changerStatut', [$this->membreAilleurs, StatutMembre::Valide]))->toBeTrue()
             ->and($this->tresorier->can('changerStatut', [$this->membreAilleurs, StatutMembre::Accepte]))->toBeFalse();
     });
+});
+
+it('donne à chaque casquette exactement les capacités de la matrice, et rien d\'autre', function (string $casquette) {
+    $compte = compteAvecRoles([$casquette]);
+    $attendues = Capacites::de($casquette);
+
+    foreach (Capacites::toutes() as $capacite) {
+        expect($compte->can($capacite))->toBe(in_array($capacite, $attendues, true), "{$casquette} : {$capacite}");
+    }
+})->with(array_keys(Capacites::CASQUETTES));
+
+it('additionne les capacités de plusieurs casquettes', function () {
+    $compte = compteAvecRoles(['jewrine_finance', 'jewrine_cellule']);
+
+    expect($compte->can('paiements.valider'))->toBeTrue()
+        ->and($compte->can('dahiras.gerer.cellule'))->toBeTrue()
+        ->and($compte->can('referentiel.gerer'))->toBeFalse();
+});
+
+it('garde le tableau du guide identique à la matrice du code', function () {
+    expect(file_get_contents(base_path('docs/guide/nominations.md')))->toContain(Capacites::tableauMarkdown());
 });

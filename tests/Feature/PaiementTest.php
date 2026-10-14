@@ -18,7 +18,7 @@ beforeEach(function () {
     $this->seed([RolesSeeder::class, TarifsSeeder::class]);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->user = User::factory()->create();
     $this->user->assignRole('membre');
@@ -123,7 +123,7 @@ it('refuse une déclaration à un membre non encore accepté', function () {
 
 it('réserve l\'écran des paiements au trésorier et à l\'administrateur', function () {
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
+    $jewrine->assignRole('jewrine_cellule');
 
     $this->actingAs($this->tresorier)->get('/admin/paiements')->assertOk();
     $this->actingAs($jewrine)->get('/admin/paiements')->assertForbidden();

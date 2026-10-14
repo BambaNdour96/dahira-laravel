@@ -57,7 +57,7 @@ it('rappelle le reste à verser et la date limite, puis se tait quand tout est r
 
     $this->travel(1)->days();
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     app(CollecteService::class)->enregistrerEspeces($collecte, $this->membre, 20000, $tresorier);
 
     expect($this->rappels->fenetre($this->membre))->toBeNull();
@@ -111,7 +111,7 @@ it('félicite le membre à jour et annonce les caps franchis par la Daara', func
     app(CollecteService::class)->fixerParMembre($collecte, $this->membre, 10000);
 
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     app(CollecteService::class)->enregistrerEspeces($collecte, $this->membre, 10000, $tresorier);
 
     Notification::assertSentTo($this->compte, RappelProgramme::class, fn (RappelProgramme $avis): bool => str_contains($avis->message, 'Barakallahou'));

@@ -81,7 +81,7 @@ final class SympathisantService
     /** Enregistre la participation volontaire d'un sympathisant, avec son numéro de reçu. */
     public function participer(Collecte $collecte, Sympathisant $sympathisant, int $montant, MoyenPaiement $moyen, User $tresorier): ParticipationSympathisant
     {
-        if (! $tresorier->hasAnyRole(['tresorier', 'super_administrateur'])) {
+        if (! $tresorier->can('sympathisants.participations')) {
             throw new DomainException('Seul le Jewrine finance enregistre les participations.');
         }
 

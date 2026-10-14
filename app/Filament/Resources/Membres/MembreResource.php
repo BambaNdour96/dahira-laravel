@@ -58,8 +58,9 @@ class MembreResource extends Resource
         $requete = parent::getEloquentQuery();
         $utilisateur = Auth::user();
 
-        if ($utilisateur instanceof User && ! $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'suivi_evaluation'])) {
-            $requete->whereHas('cellule', fn ($cellule) => $cellule->where('responsable_id', $utilisateur->id));
+        // Sans vue sur toute la Daara (registre ou suivi des cotisations), seulement les cellules qu'il dirige.
+        if ($utilisateur instanceof User && ! $utilisateur->can('membres.voir') && ! $utilisateur->can('cotisations.suivre')) {
+            $requete->whereIn('cellule_id', Cellule::query()->dirigeesPar($utilisateur)->select('id'));
         }
 
         return $requete;
@@ -76,8 +77,8 @@ class MembreResource extends Resource
         $utilisateur = Auth::user();
         $requete->whereNull('cellules.archive_le');
 
-        if ($utilisateur instanceof User && ! $utilisateur->hasRole('administrateur')) {
-            $requete->where('responsable_id', $utilisateur->id);
+        if ($utilisateur instanceof User && ! $utilisateur->can('membres.modifier')) {
+            $requete->dirigeesPar($utilisateur);
         }
 
         return $requete;

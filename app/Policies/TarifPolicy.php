@@ -12,22 +12,22 @@ class TarifPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function view(User $user, Tarif $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     public function update(User $user, Tarif $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return $user->can('referentiel.gerer');
     }
 
     /** Rien ne se supprime : on le désactive. */

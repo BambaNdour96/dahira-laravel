@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\PointageService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,7 @@ class FrequentationCellules extends ChartWidget
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation', 'responsable_section', 'jewrine_femmes'])
+            && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'dahiras.voir')
             && Evenement::query()->where('type', Evenement::SEANCE)->exists();
     }
 

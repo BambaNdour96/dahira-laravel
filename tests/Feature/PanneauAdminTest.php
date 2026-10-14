@@ -12,7 +12,7 @@ beforeEach(function () {
 
 it('ouvre les écrans du registre à un administrateur', function (string $adresse) {
     $admin = User::factory()->create();
-    $admin->assignRole(['secretaire_general', 'administrateur']);
+    $admin->assignRole('secretaire_general');
 
     $this->actingAs($admin)->get($adresse)->assertOk();
 })->with(['/admin/membres', '/admin/membres/create', '/admin/cellules', '/admin/exercices', '/admin/tarifs']);

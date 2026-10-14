@@ -11,31 +11,29 @@ use App\Models\User;
  */
 class RapportSuiviPolicy
 {
-    public const REDACTION = ['super_administrateur', 'jewrine_national', 'secretaire_general', 'suivi_evaluation'];
-
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(ProjetPolicy::LECTURE);
+        return $user->can('projets.voir');
     }
 
     public function view(User $user, RapportSuivi $rapport): bool
     {
-        if (! $user->hasAnyRole(ProjetPolicy::LECTURE)) {
+        if (! $user->can('projets.voir')) {
             return false;
         }
 
-        return $rapport->estPublie() || $rapport->auteur_id === $user->id || $user->hasAnyRole(['super_administrateur', 'suivi_evaluation']);
+        return $rapport->estPublie() || $rapport->auteur_id === $user->id || $user->can('rapports.tout_lire');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(self::REDACTION);
+        return $user->can('rapports.rediger');
     }
 
     public function update(User $user, RapportSuivi $rapport): bool
     {
         return ! $rapport->estPublie()
-            && ($rapport->auteur_id === $user->id || $user->hasRole('super_administrateur'));
+            && ($rapport->auteur_id === $user->id || $user->can('rapports.corriger'));
     }
 
     public function delete(User $user, RapportSuivi $rapport): bool

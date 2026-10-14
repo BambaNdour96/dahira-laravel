@@ -110,6 +110,7 @@ final class DonneesPersonnellesService
     {
         $ancienTelephone = $compte->telephone;
 
+        app(NominationService::class)->terminerToutes($compte, 'Compte anonymisé');
         $compte->syncRoles([]);
         $compte->forceFill([
             'name' => 'Compte supprimé',

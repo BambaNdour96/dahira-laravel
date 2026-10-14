@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\ConnexionEnTantQue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,12 +14,12 @@ class EnTantQueController extends Controller
     {
         $auteur = $request->user();
 
-        abort_unless($auteur instanceof User && $auteur->hasRole('super_administrateur'), 403);
-        abort_if($user->hasRole('super_administrateur') || $user->is($auteur), 403);
+        abort_unless($auteur instanceof User && $auteur->can('plateforme.administrer'), 403);
+        abort_if(CasquettesService::estSuperAdministrateur($user) || $user->is($auteur), 403);
 
         $service->demarrer($auteur, $user);
 
-        $estDuBureau = $user->hasAnyRole(['administrateur', 'tresorier', 'responsable_section']);
+        $estDuBureau = $user->can('panneau.accueil');
 
         return redirect($estDuBureau ? '/admin' : route('espace'));
     }
@@ -27,6 +28,6 @@ class EnTantQueController extends Controller
     {
         $original = $service->arreter();
 
-        return redirect($original !== null ? '/admin/comptes-bureau' : route('accueil'));
+        return redirect($original !== null ? '/admin/comptes' : route('accueil'));
     }
 }

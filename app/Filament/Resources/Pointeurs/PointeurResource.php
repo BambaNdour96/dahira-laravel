@@ -9,6 +9,7 @@ use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\Membre;
 use App\Models\User;
+use App\Services\CasquettesService;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -52,7 +53,7 @@ class PointeurResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::utilisateur()?->hasAnyRole(['super_administrateur', 'responsable_section']) ?? false;
+        return ($utilisateur = self::utilisateur()) !== null && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'pointeurs.designer');
     }
 
     public static function canCreate(): bool
@@ -71,7 +72,7 @@ class PointeurResource extends Resource
         $utilisateur = self::utilisateur();
 
         return $utilisateur !== null && $record instanceof CellulePointeur
-            && ($utilisateur->hasRole('super_administrateur') || Cellule::query()->whereKey($record->cellule_id)->where('responsable_id', $utilisateur->id)->exists());
+            && app(CasquettesService::class)->peut($utilisateur, 'pointeurs.designer', $record->cellule_id);
     }
 
     /** @return Builder<CellulePointeur> */
@@ -81,8 +82,8 @@ class PointeurResource extends Resource
         $query = parent::getEloquentQuery();
         $utilisateur = self::utilisateur();
 
-        if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
-            $query->whereIn('cellule_id', Cellule::query()->where('responsable_id', $utilisateur->id)->select('id'));
+        if ($utilisateur !== null && ! $utilisateur->can('pointeurs.designer')) {
+            $query->whereIn('cellule_id', Cellule::query()->dirigeesPar($utilisateur)->select('id'));
         }
 
         return $query;
@@ -97,8 +98,8 @@ class PointeurResource extends Resource
                     $utilisateur = self::utilisateur();
                     $query = Cellule::query()->enActivite()->orderBy('nom');
 
-                    if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
-                        $query->where('responsable_id', $utilisateur->id);
+                    if ($utilisateur !== null && ! $utilisateur->can('pointeurs.designer')) {
+                        $query->dirigeesPar($utilisateur);
                     }
 
                     return $query->pluck('nom', 'id')->all();

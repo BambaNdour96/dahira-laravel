@@ -14,7 +14,6 @@ use App\Filament\Widgets\ProjetsEnCours;
 use App\Models\Membre;
 use App\Models\Projet;
 use App\Models\User;
-use App\Services\CompteBureauService;
 use Database\Seeders\RolesSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -41,10 +40,10 @@ beforeEach(function () {
     $compte = User::factory()->create();
     $compte->assignRole('membre');
     $membre = Membre::factory()->for($compte)->valide()->create();
-    $this->suivi = app(CompteBureauService::class)->nommer($membre, 'suivi_evaluation')->fresh();
+    $this->suivi = nommerPourLeTest($compte, 'suivi_evaluation');
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 });
 
 it('nomme un membre de Suivi et Évaluation, qui accède aux seuls projets', function () {

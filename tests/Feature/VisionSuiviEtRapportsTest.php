@@ -37,12 +37,12 @@ beforeEach(function () {
     $this->suivi->assignRole('suivi_evaluation');
 
     $this->jewrine = User::factory()->create();
-    $this->jewrine->assignRole('responsable_section');
+    $this->jewrine->assignRole('jewrine_cellule');
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
-    $this->celluleA = Cellule::factory()->create(['responsable_id' => $this->jewrine->id]);
+    $this->celluleA = celluleDirigeePar($this->jewrine);
     $this->celluleB = Cellule::factory()->create();
     $this->membreA = Membre::factory()->for($this->celluleA)->valide()->create(['prenom' => 'Awa']);
     $this->membreB = Membre::factory()->for($this->celluleB)->valide()->create(['prenom' => 'Moussa']);
@@ -96,7 +96,7 @@ it('limite le Jewrine de cellule à sa cellule, et le laisse relancer ses membre
 
 it('laisse Suivi et Évaluation rédiger un rapport, puis le publier au bureau', function () {
     $national = User::factory()->create();
-    $national->assignRole(['jewrine_national', 'administrateur']);
+    $national->assignRole('jewrine_national');
 
     $this->actingAs($this->suivi);
 

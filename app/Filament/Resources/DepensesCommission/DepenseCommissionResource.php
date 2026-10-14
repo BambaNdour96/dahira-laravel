@@ -8,7 +8,6 @@ use App\Models\Instance;
 use App\Models\User;
 use App\Services\BudgetComiteService;
 use App\Services\CollecteService;
-use App\Services\ComiteService;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\Action;
@@ -47,7 +46,7 @@ class DepenseCommissionResource extends Resource
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && (ComiteService::estDuComiteDirecteur($utilisateur) || $utilisateur->hasAnyRole([...ComiteService::DIRECTION, 'tresorier']));
+            && $utilisateur->can('comites.budget_voir');
     }
 
     public static function canCreate(): bool

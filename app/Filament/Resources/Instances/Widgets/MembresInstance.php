@@ -43,7 +43,7 @@ class MembresInstance extends TableWidget
         }
 
         return $this->instance()->estComiteDirecteur()
-            ? $utilisateur->hasRole('super_administrateur')
+            ? $utilisateur->can('comite_directeur.composer')
             : ComiteService::peutGerer($utilisateur, $this->instance());
     }
 

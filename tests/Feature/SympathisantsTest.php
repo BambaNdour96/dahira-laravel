@@ -15,7 +15,6 @@ use App\Models\Membre;
 use App\Models\Sympathisant;
 use App\Models\User;
 use App\Models\VisiteSympathisant;
-use App\Services\CompteBureauService;
 use App\Services\PointageService;
 use App\Services\SympathisantService;
 use Database\Seeders\RolesSeeder;
@@ -34,7 +33,7 @@ beforeEach(function () {
     $compte = User::factory()->create();
     $compte->assignRole('membre');
     $jewrine = Membre::factory()->for($compte)->for($this->cellule)->valide()->create(['sexe' => Sexe::Homme]);
-    $this->jewrine = app(CompteBureauService::class)->nommer($jewrine, 'responsable_section', $this->cellule->id)->fresh();
+    $this->jewrine = nommerPourLeTest($compte, 'jewrine_cellule', $this->cellule);
 
     $this->seance = Evenement::query()->create([
         'type' => Evenement::SEANCE, 'titre' => 'Dahira de la cellule Kaolack', 'lieu' => 'Médina',
@@ -107,7 +106,7 @@ it('enregistre la participation d\'un sympathisant, avec reçu, comptée à part
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     expect(fn () => $this->service->participer($collecte, $sympathisant, 5000, MoyenPaiement::Especes, $this->jewrine))->toThrow(DomainException::class);
 
@@ -131,7 +130,7 @@ it('affiche les chiffres au bureau et anonymise les absents depuis 2 ans', funct
     $this->service->accueillir($this->seance, ['prenom' => 'Récent', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
 
     $super = User::factory()->create();
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
     $this->actingAs($super);
     Livewire::test(SympathisantsChiffres::class)->assertSee('Devenus membres');
 

@@ -7,6 +7,7 @@ use App\Filament\Resources\Membres\MembreResource;
 use App\Filament\Resources\Relances\Pages\ListRelances;
 use App\Models\Membre;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\CotisationService;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -47,7 +48,7 @@ class RelanceResource extends Resource
         $utilisateur = Auth::user();
 
         return $utilisateur instanceof User
-            && $utilisateur->hasAnyRole(['super_administrateur', 'tresorier', 'responsable_section']);
+            && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'relances.envoyer');
     }
 
     /**

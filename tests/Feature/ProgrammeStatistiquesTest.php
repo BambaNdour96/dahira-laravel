@@ -23,7 +23,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->dakar = Cellule::factory()->create(['nom' => 'Dakar']);
     $this->kaolack = Cellule::factory()->create(['nom' => 'Kaolack']);
@@ -84,7 +84,7 @@ it('exporte les engagements pour Excel, et produit le rapport PDF du programme',
 
 it('réserve l\'export et le rapport au bureau et à Suivi et Évaluation', function () {
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
+    $jewrine->assignRole('jewrine_cellule');
 
     $this->actingAs($jewrine)->get(route('programmes.export', $this->collecte))->assertForbidden();
     $this->actingAs($jewrine)->get(route('programmes.rapport', $this->collecte))->assertForbidden();

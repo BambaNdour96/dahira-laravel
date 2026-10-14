@@ -26,7 +26,7 @@ class ModeMaintenance
 
         $utilisateur = $request->user();
 
-        if ($utilisateur instanceof User && $utilisateur->hasRole('super_administrateur')) {
+        if ($utilisateur instanceof User && $utilisateur->can('plateforme.administrer')) {
             return $next($request);
         }
 

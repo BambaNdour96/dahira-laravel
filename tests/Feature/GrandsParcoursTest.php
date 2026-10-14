@@ -10,10 +10,9 @@ use App\Models\DemandeSuppression;
 use App\Models\Evenement;
 use App\Models\Membre;
 use App\Models\Paiement;
-use App\Models\Poste;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
-use App\Services\CompteBureauService;
+use App\Services\CompteService;
 use App\Services\CotisationService;
 use App\Services\DonneesPersonnellesService;
 use App\Services\PaiementService;
@@ -56,12 +55,9 @@ function compteDuParcours(array $roles, ?string $poste = null, ?Cellule $cellule
         $fabrique = $fabrique->for($cellule);
     }
 
-    $fabrique->valide()->create([
-        'valide_le' => now()->subMonths(2),
-        'poste_id' => $poste !== null ? Poste::query()->where('nom', $poste)->value('id') : null,
-    ]);
+    $fabrique->valide()->create(['valide_le' => now()->subMonths(2)]);
 
-    return $compte->fresh();
+    return $poste !== null ? nommerPourLeTest($compte, ['Jewrine finance' => 'jewrine_finance', 'Secrétaire général' => 'secretaire_general', 'Jewrine national' => 'jewrine_national'][$poste]) : $compte->fresh();
 }
 
 beforeEach(function () {
@@ -70,14 +66,14 @@ beforeEach(function () {
     RateLimiter::for('connexion', fn () => Limit::none());
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 
     $this->jewrine = User::factory()->create();
-    $this->jewrine->assignRole('responsable_section');
-    $this->kaolack = Cellule::factory()->create(['nom' => 'Kaolack', 'responsable_id' => $this->jewrine->id]);
+    $this->jewrine->assignRole('jewrine_cellule');
+    $this->kaolack = celluleDirigeePar($this->jewrine, ['nom' => 'Kaolack']);
     $this->dakar = Cellule::factory()->create(['nom' => 'Dakar']);
 
-    $this->tresorier = compteDuParcours(['tresorier'], null, $this->dakar);
+    $this->tresorier = compteDuParcours(['jewrine_finance'], null, $this->dakar);
 });
 
 it('accompagne un membre de sa demande jusqu\'à l\'effacement de ses données', function () {
@@ -156,8 +152,8 @@ it('fait fonctionner le bureau : tâches, cellules, validation croisée et relan
         ->and($this->jewrine->can('changerStatut', [$ailleurs, StatutMembre::Accepte]))->toBeFalse();
 
     // Le paiement du Jewrine finance est confié au Secrétaire général, qui le valide.
-    $jewrineFinance = compteDuParcours(['tresorier'], 'Jewrine finance', $this->dakar);
-    $secretaire = compteDuParcours(['secretaire_general', 'administrateur'], 'Secrétaire général', $this->dakar);
+    $jewrineFinance = compteDuParcours(['jewrine_finance'], 'Jewrine finance', $this->dakar);
+    $secretaire = compteDuParcours(['secretaire_general'], 'Secrétaire général', $this->dakar);
 
     $paiement = app(CotisationService::class)->declarer($jewrineFinance->membre, 'T_PARCOURS00000003', 1);
     expect(DB::table('notifications')->where('notifiable_id', $secretaire->id)->count())->toBe(1);
@@ -187,7 +183,7 @@ it('protège un compte : blocage, mot de passe provisoire, changement obligatoir
     expect(DB::table('notifications')->where('notifiable_id', $this->super->id)->count())->toBeGreaterThanOrEqual(1);
 
     // Le Jewrine donne un mot de passe provisoire, qui débloque le compte.
-    $provisoire = app(CompteBureauService::class)->reinitialiserMotDePasse($compte);
+    $provisoire = app(CompteService::class)->reinitialiserMotDePasse($compte);
     $this->post('/connexion', ['telephone' => '77 999 00 11', 'password' => $provisoire]);
     $this->assertAuthenticatedAs($compte);
 

@@ -6,6 +6,7 @@ use App\Models\Carte;
 use App\Models\Connexion;
 use App\Models\Cotisation;
 use App\Models\JournalActivite;
+use App\Models\Nomination;
 use App\Models\Paiement;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class MesDonneesController extends Controller
         $utilisateur = $request->user();
         abort_unless($utilisateur instanceof User, 403);
 
-        $membre = $utilisateur->membre()->with(['cellule', 'poste', 'commissions'])->first();
+        $membre = $utilisateur->membre()->with(['cellule', 'commissions'])->first();
 
         $donnees = [
             'avertissement' => 'Copie des données personnelles détenues par la Daara Nouroud Daareyni Kaolack, '
@@ -38,10 +39,15 @@ class MesDonneesController extends Controller
 
         if ($membre !== null) {
             $donnees['fiche_membre'] = collect($membre->attributesToArray())
-                ->except(['id', 'user_id', 'cellule_id', 'poste_id', 'photo_path'])
+                ->except(['id', 'user_id', 'cellule_id', 'photo_path'])
                 ->merge([
                     'cellule' => $membre->cellule->nom,
-                    'poste' => $membre->poste?->nom,
+                    'responsabilites' => $utilisateur->nominations()->withoutGlobalScope(Nomination::EN_COURS)->with(['poste', 'cellule'])->get()
+                        ->map(fn (Nomination $nomination): array => [
+                            'poste' => $nomination->libelle(),
+                            'depuis' => $nomination->debut_le->format('d/m/Y'),
+                            'fin' => $nomination->fin_le?->format('d/m/Y'),
+                        ])->all(),
                     'commissions' => $membre->commissions->pluck('nom')->all(),
                     'photo' => $membre->photo_path ? 'Photo enregistrée (visible sur votre carte de membre).' : 'Aucune photo.',
                 ])

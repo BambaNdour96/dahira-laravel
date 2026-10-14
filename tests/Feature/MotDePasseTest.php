@@ -2,7 +2,7 @@
 
 use App\Models\Membre;
 use App\Models\User;
-use App\Services\CompteBureauService;
+use App\Services\CompteService;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,7 +43,7 @@ it('refuse un mot de passe actuel incorrect', function () {
 });
 
 it('impose de changer un mot de passe provisoire', function () {
-    $provisoire = app(CompteBureauService::class)->reinitialiserMotDePasse($this->user);
+    $provisoire = app(CompteService::class)->reinitialiserMotDePasse($this->user);
     $this->user->refresh();
 
     $this->actingAs($this->user)->get('/mon-espace')->assertRedirect(route('mot-de-passe.edit'));
@@ -59,7 +59,7 @@ it('impose de changer un mot de passe provisoire', function () {
 });
 
 it('impose aussi le changement dans le panneau du bureau', function () {
-    $this->user->assignRole('tresorier');
+    $this->user->assignRole('jewrine_finance');
     $this->user->forceFill(['doit_changer_mot_de_passe' => true])->save();
 
     $this->actingAs($this->user)->get('/admin')->assertRedirect(route('mot-de-passe.edit'));
@@ -111,7 +111,7 @@ it('déconnecte la personne après le changement de son mot de passe', function 
 });
 
 it('génère un mot de passe provisoire facile à lire, qui fonctionne et remplace l\'ancien', function () {
-    $provisoire = app(CompteBureauService::class)->reinitialiserMotDePasse($this->user);
+    $provisoire = app(CompteService::class)->reinitialiserMotDePasse($this->user);
 
     expect($provisoire)->toMatch('/^[A-HJ-NP-Z2-9]{8}$/');
 

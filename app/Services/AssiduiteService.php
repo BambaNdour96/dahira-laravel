@@ -153,7 +153,7 @@ final class AssiduiteService
     private function alerter(Cellule $cellule, Membre $membre): void
     {
         $destinataires = array_filter([
-            $cellule->responsable_id,
+            $cellule->jewrine()?->id,
             $membre->sexe === Sexe::Femme ? $cellule->jewrine_femmes_id : null,
         ]);
 

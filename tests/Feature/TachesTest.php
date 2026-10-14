@@ -2,10 +2,8 @@
 
 use App\Enums\StatutMembre;
 use App\Filament\Widgets\MesTaches;
-use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\Paiement;
-use App\Models\Poste;
 use App\Models\User;
 use App\Services\CotisationService;
 use App\Services\StatutMembreService;
@@ -29,18 +27,18 @@ beforeEach(function () {
     config(['dahira.cotisations_debut' => '2000-01']);
 
     $this->jewrine = User::factory()->create();
-    $this->jewrine->assignRole('responsable_section');
-    $this->saCellule = Cellule::factory()->create(['responsable_id' => $this->jewrine->id]);
+    $this->jewrine->assignRole('jewrine_cellule');
+    $this->saCellule = celluleDirigeePar($this->jewrine);
 
     $this->autreJewrine = User::factory()->create();
-    $this->autreJewrine->assignRole('responsable_section');
-    Cellule::factory()->create(['responsable_id' => $this->autreJewrine->id]);
+    $this->autreJewrine->assignRole('jewrine_cellule');
+    celluleDirigeePar($this->autreJewrine);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 it('prévient le seul Jewrine de la cellule d\'une nouvelle demande', function () {
@@ -69,13 +67,12 @@ it('prévient le Jewrine finance d\'un paiement à vérifier', function () {
 
 it('confie le paiement du Jewrine finance à ses validateurs, sans le prévenir lui-même', function () {
     $secretaire = User::factory()->create();
-    $secretaire->assignRole(['secretaire_general', 'administrateur']);
-    Membre::factory()->for($secretaire)->valide()->create(['poste_id' => Poste::query()->where('nom', 'Secrétaire général')->value('id')]);
+    $secretaire->assignRole('secretaire_general');
+    Membre::factory()->for($secretaire)->valide()->create();
+    nommerPourLeTest($secretaire, 'secretaire_general');
 
-    Membre::factory()->for($this->tresorier)->valide()->create([
-        'poste_id' => Poste::query()->where('nom', 'Jewrine finance')->value('id'),
-        'valide_le' => now()->subMonths(2),
-    ]);
+    Membre::factory()->for($this->tresorier)->valide()->create(['valide_le' => now()->subMonths(2)]);
+    nommerPourLeTest($this->tresorier, 'jewrine_finance');
 
     app(CotisationService::class)->declarer($this->tresorier->fresh()->membre, 'T_TACHES000000002', 1);
 

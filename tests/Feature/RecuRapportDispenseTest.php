@@ -23,10 +23,10 @@ beforeEach(function () {
     $this->cotisations = app(CotisationService::class);
 
     $this->tresorier = User::factory()->create();
-    $this->tresorier->assignRole('tresorier');
+    $this->tresorier->assignRole('jewrine_finance');
 
     $this->super = User::factory()->create();
-    $this->super->assignRole(['super_administrateur', 'administrateur']);
+    $this->super->assignRole('super_administrateur');
 });
 
 function membreQuiCotise(int $moisEcoules = 3): Membre
@@ -106,7 +106,7 @@ it('affiche le rapport financier au Jewrine finance', function () {
 
 it('cache le rapport financier aux Jewrine de cellule', function () {
     $jewrine = User::factory()->create();
-    $jewrine->assignRole('responsable_section');
+    $jewrine->assignRole('jewrine_cellule');
 
     $this->actingAs($jewrine);
 

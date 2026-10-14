@@ -124,7 +124,7 @@ class EvenementResource extends Resource
     {
         $utilisateur = auth()->user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur', 'suivi_evaluation']);
+        return $utilisateur instanceof User && $utilisateur->can('evenements.voir');
     }
 
     /** Les séances de cellule ont leur propre écran. @return \Illuminate\Database\Eloquent\Builder<Evenement> */

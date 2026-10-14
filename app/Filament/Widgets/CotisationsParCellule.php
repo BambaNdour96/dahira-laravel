@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Membre;
 use App\Models\User;
+use App\Services\CasquettesService;
 use App\Services\CotisationService;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,7 +17,7 @@ class CotisationsParCellule extends RepartitionWidget
     {
         $utilisateur = Auth::user();
 
-        return $utilisateur instanceof User && $utilisateur->hasAnyRole(['administrateur', 'tresorier', 'responsable_section', 'suivi_evaluation']);
+        return $utilisateur instanceof User && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'cotisations.suivre');
     }
 
     protected function titre(): string

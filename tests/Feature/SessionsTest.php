@@ -20,7 +20,7 @@ beforeEach(function () {
 
 it('déconnecte le bureau après 10 minutes sans activité', function () {
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
 
     $this->actingAs($tresorier)->get('/admin')->assertOk();
 
@@ -32,7 +32,7 @@ it('déconnecte le bureau après 10 minutes sans activité', function () {
 
 it('laisse 25 minutes au super administrateur', function () {
     $super = User::factory()->create();
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
 
     $this->actingAs($super)->get('/admin')->assertOk();
 
@@ -73,7 +73,7 @@ it('ferme les autres sessions du compte à une nouvelle connexion', function () 
 
 it('montre les personnes connectées au seul super administrateur', function () {
     $super = User::factory()->create(['name' => 'Super Admin']);
-    $super->assignRole(['super_administrateur', 'administrateur']);
+    $super->assignRole('super_administrateur');
 
     $membre = User::factory()->create(['name' => 'Awa Connectée']);
     DB::table('sessions')->insert([
@@ -84,7 +84,7 @@ it('montre les personnes connectées au seul super administrateur', function () 
     $this->actingAs($super)->get('/admin/connectes')->assertOk()->assertSee('Awa Connectée')->assertSee('Téléphone · Chrome');
 
     $tresorier = User::factory()->create();
-    $tresorier->assignRole('tresorier');
+    $tresorier->assignRole('jewrine_finance');
     $this->actingAs($tresorier)->get('/admin/connectes')->assertForbidden();
 });
 
@@ -146,7 +146,7 @@ describe('les sessions des membres', function () {
 
     it('ne limite pas la durée de session du bureau', function () {
         $tresorier = User::factory()->create();
-        $tresorier->assignRole('tresorier');
+        $tresorier->assignRole('jewrine_finance');
 
         $this->actingAs($tresorier)->get('/admin')->assertOk();
 
