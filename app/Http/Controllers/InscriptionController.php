@@ -16,7 +16,7 @@ class InscriptionController extends Controller
     public function create(): View
     {
         return view('public.inscription', [
-            'cellules' => Cellule::query()->orderBy('nom')->get(['id', 'nom']),
+            'cellules' => Cellule::query()->enActivite()->orderBy('nom')->get(['id', 'nom']),
             'commissions' => Commission::query()->where('actif', true)->orderBy('nom')->get(['id', 'nom']),
         ]);
     }

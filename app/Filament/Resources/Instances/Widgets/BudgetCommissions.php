@@ -24,6 +24,7 @@ class BudgetCommissions extends TableWidget
             ->heading('Budget des commissions')
             ->query(fn (): Builder => CommissionComite::query()
                 ->where('instance_id', $this->record instanceof Instance ? $this->record->id : 0)
+                ->whereNull('archive_le')
                 ->orderBy('ordre'))
             ->columns([
                 TextColumn::make('nom')->label('Commission')->weight('bold'),

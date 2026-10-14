@@ -38,9 +38,10 @@ class FrequentationCellules extends ChartWidget
         $datasets = [];
         $libelles = [];
 
-        foreach (Cellule::query()->orderBy('nom')->get() as $index => $cellule) {
+        foreach (Cellule::query()->enActivite()->orderBy('nom')->get() as $index => $cellule) {
             $seances = Evenement::query()
                 ->where('type', Evenement::SEANCE)
+                ->maintenus()
                 ->where('cellule_id', $cellule->id)
                 ->where('debut', '<', now())
                 ->orderByDesc('debut')

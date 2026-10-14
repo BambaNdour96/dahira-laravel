@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MoyenPaiement;
 use App\Enums\StatutPaiement;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use App\Services\RecuService;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ use Illuminate\Support\Carbon;
  */
 class Paiement extends Model
 {
-    use Journalise;
+    use Indelebile, Journalise;
 
     protected $fillable = [
         'membre_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',

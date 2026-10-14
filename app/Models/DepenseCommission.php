@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -26,6 +27,8 @@ use Illuminate\Support\Carbon;
  */
 class DepenseCommission extends Model
 {
+    use Indelebile;
+
     public const STATUTS = ['declaree' => 'À valider', 'validee' => 'Validée', 'refusee' => 'Refusée'];
 
     protected $table = 'depenses_commission';

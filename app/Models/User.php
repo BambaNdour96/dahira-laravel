@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
@@ -28,6 +29,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     use HasFactory, HasRoles, Notifiable;
 
     use HasPushSubscriptions;
+    use Indelebile;
     use InteractsWithPasskeys;
 
     protected $fillable = [

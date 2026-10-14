@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Seances;
 
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Seances\Pages\CreateSeance;
 use App\Filament\Resources\Seances\Pages\EditSeance;
 use App\Filament\Resources\Seances\Pages\ListSeances;
@@ -9,8 +10,10 @@ use App\Filament\Resources\Seances\Pages\ViewSeance;
 use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\User;
+use App\Services\ConservationService;
 use App\Services\PointageService;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -96,9 +99,23 @@ class SeanceResource extends Resource
             || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true);
     }
 
+    /** Rien ne se supprime : une dahira s'annule, avec un motif (voir annuler). */
     public static function canDelete(Model $record): bool
     {
-        return self::canEdit($record) && $record instanceof Evenement && ! $record->presences()->exists();
+        return false;
+    }
+
+    public static function annuler(): Action
+    {
+        return ConservationActions::annuler(
+            fn (Model $record): bool => self::canEdit($record),
+            function (Model $record, string $motif, User $auteur): void {
+                if ($record instanceof Evenement) {
+                    app(ConservationService::class)->annulerEvenement($record, $motif, $auteur);
+                }
+            },
+            'La dahira reste dans l\'historique, avec son motif, et ne compte pas dans l\'assiduité. Si le rappel du jour est parti, les membres sont prévenus.',
+        );
     }
 
     /** Un Jewrine ne voit que les séances de sa cellule. @return Builder<Evenement> */
@@ -118,7 +135,7 @@ class SeanceResource extends Resource
     public static function cellulesPermises(): array
     {
         $utilisateur = self::utilisateur();
-        $query = Cellule::query()->orderBy('nom');
+        $query = Cellule::query()->enActivite()->orderBy('nom');
 
         if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
             $query->whereIn('id', PointageService::cellulesDirigees($utilisateur));
@@ -155,6 +172,9 @@ class SeanceResource extends Resource
                 TextColumn::make('lieu')->label('Lieu')->limit(30),
                 TextColumn::make('description')->label('Programme')->limit(40)->placeholder('—'),
                 TextColumn::make('presents_count')->label('Présents'),
+                TextColumn::make('annule_le')->label('')->badge()->color('danger')
+                    ->formatStateUsing(fn (): string => 'Annulée')
+                    ->tooltip(fn (Evenement $record): ?string => $record->motif_annulation),
                 TextColumn::make('taux')->label('Présence')->badge()
                     ->state(fn (Evenement $record): string => app(PointageService::class)->bilan($record)['taux'].' %')
                     ->color(fn (string $state): string => (int) $state >= 75 ? 'success' : ((int) $state >= 40 ? 'warning' : 'gray')),
@@ -162,7 +182,7 @@ class SeanceResource extends Resource
             ->filters([
                 SelectFilter::make('cellule_id')->label('Cellule')->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all()),
             ])
-            ->recordActions([ViewAction::make()->label('Présences'), EditAction::make()])
+            ->recordActions([ViewAction::make()->label('Présences'), EditAction::make(), self::annuler()])
             ->defaultSort('debut', 'desc');
     }
 

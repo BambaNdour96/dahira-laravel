@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StatutCarte;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
  */
 class Carte extends Model
 {
-    use Journalise;
+    use Indelebile, Journalise;
 
     protected $fillable = [
         'membre_id', 'jeton', 'statut', 'emise_le', 'revoquee_le', 'revoquee_par', 'motif_revocation',

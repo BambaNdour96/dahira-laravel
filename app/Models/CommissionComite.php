@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class CommissionComite extends Model
 {
+    use Archivable, Indelebile, Journalise;
+
     protected $table = 'commissions_comite';
 
     protected $fillable = ['instance_id', 'nom', 'mission', 'chef_id', 'ordre'];

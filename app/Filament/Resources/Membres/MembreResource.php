@@ -74,6 +74,7 @@ class MembreResource extends Resource
     public static function limiterCellules(Builder $requete): Builder
     {
         $utilisateur = Auth::user();
+        $requete->whereNull('cellules.archive_le');
 
         if ($utilisateur instanceof User && ! $utilisateur->hasRole('administrateur')) {
             $requete->where('responsable_id', $utilisateur->id);

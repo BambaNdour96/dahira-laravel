@@ -29,11 +29,12 @@ class SympathisantsChiffres extends StatsOverviewWidget
     /** @return array<Stat> */
     protected function getStats(): array
     {
-        $total = Sympathisant::query()->count();
-        $actifs = Sympathisant::query()->whereNull('membre_id')->where('derniere_visite_le', '>=', now()->subMonths(3))->count();
+        $total = Sympathisant::query()->auRegistre()->count();
+        $actifs = Sympathisant::query()->auRegistre()->whereNull('membre_id')->where('derniere_visite_le', '>=', now()->subMonths(3))->count();
         $nouveaux = Sympathisant::query()->where('created_at', '>=', now()->startOfMonth())->count();
         $convertis = Sympathisant::query()->whereNotNull('membre_id')->count();
         $aInviter = Sympathisant::query()
+            ->auRegistre()
             ->whereNull('membre_id')
             ->whereRaw('(select count(*) from visites_sympathisants v where v.sympathisant_id = sympathisants.id and v.created_at >= ?) >= ?', [now()->subMonths(3), Sympathisant::VISITES_POUR_INVITER])
             ->count();

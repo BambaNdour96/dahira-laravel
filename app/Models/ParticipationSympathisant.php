@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MoyenPaiement;
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,8 @@ use Illuminate\Support\Carbon;
  */
 class ParticipationSympathisant extends Model
 {
+    use Indelebile;
+
     public const UPDATED_AT = null;
 
     protected $table = 'participations_sympathisants';

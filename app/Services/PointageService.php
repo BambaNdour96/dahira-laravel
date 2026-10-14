@@ -7,6 +7,7 @@ use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\Evenement;
+use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\Presence;
 use App\Models\User;
@@ -127,7 +128,18 @@ final class PointageService
     {
         $this->autorisation($utilisateur, $evenement, $membre);
 
-        Presence::query()->where('evenement_id', $evenement->id)->where('membre_id', $membre->id)->delete();
+        $presence = Presence::query()->where('evenement_id', $evenement->id)->where('membre_id', $membre->id)->first();
+
+        if ($presence === null) {
+            return;
+        }
+
+        // Une correction de pointage : la présence s'efface, la trace reste au journal.
+        $presence->delete();
+        JournalActivite::enregistrer($evenement, 'modifie', [
+            'avant' => ['pointage' => $membre->prenom.' '.$membre->nom.' ('.($presence->statut === 'excuse' ? 'excusé(e)' : 'présent(e)').')'],
+            'apres' => ['pointage' => 'retiré'],
+        ]);
     }
 
     /**

@@ -10,12 +10,12 @@ use App\Models\Cellule;
 use App\Models\Collecte;
 use App\Models\Sympathisant;
 use App\Models\User;
+use App\Services\ConservationService;
 use App\Services\PointageService;
 use App\Services\SympathisantService;
 use BackedEnum;
 use DomainException;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -83,9 +83,10 @@ class SympathisantResource extends Resource
             && ($utilisateur->hasRole('super_administrateur') || in_array($record->cellule_id, PointageService::cellulesDirigees($utilisateur), true));
     }
 
+    /** Rien ne se supprime : un sympathisant est retiré du registre par anonymisation. */
     public static function canDelete(Model $record): bool
     {
-        return self::canEdit($record);
+        return false;
     }
 
     /** @return Builder<Sympathisant> */
@@ -93,6 +94,7 @@ class SympathisantResource extends Resource
     {
         /** @var Builder<Sympathisant> $query */
         $query = parent::getEloquentQuery();
+        $query->auRegistre();
         $utilisateur = self::utilisateur();
 
         if ($utilisateur !== null && ! $utilisateur->hasAnyRole(['super_administrateur', 'jewrine_national', 'secretaire_general', 'tresorier', 'suivi_evaluation'])) {
@@ -159,8 +161,21 @@ class SympathisantResource extends Resource
                     ->openUrlInNewTab(),
                 self::participation(),
                 EditAction::make(),
-                DeleteAction::make()->label('Retirer du registre')
-                    ->modalDescription('Toutes ses informations et ses visites seront effacées. Les montants de ses participations restent comptés dans les collectes.'),
+                Action::make('retirer')
+                    ->label('Retirer du registre')
+                    ->icon('heroicon-o-user-minus')
+                    ->color('danger')
+                    ->visible(fn (Sympathisant $record): bool => self::canEdit($record))
+                    ->requiresConfirmation()
+                    ->modalDescription('Son nom et son téléphone seront effacés. Ses visites et ses participations, avec leurs reçus, restent comptées sans le nommer.')
+                    ->action(function (Sympathisant $record): void {
+                        if (! self::canEdit($record)) {
+                            return;
+                        }
+
+                        app(ConservationService::class)->anonymiserSympathisant($record);
+                        Notification::make()->title('Retiré du registre.')->success()->send();
+                    }),
             ])
             ->defaultSort('derniere_visite_le', 'desc');
     }

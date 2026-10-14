@@ -10,6 +10,7 @@ enum StatutCollecte: string implements HasColor, HasLabel
     case Brouillon = 'brouillon';
     case Ouverte = 'ouverte';
     case Cloturee = 'cloturee';
+    case Annulee = 'annulee';
 
     public function getLabel(): string
     {
@@ -17,6 +18,7 @@ enum StatutCollecte: string implements HasColor, HasLabel
             self::Brouillon => 'En préparation',
             self::Ouverte => 'Ouverte',
             self::Cloturee => 'Clôturée',
+            self::Annulee => 'Annulée',
         };
     }
 
@@ -26,6 +28,7 @@ enum StatutCollecte: string implements HasColor, HasLabel
             self::Brouillon => 'gray',
             self::Ouverte => 'success',
             self::Cloturee => 'warning',
+            self::Annulee => 'danger',
         };
     }
 }

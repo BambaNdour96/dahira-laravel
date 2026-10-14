@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class RegleValidation extends Model
 {
+    use Journalise;
+
     protected $table = 'regles_validation';
 
     protected $fillable = ['poste_id', 'validateurs'];

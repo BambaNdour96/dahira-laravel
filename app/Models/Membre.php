@@ -8,6 +8,7 @@ use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
 use App\Enums\StatutCarte;
 use App\Enums\StatutMembre;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use App\Services\PhotoService;
 use App\Services\TelephoneNormalizer;
@@ -62,6 +63,8 @@ class Membre extends Model
 {
     /** @use HasFactory<MembreFactory> */
     use HasFactory, Journalise;
+
+    use Indelebile;
 
     /** Délai pour régler les frais de carte après l'acceptation. */
     public const DELAI_PAIEMENT_JOURS = 10;

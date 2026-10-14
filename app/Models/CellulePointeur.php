@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
+use App\Models\Concerns\PrendFin;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CellulePointeur extends Model
 {
+    use Indelebile, Journalise, PrendFin;
+
     protected $table = 'cellule_pointeurs';
 
     protected $fillable = ['cellule_id', 'user_id', 'perimetre'];

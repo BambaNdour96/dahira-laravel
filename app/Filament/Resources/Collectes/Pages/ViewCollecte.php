@@ -71,6 +71,7 @@ class ViewCollecte extends ViewRecord
             CollecteResource::cloturer(),
             CollecteResource::rouvrir(),
             EditAction::make()->label('Paramètres'),
+            CollecteResource::annuler(),
         ];
     }
 

@@ -31,8 +31,14 @@ class EvenementPolicy
         return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']);
     }
 
+    /** Rien ne se supprime : un événement s'annule (voir annuler). */
     public function delete(User $user, Evenement $evenement): bool
     {
-        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']);
+        return false;
+    }
+
+    public function annuler(User $user, Evenement $evenement): bool
+    {
+        return $user->hasAnyRole(['jewrine_national', 'secretaire_general', 'super_administrateur']) && ! $evenement->estAnnule();
     }
 }

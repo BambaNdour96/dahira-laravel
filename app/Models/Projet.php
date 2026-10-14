@@ -6,6 +6,7 @@ use App\Enums\ResultatProjet;
 use App\Enums\SanteProjet;
 use App\Enums\StatutProjet;
 use App\Enums\TypeSuivi;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,7 +37,7 @@ use Illuminate\Support\Carbon;
  */
 class Projet extends Model
 {
-    use Journalise;
+    use Indelebile, Journalise;
 
     protected $attributes = ['statut' => 'en_cours'];
 
@@ -142,13 +143,13 @@ class Projet extends Model
     /** @return HasMany<Jalon, $this> */
     public function jalons(): HasMany
     {
-        return $this->hasMany(Jalon::class);
+        return $this->hasMany(Jalon::class)->whereNull('archive_le');
     }
 
     /** @return HasMany<Indicateur, $this> */
     public function indicateurs(): HasMany
     {
-        return $this->hasMany(Indicateur::class);
+        return $this->hasMany(Indicateur::class)->whereNull('archive_le');
     }
 
     /** @return HasMany<SuiviProjet, $this> */

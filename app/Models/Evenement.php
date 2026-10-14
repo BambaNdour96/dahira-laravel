@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Annulable;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,7 +30,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class Evenement extends Model
 {
-    use Journalise;
+    use Annulable, Indelebile, Journalise;
 
     /** Le contrôle des présences ouvre 3 heures avant le début et ferme 3 heures après la fin. */
     public const MARGE_HEURES = 3;
@@ -65,7 +67,7 @@ class Evenement extends Model
 
     public function scanOuvert(): bool
     {
-        return now()->between(
+        return ! $this->estAnnule() && now()->between(
             $this->debut->copy()->subHours(self::MARGE_HEURES),
             $this->finEffective()->copy()->addHours(self::MARGE_HEURES),
         );

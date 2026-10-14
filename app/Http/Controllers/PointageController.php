@@ -49,6 +49,7 @@ class PointageController extends Controller
             'bilan' => $pointage->bilan($evenement),
             'perimetre' => $perimetre,
             'sympathisants' => Sympathisant::query()
+                ->auRegistre()
                 ->where('cellule_id', $evenement->cellule_id)
                 ->whereNull('membre_id')
                 ->when($perimetre === 'hommes', fn ($query) => $query->where('sexe', Sexe::Homme->value))

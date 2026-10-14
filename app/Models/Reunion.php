@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Annulable;
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,6 +30,8 @@ use Illuminate\Support\Carbon;
  */
 class Reunion extends Model
 {
+    use Annulable, Indelebile, Journalise;
+
     protected $attributes = ['statut' => 'preparee'];
 
     protected $fillable = ['instance_id', 'titre', 'debut', 'lieu', 'lien', 'secretaire_id', 'divers', 'statut', 'convoquee_le', 'publiee_le', 'publiee_par'];

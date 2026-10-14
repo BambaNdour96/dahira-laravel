@@ -50,7 +50,7 @@ class InscriptionRequest extends FormRequest
             'adresse' => ['required', 'string', 'max:255'],
             'ville' => ['required', 'string', 'max:100'],
             'pays_residence' => ['required', 'string', 'max:100'],
-            'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
+            'cellule_id' => ['required', 'integer', Rule::exists('cellules', 'id')->whereNull('archive_le')],
             'commissions' => ['required', 'array', 'min:1', 'max:'.Commission::MAX_PAR_MEMBRE],
             'commissions.*' => ['integer', 'distinct', Rule::exists('commissions', 'id')->where('actif', true)],
             'password' => ['required', 'string', Password::defaults(), 'confirmed'],

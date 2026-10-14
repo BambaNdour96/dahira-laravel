@@ -3,13 +3,13 @@
 namespace App\Filament\Resources\Pointeurs;
 
 use App\Enums\StatutMembre;
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Pointeurs\Pages\ManagePointeurs;
 use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\Membre;
 use App\Models\User;
 use BackedEnum;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\PageRegistration;
@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -59,7 +60,13 @@ class PointeurResource extends Resource
         return self::canViewAny();
     }
 
+    /** Rien ne se supprime : une désignation prend fin (voir peutMettreFin). */
     public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function peutMettreFin(Model $record): bool
     {
         $utilisateur = self::utilisateur();
 
@@ -88,7 +95,7 @@ class PointeurResource extends Resource
                 ->label('Cellule')
                 ->options(function (): array {
                     $utilisateur = self::utilisateur();
-                    $query = Cellule::query()->orderBy('nom');
+                    $query = Cellule::query()->enActivite()->orderBy('nom');
 
                     if ($utilisateur !== null && ! $utilisateur->hasRole('super_administrateur')) {
                         $query->where('responsable_id', $utilisateur->id);
@@ -127,8 +134,22 @@ class PointeurResource extends Resource
                 TextColumn::make('cellule.nom')->label('Cellule'),
                 TextColumn::make('perimetre')->label('Pointe')->badge()
                     ->formatStateUsing(fn (string $state): string => CellulePointeur::PERIMETRES[$state] ?? $state),
+                TextColumn::make('fin_le')->label('Fin le')->date('d/m/Y')->placeholder('—'),
             ])
-            ->recordActions([DeleteAction::make()->label('Retirer')]);
+            ->filters([
+                TernaryFilter::make('historique')
+                    ->label('Désignations')
+                    ->placeholder('Toutes')
+                    ->trueLabel('Terminées')
+                    ->falseLabel('En cours')
+                    ->default(false)
+                    ->queries(
+                        true: fn (Builder $query) => $query->withoutGlobalScope(CellulePointeur::EN_COURS)->whereNotNull('fin_le'),
+                        false: fn (Builder $query) => $query,
+                        blank: fn (Builder $query) => $query->withoutGlobalScope(CellulePointeur::EN_COURS),
+                    ),
+            ])
+            ->recordActions([ConservationActions::mettreFin(fn (Model $record): bool => self::peutMettreFin($record))]);
     }
 
     /** @return array<string, PageRegistration> */

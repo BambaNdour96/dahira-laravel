@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\Sexe;
+use App\Models\Concerns\Indelebile;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $membre_id
  * @property Carbon $consentement_le
  * @property Carbon|null $derniere_visite_le
+ * @property Carbon|null $anonymise_le
  * @property int|null $cree_par
  * @property-read Cellule $cellule
  * @property-read Membre|null $invitePar
@@ -28,6 +31,8 @@ use Illuminate\Support\Carbon;
  */
 class Sympathisant extends Model
 {
+    use Indelebile;
+
     /** Un sympathisant venu 3 fois en 3 mois est invité à devenir membre. */
     public const VISITES_POUR_INVITER = 3;
 
@@ -43,7 +48,18 @@ class Sympathisant extends Model
             'sexe' => Sexe::class,
             'consentement_le' => 'datetime',
             'derniere_visite_le' => 'datetime',
+            'anonymise_le' => 'datetime',
         ];
+    }
+
+    /**
+     * Les sympathisants encore au registre (pas anonymisés).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeAuRegistre(Builder $query): void
+    {
+        $query->whereNull($query->qualifyColumn('anonymise_le'));
     }
 
     public function nomComplet(): string

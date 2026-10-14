@@ -6,7 +6,6 @@ use App\Filament\Resources\Collectes\CollecteResource;
 use App\Models\Collecte;
 use App\Services\JourJService;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -22,7 +21,7 @@ class EditCollecte extends EditRecord
     {
         return [
             ViewAction::make()->label('Tableau de bord'),
-            DeleteAction::make(),
+            CollecteResource::annuler(),
         ];
     }
 

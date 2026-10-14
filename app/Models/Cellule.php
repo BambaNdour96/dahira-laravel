@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Database\Factories\CelluleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Cellule extends Model
 {
+    use Archivable, Indelebile;
+
     /** @use HasFactory<CelluleFactory> */
     use HasFactory, Journalise;
 

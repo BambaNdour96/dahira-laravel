@@ -6,6 +6,7 @@ use App\Enums\StatutMembre;
 use App\Models\ActionComite;
 use App\Models\CommissionComite;
 use App\Models\Instance;
+use App\Models\JournalActivite;
 use App\Models\Membre;
 use App\Models\PresenceReunion;
 use App\Models\Reunion;
@@ -60,7 +61,7 @@ final class ComiteService
     /** Rédiger et publier le PV : l'organisateur ou le secrétaire de séance, tant qu'il n'est pas publié. */
     public static function peutRediger(User $utilisateur, Reunion $reunion): bool
     {
-        if ($reunion->estPubliee()) {
+        if ($reunion->estPubliee() || $reunion->estAnnule()) {
             return false;
         }
 
@@ -92,8 +93,14 @@ final class ComiteService
         }
 
         $comite = Instance::comiteDirecteur();
-        $comite->membres()->sync($membres);
+        $changements = $comite->membres()->sync($membres);
         $this->synchroniserRoles();
+
+        foreach (['attached' => true, 'detached' => false] as $cle => $ajoute) {
+            foreach (Membre::query()->whereKey($changements[$cle])->get() as $membre) {
+                JournalActivite::appartenance($comite, 'Comité directeur', $membre, $ajoute);
+            }
+        }
     }
 
     public function ajouterAuComiteDirecteur(Membre $membre, User $auteur): void
@@ -205,6 +212,10 @@ final class ComiteService
     /** Convoque la réunion : prévient les membres et renvoie le message pour le groupe WhatsApp. */
     public function convoquer(Reunion $reunion): string
     {
+        if ($reunion->estAnnule()) {
+            throw new DomainException('Cette réunion est annulée.');
+        }
+
         $reunion->update(['statut' => $reunion->estPubliee() ? 'publiee' : 'convoquee', 'convoquee_le' => now()]);
         $message = $this->messageConvocation($reunion);
 
@@ -247,13 +258,21 @@ final class ComiteService
     public function enregistrerPresences(Reunion $reunion, array $presents, array $excuses): void
     {
         DB::transaction(function () use ($reunion, $presents, $excuses): void {
+            $avant = $reunion->presences()->where('statut', 'present')->count().' présent(s), '
+                .$reunion->presences()->where('statut', 'excuse')->count().' excusé(s)';
             $reunion->presences()->delete();
+            $excuses = array_diff(array_unique($excuses), $presents);
+
+            JournalActivite::enregistrer($reunion, 'modifie', [
+                'avant' => ['presences' => $avant],
+                'apres' => ['presences' => count(array_unique($presents)).' présent(s), '.count($excuses).' excusé(s)'],
+            ]);
 
             foreach (array_unique($presents) as $id) {
                 PresenceReunion::query()->create(['reunion_id' => $reunion->id, 'membre_id' => $id, 'statut' => 'present']);
             }
 
-            foreach (array_diff(array_unique($excuses), $presents) as $id) {
+            foreach ($excuses as $id) {
                 PresenceReunion::query()->create(['reunion_id' => $reunion->id, 'membre_id' => $id, 'statut' => 'excuse']);
             }
         });
@@ -307,7 +326,7 @@ final class ComiteService
     }
 
     /** @return Collection<int, User> */
-    private function comptesDesMembres(Instance $instance): Collection
+    public function comptesDesMembres(Instance $instance): Collection
     {
         return User::query()->whereIn('id', $instance->membres()->whereNotNull('user_id')->select('user_id'))->get();
     }
@@ -351,7 +370,10 @@ final class ComiteService
             throw new DomainException('Seul le chef de la commission gère ses membres.');
         }
 
-        $commission->membres()->syncWithoutDetaching([$membre->id]);
+        if ($commission->membres()->syncWithoutDetaching([$membre->id])['attached'] !== []) {
+            JournalActivite::appartenance($commission, 'Membres', $membre, true);
+        }
+
         $commission->instance->membres()->syncWithoutDetaching([$membre->id]);
     }
 
@@ -361,7 +383,27 @@ final class ComiteService
             throw new DomainException('Seul le chef de la commission gère ses membres.');
         }
 
-        $commission->membres()->detach($membre->id);
+        if ($commission->membres()->detach($membre->id) > 0) {
+            JournalActivite::appartenance($commission, 'Membres', $membre, false);
+        }
+    }
+
+    /** Retire un membre d'un comité (hors Comité directeur) ; la trace reste au journal. */
+    public function retirerDuComite(Instance $instance, Membre $membre, User $auteur): void
+    {
+        if ($instance->estComiteDirecteur()) {
+            $this->retirerDuComiteDirecteur($membre, $auteur);
+
+            return;
+        }
+
+        if (! self::peutGerer($auteur, $instance)) {
+            throw new DomainException('Seuls les organisateurs du comité gèrent ses membres.');
+        }
+
+        if ($instance->membres()->detach($membre->id) > 0) {
+            JournalActivite::appartenance($instance, 'Membres', $membre, false);
+        }
     }
 
     /** Le chef confie une tâche à un membre de sa commission, sans attendre une réunion. */
@@ -415,7 +457,7 @@ final class ComiteService
      */
     public function avancement(Instance $instance): array
     {
-        $actions = $instance->actions()->get();
+        $actions = $instance->actions()->where('statut', '!=', 'abandonnee')->get();
         $faites = $actions->where('statut', 'faite')->count();
         $cible = $instance->dateCible();
 
@@ -444,7 +486,7 @@ final class ComiteService
 
         $actions = ActionComite::query()
             ->with(['instance.president', 'responsable', 'commission.chef'])
-            ->where('statut', '!=', 'faite')
+            ->whereNotIn('statut', ActionComite::TERMINEES)
             ->whereNotNull('echeance')
             ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))
             ->get();

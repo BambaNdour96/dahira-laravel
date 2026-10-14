@@ -22,6 +22,7 @@ use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +81,7 @@ class RepresentantFinanceResource extends Resource
                 TextColumn::make('perimetre')->label('Représente')->badge()
                     ->formatStateUsing(fn (string $state): string => RepresentantFinance::PERIMETRES[$state] ?? $state),
                 TextColumn::make('user.name')->label('Représentant'),
+                TextColumn::make('fin_le')->label('Fin le')->date('d/m/Y')->placeholder('—'),
                 TextColumn::make('en_caisse')->label('En caisse')->weight('bold')
                     ->state(fn (RepresentantFinance $record): string => CollecteService::fcfa($service->enCaisse($record->user))),
                 TextColumn::make('a_valider')->label('À valider')->badge()->color('warning')
@@ -87,6 +89,19 @@ class RepresentantFinanceResource extends Resource
                 TextColumn::make('derniere_remise')->label('Dernière remise')->placeholder('—')
                     ->state(fn (RepresentantFinance $record): ?string => RemiseFonds::query()
                         ->where('representant_id', $record->user_id)->latest('created_at')->value('created_at')?->format('d/m/Y')),
+            ])
+            ->filters([
+                TernaryFilter::make('historique')
+                    ->label('Désignations')
+                    ->placeholder('Toutes')
+                    ->trueLabel('Terminées')
+                    ->falseLabel('En cours')
+                    ->default(false)
+                    ->queries(
+                        true: fn (Builder $query) => $query->withoutGlobalScope(RepresentantFinance::EN_COURS)->whereNotNull('fin_le'),
+                        false: fn (Builder $query) => $query,
+                        blank: fn (Builder $query) => $query->withoutGlobalScope(RepresentantFinance::EN_COURS),
+                    ),
             ])
             ->headerActions([self::designer()])
             ->recordActions([self::remise(), self::bordereaux(), self::retirer()])
@@ -102,7 +117,7 @@ class RepresentantFinanceResource extends Resource
             ->schema([
                 Select::make('cellule_id')
                     ->label('Cellule')
-                    ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
+                    ->options(fn (): array => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom', 'id')->all())
                     ->required()
                     ->live(),
                 Radio::make('perimetre')
@@ -194,21 +209,28 @@ class RepresentantFinanceResource extends Resource
     private static function retirer(): Action
     {
         return Action::make('retirer')
-            ->label('Retirer')
+            ->label('Mettre fin')
             ->icon('heroicon-o-user-minus')
             ->color('danger')
-            ->visible(fn (): bool => self::peutGerer())
+            ->visible(fn (RepresentantFinance $record): bool => self::peutGerer() && ! $record->estTerminee())
             ->requiresConfirmation()
+            ->modalDescription('La désignation prend fin aujourd\'hui. Elle reste dans l\'historique, avec les remises de ce représentant.')
             ->action(function (RepresentantFinance $record): void {
+                $auteur = Auth::user();
+
+                if (! $auteur instanceof User) {
+                    return;
+                }
+
                 try {
-                    app(RepresentantFinanceService::class)->retirer($record);
+                    app(RepresentantFinanceService::class)->retirer($record, $auteur);
                 } catch (DomainException $e) {
                     Notification::make()->title($e->getMessage())->danger()->send();
 
                     return;
                 }
 
-                Notification::make()->title('Représentant retiré.')->success()->send();
+                Notification::make()->title('La désignation a pris fin.')->success()->send();
             });
     }
 

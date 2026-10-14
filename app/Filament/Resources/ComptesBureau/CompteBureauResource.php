@@ -58,7 +58,7 @@ class CompteBureauResource extends Resource
                 ->live(),
             Select::make('cellule_id')
                 ->label('Cellule de ce Jewrine')
-                ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
+                ->options(fn (): array => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom', 'id')->all())
                 ->visible(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
                 ->required(fn ($get): bool => in_array($get('role'), CompteBureauService::AVEC_CELLULE, true))
                 ->helperText('Si cette cellule avait déjà quelqu\'un à ce poste, il sera remplacé.'),

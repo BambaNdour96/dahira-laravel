@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Cellules;
 
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Cellules\Pages\ManageCellules;
 use App\Models\Cellule;
 use BackedEnum;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,7 +14,10 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use UnitEnum;
 
 class CelluleResource extends Resource
@@ -64,15 +67,25 @@ class CelluleResource extends Resource
                 TextColumn::make('ville')->label('Ville')->searchable(),
                 TextColumn::make('responsable.name')->label('Jewrine')->placeholder('—'),
                 TextColumn::make('membres_count')->label('Membres')->counts('membres')->sortable(),
+                TextColumn::make('archive_le')->label('Archivée le')->date('d/m/Y')->placeholder('—')->toggleable(),
                 IconColumn::make('whatsapp_lien')
                     ->label('WhatsApp')
                     ->boolean()
                     ->state(fn (Cellule $record): bool => filled($record->whatsapp_lien)),
             ])
+            ->filters([
+                TernaryFilter::make('archive_le')
+                    ->label('Archivage')
+                    ->nullable()
+                    ->placeholder('Toutes')
+                    ->trueLabel('Archivées')
+                    ->falseLabel('En activité')
+                    ->default(false),
+            ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make()
-                    ->hidden(fn (Cellule $record): bool => $record->membres()->exists()),
+                ConservationActions::archiver(fn (Model $record): bool => Gate::allows('archiver', $record)),
+                ConservationActions::desarchiver(fn (Model $record): bool => Gate::allows('archiver', $record)),
             ])
             ->defaultSort('nom');
     }

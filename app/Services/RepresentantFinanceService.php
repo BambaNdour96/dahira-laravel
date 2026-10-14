@@ -50,7 +50,7 @@ final class RepresentantFinanceService
         $ancien = RepresentantFinance::query()->where('cellule_id', $cellule->id)->where('perimetre', $perimetre)->first();
 
         if ($ancien !== null && $ancien->user_id !== $designe->id) {
-            $this->retirer($ancien);
+            $this->retirer($ancien, $auteur);
         }
 
         $representant = RepresentantFinance::query()->updateOrCreate(
@@ -63,18 +63,14 @@ final class RepresentantFinanceService
         return $representant;
     }
 
-    public function retirer(RepresentantFinance $representant): void
+    /** Met fin à la désignation (elle reste dans l'historique), une fois la caisse remise. */
+    public function retirer(RepresentantFinance $representant, User $auteur): void
     {
         if ($this->enCaisse($representant->user) > 0) {
             throw new DomainException('Ce représentant a encore des espèces en caisse : enregistrez d\'abord leur remise.');
         }
 
-        $utilisateur = $representant->user;
-        $representant->delete();
-
-        if (! RepresentantFinance::query()->where('user_id', $utilisateur->id)->exists()) {
-            $utilisateur->removeRole('representant_finance');
-        }
+        app(ConservationService::class)->mettreFin($representant, $auteur);
     }
 
     /** @return Collection<int, RepresentantFinance> */

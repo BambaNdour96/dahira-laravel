@@ -125,7 +125,7 @@ it('enregistre la participation d\'un sympathisant, avec reçu, comptée à part
     $this->actingAs($this->jewrine)->get(route('sympathisants.recu', $sympathisant->participations()->firstOrFail()))->assertForbidden();
 });
 
-it('affiche les chiffres au bureau et efface les absents depuis 2 ans', function () {
+it('affiche les chiffres au bureau et anonymise les absents depuis 2 ans', function () {
     $ancien = $this->service->accueillir($this->seance, ['prenom' => 'Ancien', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
     $ancien->forceFill(['derniere_visite_le' => now()->subYears(3)])->save();
     $this->service->accueillir($this->seance, ['prenom' => 'Récent', 'nom' => 'Visiteur', 'sexe' => 'H', 'accord' => true], $this->jewrine);
@@ -136,5 +136,9 @@ it('affiche les chiffres au bureau et efface les absents depuis 2 ans', function
     Livewire::test(SympathisantsChiffres::class)->assertSee('Devenus membres');
 
     expect($this->service->purger())->toBe(1)
-        ->and(Sympathisant::query()->pluck('prenom')->all())->toBe(['Récent']);
+        ->and(Sympathisant::query()->auRegistre()->pluck('prenom')->all())->toBe(['Récent'])
+        ->and($ancien->refresh()->nomComplet())->toBe('Sympathisant anonyme')
+        ->and($ancien->anonymise_le)->not->toBeNull()
+        ->and($ancien->visites()->count())->toBe(1)
+        ->and($this->service->purger())->toBe(0);
 });

@@ -26,6 +26,7 @@ final class AssiduiteService
     {
         return Evenement::query()
             ->where('type', Evenement::SEANCE)
+            ->maintenus()
             ->where('cellule_id', $celluleId)
             ->where('debut', '>=', $depuis)
             ->where('debut', '<', now())
@@ -79,6 +80,7 @@ final class AssiduiteService
     {
         return Evenement::query()
             ->where('type', Evenement::SEANCE)
+            ->maintenus()
             ->where('cellule_id', $membre->cellule_id)
             ->where('debut', '>=', now()->subHours(2))
             ->orderBy('debut')
@@ -97,6 +99,7 @@ final class AssiduiteService
 
         $duJour = Evenement::query()
             ->where('type', Evenement::SEANCE)
+            ->maintenus()
             ->where('avec_rappel', true)
             ->whereDate('debut', now())
             ->with('cellule')
@@ -120,6 +123,7 @@ final class AssiduiteService
 
         $hier = Evenement::query()
             ->where('type', Evenement::SEANCE)
+            ->maintenus()
             ->whereDate('debut', now()->subDay())
             ->with('cellule')
             ->get();

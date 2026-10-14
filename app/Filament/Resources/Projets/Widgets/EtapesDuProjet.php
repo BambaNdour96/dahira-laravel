@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Projets\Widgets;
 
+use App\Filament\Actions\ConservationActions;
 use App\Models\Jalon;
 use App\Models\Projet;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Field;
@@ -23,13 +23,17 @@ class EtapesDuProjet extends TableWidget
 {
     public ?Model $record = null;
 
+    public bool $voirArchives = false;
+
     protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
         return $table
             ->heading('Étapes du projet')
-            ->query(fn (): Builder => Jalon::query()->where('projet_id', $this->projet()->id))
+            ->query(fn (): Builder => Jalon::query()
+                ->where('projet_id', $this->projet()->id)
+                ->when(! $this->voirArchives, fn (Builder $query) => $query->whereNull('archive_le')))
             ->columns([
                 TextColumn::make('titre')->label('Étape')->wrap(),
                 TextColumn::make('echeance')->label('Prévue le')->date('d/m/Y')->sortable(),
@@ -43,6 +47,13 @@ class EtapesDuProjet extends TableWidget
                     }),
             ])
             ->headerActions([
+                Action::make('archives')
+                    ->label(fn (): string => $this->voirArchives ? 'Masquer les archivés' : 'Voir les archivés')
+                    ->color('gray')
+                    ->link()
+                    ->action(function (): void {
+                        $this->voirArchives = ! $this->voirArchives;
+                    }),
                 Action::make('ajouterEtape')
                     ->label('Ajouter une étape')
                     ->icon('heroicon-o-plus')
@@ -67,7 +78,8 @@ class EtapesDuProjet extends TableWidget
                         Notification::make()->title('Étape marquée réalisée.')->success()->send();
                     }),
                 EditAction::make()->schema(self::formulaire())->visible(fn (): bool => $this->peutGerer()),
-                DeleteAction::make()->visible(fn (): bool => $this->peutGerer()),
+                ConservationActions::archiver(fn (Model $record): bool => $this->peutGerer()),
+                ConservationActions::desarchiver(fn (Model $record): bool => $this->peutGerer()),
             ])
             ->defaultSort('echeance');
     }

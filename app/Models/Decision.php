@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Decision extends Model
 {
+    use Indelebile;
+
     public const ETATS = ['en_vigueur' => 'En vigueur', 'modifiee' => 'Modifiée', 'annulee' => 'Annulée'];
 
     protected $attributes = ['etat' => 'en_vigueur'];

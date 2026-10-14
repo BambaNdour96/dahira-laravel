@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Reunions\Pages;
 
 use App\Filament\Resources\Reunions\ReunionResource;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -15,7 +14,7 @@ class EditReunion extends EditRecord
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [ViewAction::make()->label('Ouvrir'), DeleteAction::make()];
+        return [ViewAction::make()->label('Ouvrir'), ReunionResource::annuler()];
     }
 
     protected function getRedirectUrl(): string

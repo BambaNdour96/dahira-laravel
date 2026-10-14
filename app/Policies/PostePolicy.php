@@ -30,8 +30,9 @@ class PostePolicy
         return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
+    /** Rien ne se supprime : on le désactive. */
     public function delete(User $user, Poste $poste): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return false;
     }
 }

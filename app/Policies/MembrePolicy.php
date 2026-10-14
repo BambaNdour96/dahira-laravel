@@ -31,15 +31,15 @@ class MembrePolicy
             || $this->estResponsableDe($user, $membre);
     }
 
+    /** Rien ne se supprime : une fiche rejetée est anonymisée au terme de sa durée de conservation. */
     public function delete(User $user, Membre $membre): bool
     {
-        return $user->hasRole('administrateur')
-            && $membre->statut === StatutMembre::Rejete;
+        return false;
     }
 
     public function deleteAny(User $user): bool
     {
-        return $user->hasRole('administrateur');
+        return false;
     }
 
     /** Un membre voit sa propre photo ; le bureau voit celles qu'il a le droit de consulter. */

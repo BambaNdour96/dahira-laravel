@@ -35,8 +35,9 @@ class ProjetPolicy
         return $user->hasAnyRole(self::GESTION);
     }
 
+    /** Rien ne se supprime : un projet arrêté passe à l'état « Abandonné ». */
     public function delete(User $user, Projet $projet): bool
     {
-        return $user->hasRole('super_administrateur');
+        return false;
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Membre;
 use App\Models\User;
 use App\Services\ComiteService;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -87,10 +88,10 @@ class InstanceResource extends Resource
         return $utilisateur !== null && $record instanceof Instance && ! $record->estComiteDirecteur() && ComiteService::peutGerer($utilisateur, $record);
     }
 
+    /** Rien ne se supprime : un comité se clôture (État « Clôturé »). */
     public static function canDelete(Model $record): bool
     {
-        return $record instanceof Instance && ! $record->estComiteDirecteur()
-            && (self::utilisateur()?->hasRole('super_administrateur') ?? false) && ! $record->reunions()->exists();
+        return false;
     }
 
     public static function form(Schema $schema): Schema
@@ -135,6 +136,8 @@ class InstanceResource extends Resource
                         ->label('')
                         ->orderColumn('ordre')
                         ->addActionLabel('Ajouter une commission')
+                        ->helperText('Une commission enregistrée ne se retire pas d\'ici : si elle est vide, archivez-la depuis le tableau de bord du comité.')
+                        ->deleteAction(fn (Action $action): Action => $action->visible(fn (array $arguments): bool => ! str_starts_with((string) ($arguments['item'] ?? ''), 'record-')))
                         ->columns(3)
                         ->schema([
                             TextInput::make('nom')->label('Commission')->required()->maxLength(100)->placeholder('Cuisine'),

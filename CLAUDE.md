@@ -88,12 +88,13 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 - Travailler **par lot**, dans l'ordre de `docs/conception.md` et du plan ci-dessous ; un commit par lot, message en français.
 - Avant de coder un lot : résumer en quelques lignes ce qui va changer (écrans, droits, données) et attendre l'accord.
 - Écrire les tests du lot (Feature, et Browser pour les écrans du téléphone) avant de déclarer le lot terminé.
-- Mettre à jour la documentation utilisateur si un écran change.
+- Mettre à jour la documentation utilisateur (`docs/guide/`) si un écran change.
 
 ## Plan de reconstruction
 
 | Lot | Contenu |
 | --- | --- |
+| R0 | Rien ne se perd : plus aucune suppression ni effacement en cascade ; annulation (programmes, événements, dahiras, réunions), archivage (cellules, étapes, indicateurs, commissions d'un comité), fin de désignation (pointeurs, représentants finance), anonymisation des sympathisants |
 | R1 | Acteurs et droits : deux super administrateurs, nominations par le super administrateur ou le Jewrine national, suppression de la Jewrine des Sokhnas, « Dahira » partout, commissions permanentes (Jewrine qui ajoute ses membres), Comité directeur, secrétaire de séance, décisions sans vote |
 | R2 | Membres : comptes famille et enfant, inscription par le Jewrine, compétences, volontariat, changement de cellule, renouvellement annuel, cartes par lots, import des listes existantes |
 | R3 | Finance : caisses paramétrables (Wave, Orange Money, espèces, banque plus tard), ordres de dépense, corrections (réaffectation, avoir, contre-passation, remboursement), réaffectations, exercices et bilan annuel, libellés de dépenses |

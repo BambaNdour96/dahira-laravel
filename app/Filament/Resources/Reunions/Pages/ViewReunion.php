@@ -48,7 +48,7 @@ class ViewReunion extends ViewRecord
             Action::make('convoquer')
                 ->label('Convoquer')
                 ->icon('heroicon-o-megaphone')
-                ->visible(fn (Reunion $record): bool => ! $record->estPubliee() && ($utilisateur = self::utilisateur()) !== null && ComiteService::peutOrganiser($utilisateur, $record->instance))
+                ->visible(fn (Reunion $record): bool => ! $record->estPubliee() && ! $record->estAnnule() && ($utilisateur = self::utilisateur()) !== null && ComiteService::peutOrganiser($utilisateur, $record->instance))
                 ->modalHeading('Convoquer les membres')
                 ->modalDescription('Chaque membre du comité reçoit une notification. Copiez aussi ce message dans le groupe WhatsApp du comité.')
                 ->fillForm(fn (Reunion $record): array => ['message' => app(ComiteService::class)->messageConvocation($record)])
@@ -80,6 +80,7 @@ class ViewReunion extends ViewRecord
                     Notification::make()->title('Présences enregistrées.')->success()->send();
                 }),
             EditAction::make()->label('Rédiger'),
+            ReunionResource::annuler(),
             Action::make('pv')
                 ->label('PV (PDF)')
                 ->icon('heroicon-o-document-arrow-down')

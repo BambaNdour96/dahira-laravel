@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +23,7 @@ use Illuminate\Support\Carbon;
  */
 class Cotisation extends Model
 {
-    use Journalise;
+    use Indelebile, Journalise;
 
     protected $fillable = ['membre_id', 'mois', 'montant', 'paiement_id', 'exoneree', 'motif'];
 

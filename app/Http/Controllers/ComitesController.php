@@ -35,7 +35,7 @@ class ComitesController extends Controller
                 $query->where('responsable_id', $membre->id)
                     ->orWhereIn('commission_id', CommissionComite::query()->where('chef_id', $membre->id)->select('id'));
             })
-            ->where('statut', '!=', 'faite')
+            ->whereNotIn('statut', ActionComite::TERMINEES)
             ->orderBy('echeance')
             ->get();
 

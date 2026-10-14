@@ -30,8 +30,9 @@ class CommissionPolicy
         return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
+    /** Rien ne se supprime : on la désactive. */
     public function delete(User $user, Commission $commission): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return false;
     }
 }

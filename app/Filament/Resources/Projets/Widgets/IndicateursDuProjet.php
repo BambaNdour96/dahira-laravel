@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Projets\Widgets;
 
+use App\Filament\Actions\ConservationActions;
 use App\Models\Indicateur;
 use App\Models\Projet;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -20,6 +20,8 @@ class IndicateursDuProjet extends TableWidget
 {
     public ?Model $record = null;
 
+    public bool $voirArchives = false;
+
     protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
@@ -28,7 +30,9 @@ class IndicateursDuProjet extends TableWidget
 
         return $table
             ->heading('Indicateurs')
-            ->query(fn (): Builder => Indicateur::query()->where('projet_id', $this->projet()->id))
+            ->query(fn (): Builder => Indicateur::query()
+                ->where('projet_id', $this->projet()->id)
+                ->when(! $this->voirArchives, fn (Builder $query) => $query->whereNull('archive_le')))
             ->columns([
                 TextColumn::make('libelle')->label('Indicateur')->wrap(),
                 TextColumn::make('cible')->label('Cible')
@@ -44,6 +48,13 @@ class IndicateursDuProjet extends TableWidget
                     }),
             ])
             ->headerActions([
+                Action::make('archives')
+                    ->label(fn (): string => $this->voirArchives ? 'Masquer les archivés' : 'Voir les archivés')
+                    ->color('gray')
+                    ->link()
+                    ->action(function (): void {
+                        $this->voirArchives = ! $this->voirArchives;
+                    }),
                 Action::make('ajouterIndicateur')
                     ->label('Ajouter un indicateur')
                     ->icon('heroicon-o-plus')
@@ -71,7 +82,8 @@ class IndicateursDuProjet extends TableWidget
                         $record->update(['valeur' => $data['valeur']]);
                         Notification::make()->title('Indicateur mis à jour.')->success()->send();
                     }),
-                DeleteAction::make()->visible(fn (): bool => $this->peutGerer()),
+                ConservationActions::archiver(fn (Model $record): bool => $this->peutGerer()),
+                ConservationActions::desarchiver(fn (Model $record): bool => $this->peutGerer()),
             ]);
     }
 

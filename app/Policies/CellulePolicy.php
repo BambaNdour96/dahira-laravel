@@ -30,7 +30,13 @@ class CellulePolicy
         return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
+    /** Rien ne se supprime : une cellule vide s'archive (voir archiver). */
     public function delete(User $user, Cellule $objet): bool
+    {
+        return false;
+    }
+
+    public function archiver(User $user, Cellule $objet): bool
     {
         return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }

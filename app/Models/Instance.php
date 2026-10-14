@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -27,6 +28,8 @@ use Illuminate\Support\Carbon;
  */
 class Instance extends Model
 {
+    use Indelebile;
+
     public const COMITE_DIRECTEUR = 'comite_directeur';
 
     public const CDGMT = 'cdgmt';
@@ -66,7 +69,7 @@ class Instance extends Model
     /** @return HasMany<CommissionComite, $this> */
     public function commissions(): HasMany
     {
-        return $this->hasMany(CommissionComite::class)->orderBy('ordre');
+        return $this->hasMany(CommissionComite::class)->whereNull('archive_le')->orderBy('ordre');
     }
 
     /** @return HasMany<Reunion, $this> */

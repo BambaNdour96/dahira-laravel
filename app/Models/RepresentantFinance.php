@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Enums\Sexe;
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
+use App\Models\Concerns\PrendFin;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class RepresentantFinance extends Model
 {
+    use Indelebile, Journalise, PrendFin;
+
     public const PERIMETRES = ['hommes' => 'Les Goor Yalla', 'femmes' => 'Les Sokhnas'];
 
     protected $table = 'representants_finance';

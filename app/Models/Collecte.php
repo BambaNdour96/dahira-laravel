@@ -7,6 +7,8 @@ use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
+use App\Models\Concerns\Annulable;
+use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -41,7 +43,7 @@ use Illuminate\Support\Carbon;
  */
 class Collecte extends Model
 {
-    use Journalise;
+    use Annulable, Indelebile, Journalise;
 
     /** Valeurs par défaut, aussi pour une collecte tout juste créée. */
     protected $attributes = [

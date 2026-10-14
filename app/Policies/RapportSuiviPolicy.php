@@ -40,8 +40,8 @@ class RapportSuiviPolicy
 
     public function delete(User $user, RapportSuivi $rapport): bool
     {
-        return $user->hasRole('super_administrateur')
-            || (! $rapport->estPublie() && $rapport->auteur_id === $user->id);
+        // Seul un brouillon, jamais diffusé, peut être supprimé par son auteur ; un rapport publié reste.
+        return ! $rapport->estPublie() && $rapport->auteur_id === $user->id;
     }
 
     public function publier(User $user, RapportSuivi $rapport): bool

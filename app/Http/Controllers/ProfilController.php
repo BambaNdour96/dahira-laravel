@@ -34,7 +34,7 @@ class ProfilController extends Controller
         return view('espace.profil', [
             'membre' => $membre,
             'correction' => $membre->statut === StatutMembre::ACorriger,
-            'cellules' => Cellule::query()->orderBy('nom')->get(['id', 'nom']),
+            'cellules' => Cellule::query()->enActivite()->orderBy('nom')->get(['id', 'nom']),
         ]);
     }
 
@@ -68,7 +68,7 @@ class ProfilController extends Controller
                 'sexe' => ['required', Rule::enum(Sexe::class)],
                 'date_naissance' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
                 'lieu_naissance' => ['nullable', 'string', 'max:100'],
-                'cellule_id' => ['required', 'integer', 'exists:cellules,id'],
+                'cellule_id' => ['required', 'integer', Rule::exists('cellules', 'id')->whereNull('archive_le')],
             ];
         }
 

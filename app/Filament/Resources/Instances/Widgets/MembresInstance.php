@@ -106,11 +106,7 @@ class MembresInstance extends TableWidget
                         abort_unless($utilisateur instanceof User, 403);
 
                         try {
-                            if ($this->instance()->estComiteDirecteur()) {
-                                app(ComiteService::class)->retirerDuComiteDirecteur($record, $utilisateur);
-                            } else {
-                                $this->instance()->membres()->detach($record->id);
-                            }
+                            app(ComiteService::class)->retirerDuComite($this->instance(), $record, $utilisateur);
                         } catch (DomainException $e) {
                             Notification::make()->title($e->getMessage())->danger()->send();
 

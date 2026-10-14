@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -18,6 +21,8 @@ use Illuminate\Support\Carbon;
  */
 class Jalon extends Model
 {
+    use Archivable, Indelebile, Journalise;
+
     protected $fillable = ['projet_id', 'titre', 'echeance', 'realise_le'];
 
     /** @return array<string, string> */

@@ -30,8 +30,9 @@ class ExercicePolicy
         return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
     }
 
+    /** Rien ne se supprime : un exercice reste dans l'historique. */
     public function delete(User $user, Exercice $objet): bool
     {
-        return $user->hasAnyRole(['secretaire_general', 'super_administrateur']);
+        return false;
     }
 }

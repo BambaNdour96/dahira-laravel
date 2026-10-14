@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Archivable;
+use App\Models\Concerns\Indelebile;
+use App\Models\Concerns\Journalise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Indicateur extends Model
 {
+    use Archivable, Indelebile, Journalise;
+
     protected $fillable = ['projet_id', 'libelle', 'unite', 'cible', 'valeur'];
 
     /** @return array<string, string> */

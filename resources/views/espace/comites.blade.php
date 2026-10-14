@@ -187,7 +187,9 @@
                     <li class="rounded-lg bg-stone-50 p-3 text-sm">
                         <p class="font-semibold text-emerald-900">{{ $reunion->titre }}</p>
                         <p class="text-xs text-stone-600">{{ $reunion->debut->translatedFormat('l j F à H\hi') }} · {{ $reunion->lieu }}</p>
-                        @if ($reunion->estPubliee())
+                        @if ($reunion->estAnnule())
+                            <p class="mt-2 text-xs font-semibold text-red-700">Réunion annulée : {{ $reunion->motif_annulation }}</p>
+                        @elseif ($reunion->estPubliee())
                             <a href="{{ route('reunions.pv', $reunion) }}" class="mt-2 inline-block font-semibold text-emerald-800">📄 Lire le PV</a>
                         @elseif ($reunion->points->isNotEmpty())
                             <ol class="mt-2 list-decimal pl-5 text-xs text-stone-700">

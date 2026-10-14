@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Reunions;
 
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Reunions\Pages\CreateReunion;
 use App\Filament\Resources\Reunions\Pages\EditReunion;
 use App\Filament\Resources\Reunions\Pages\ListReunions;
@@ -10,7 +11,9 @@ use App\Models\Instance;
 use App\Models\Reunion;
 use App\Models\User;
 use App\Services\ComiteService;
+use App\Services\ConservationService;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -35,7 +38,7 @@ use UnitEnum;
 /** Les réunions des comités : ordre du jour, résumés, décisions et actions, puis PV publié. */
 class ReunionResource extends Resource
 {
-    public const ETATS = ['preparee' => 'En préparation', 'convoquee' => 'Convoquée', 'publiee' => 'PV publié'];
+    public const ETATS = ['preparee' => 'En préparation', 'convoquee' => 'Convoquée', 'publiee' => 'PV publié', 'annulee' => 'Annulée'];
 
     protected static ?string $model = Reunion::class;
 
@@ -90,12 +93,33 @@ class ReunionResource extends Resource
         return $utilisateur !== null && $record instanceof Reunion && ComiteService::peutRediger($utilisateur, $record);
     }
 
+    /** Rien ne se supprime : une réunion s'annule, avec un motif (voir annuler). */
     public static function canDelete(Model $record): bool
     {
-        $utilisateur = self::utilisateur();
+        return false;
+    }
 
-        return $utilisateur !== null && $record instanceof Reunion && ! $record->estPubliee()
-            && ComiteService::peutOrganiser($utilisateur, $record->instance);
+    public static function annuler(): Action
+    {
+        return ConservationActions::annuler(
+            fn (Model $record): bool => ($utilisateur = self::utilisateur()) !== null && $record instanceof Reunion
+                && ! $record->estPubliee() && ComiteService::peutOrganiser($utilisateur, $record->instance),
+            function (Model $record, string $motif, User $auteur): void {
+                if ($record instanceof Reunion) {
+                    app(ConservationService::class)->annulerReunion($record, $motif, $auteur);
+                }
+            },
+            'La réunion, ses points et ses décisions restent dans l\'historique. Si elle était convoquée, les membres sont prévenus.',
+        );
+    }
+
+    /**
+     * Une décision ou une action enregistrée ne se retire plus du formulaire : on change son état.
+     * Seules les lignes ajoutées et pas encore enregistrées peuvent être retirées.
+     */
+    private static function seulementLesNouvelles(Action $action): Action
+    {
+        return $action->visible(fn (array $arguments): bool => ! str_starts_with((string) ($arguments['item'] ?? ''), 'record-'));
     }
 
     /** @return array<int, string> */
@@ -154,6 +178,7 @@ class ReunionResource extends Resource
                         ->defaultItems(0)
                         ->label('')
                         ->addActionLabel('Ajouter une décision')
+                        ->deleteAction(fn (Action $action): Action => self::seulementLesNouvelles($action))
                         ->columns(4)
                         ->schema([
                             Textarea::make('texte')->label('Décision')->required()->rows(2)->columnSpanFull(),
@@ -170,6 +195,7 @@ class ReunionResource extends Resource
                         ->defaultItems(0)
                         ->label('')
                         ->addActionLabel('Ajouter une action')
+                        ->deleteAction(fn (Action $action): Action => self::seulementLesNouvelles($action))
                         ->columns(4)
                         ->schema([
                             TextInput::make('description')->label('Quoi')->required()->maxLength(255)->columnSpan(2),

@@ -46,6 +46,15 @@ class JournalActivite extends Model
         ]);
     }
 
+    /** Trace l'arrivée ou le départ d'un membre dans un groupe (comité, commission) : le lien s'efface, la trace reste. */
+    public static function appartenance(Model $groupe, string $libelle, Membre $membre, bool $ajoute): void
+    {
+        self::enregistrer($groupe, 'modifie', [
+            'avant' => [$libelle => null],
+            'apres' => [$libelle => $membre->prenom.' '.$membre->nom.($ajoute ? ' ajouté(e)' : ' retiré(e)')],
+        ]);
+    }
+
     /** Résumé lisible des changements, pour l'écran du journal. */
     public function resume(): string
     {
@@ -55,6 +64,10 @@ class JournalActivite extends Model
 
         if ($this->evenement === 'supprime') {
             return 'Fiche supprimée';
+        }
+
+        if ($this->evenement === 'anonymise') {
+            return 'Données personnelles effacées ; le reste est conservé';
         }
 
         $parties = [];

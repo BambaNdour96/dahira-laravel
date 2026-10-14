@@ -53,6 +53,7 @@ class JournalActiviteResource extends Resource
                         'cree' => 'Création',
                         'modifie' => 'Modification',
                         'supprime' => 'Suppression',
+                        'anonymise' => 'Anonymisation',
                         'en_tant_que' => 'Connexion en tant que',
                         default => $state,
                     })
@@ -73,6 +74,7 @@ class JournalActiviteResource extends Resource
                         'cree' => 'Création',
                         'modifie' => 'Modification',
                         'supprime' => 'Suppression',
+                        'anonymise' => 'Anonymisation',
                     ]),
                 SelectFilter::make('sujet_type')
                     ->label('Objet')

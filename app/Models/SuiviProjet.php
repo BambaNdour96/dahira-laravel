@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TypeSuivi;
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,8 @@ use Illuminate\Support\Carbon;
  */
 class SuiviProjet extends Model
 {
+    use Indelebile;
+
     protected $table = 'suivis_projet';
 
     protected $fillable = ['projet_id', 'type', 'texte', 'montant', 'auteur_id'];

@@ -1,6 +1,6 @@
 # Conception de la plateforme NDK
 
-**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1 · octobre 2026
+**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1.1 · octobre 2026
 
 Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque partie se relie aux autres. Il a été établi domaine par domaine, en séances de travail, et sert de plan pour reconstruire et compléter la plateforme.
 
@@ -11,10 +11,11 @@ Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque pa
 | **Une seule vérité, visible partout** | Chaque information est saisie une seule fois, par la personne responsable, puis apparaît automatiquement partout où elle compte. Personne ne recopie un chiffre d'un écran à l'autre |
 | **La validation de la Finance fait foi** | Un franc compte dans les jauges (membre, cellule, programme, Suivi et Évaluation, Comité directeur, trésorerie) dès qu'il est validé par la Finance ou un représentant |
 | **Celui qui ordonne n'est pas celui qui paie** | Aucun argent ne sort sans un ordre de dépense ; la Finance exécute l'ordre, et seulement lui |
-| **Une personne, plusieurs casquettes** | Un seul compte par personne ; ses droits sont l'addition de ses rôles (poste, comité, commission), et chacun disparaît quand elle le quitte |
+| **Une personne, plusieurs casquettes** | Un seul compte par personne ; ses droits sont l'addition de ses rôles (poste, comité, commission), et chacun disparaît quand elle le quitte ; il n'existe pas de rôle « administrateur » générique |
 | **Chacun gère son niveau** | Chaque niveau gère son équipe ; le niveau au-dessus supervise sans faire à sa place ; les alertes ne remontent qu'en cas de retard |
 | **Souplesse sans désordre** | Tout ce qui change d'une année à l'autre se crée dans la plateforme, sans toucher au code, et entre aussitôt dans les liaisons |
-| **Rien ne se perd** | On ne supprime jamais une donnée importante : on la corrige par une opération nouvelle, avec motif et trace |
+| **Rien ne se perd** | On ne supprime jamais une donnée importante : on la corrige par une opération nouvelle, avec motif et trace ; ce qui n'a plus cours est archivé ou clos, jamais effacé (seules exceptions : les données personnelles effacées selon la loi et les durées de conservation) |
+| **Personne ne se valide lui-même** | Personne ne valide son propre paiement ; pour chaque poste, la liste des postes autorisés à valider ses paiements est paramétrable |
 | **Le super administrateur peut tout** | Il a toujours toutes les capacités du Jewrine national |
 
 **Le vocabulaire de la Daara**
@@ -40,7 +41,7 @@ Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque pa
 | **Représentant finance** | Le Jewrine finance | Un Goor Yalla et une Sokhna par cellule : valident et encaissent dans leur périmètre, remettent leur caisse |
 | **Jewrine de cellule** | Super administrateur ou Jewrine national | Toute sa cellule : inscriptions, dahiras, pointage, assiduité, demandes de dispense |
 | **Pointeur ou pointeuse** | Le Jewrine de cellule | Pointe les Goor Yalla ou les Sokhnas pendant la dahira |
-| **Jewrine d'une commission permanente** | Le super administrateur | Dirige sa commission, ajoute ses membres |
+| **Jewrine d'une commission permanente** | Le super administrateur | Dirige sa commission, ajoute ses membres ; le Jewrine de la commission Suivi et Évaluation dirige le Suivi et l'Évaluation |
 | **Membre d'une commission permanente** | Le Jewrine de la commission | Ses tâches et ses réunions |
 | **Président d'un comité d'organisation** (CDGMT, Grand Ziar) | Le Jewrine national | Coordonne tout l'événement |
 | **Chef de commission d'événement** | Le président du comité | Sa commission : membres, tâches, besoins, demandes de décaissement, justifications, bilan |
@@ -49,7 +50,9 @@ Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque pa
 | **Membre** | Validé par son Jewrine de cellule | Cotise, verse ses Jàyante et Sass, participe |
 | **Sympathisant** | — (sans compte) | Recensé avec son accord ; peut participer financièrement |
 
-**Les commissions permanentes** : Suivi et Évaluation, Communication, Sociale, Culturelle, Finance, Organisation, et toute autre que le super administrateur crée. Modèle commun : un Jewrine désigné, qui ajoute ses membres ; un espace avec membres, réunions et PV, tâches, documents ; visibles dans « Mes comités » sur le téléphone.
+**Les commissions permanentes** : Administration, Suivi et Évaluation, Communication, Sociale, Culturelle, Finance, Organisation, et toute autre que le super administrateur crée. Modèle commun : un Jewrine désigné, qui ajoute ses membres ; un espace avec membres, réunions et PV, tâches, documents ; visibles dans « Mes comités » sur le téléphone. Suivi et Évaluation est une commission comme les autres : ses droits de lecture (section 10) viennent de l'appartenance à la commission, et non d'un rôle à part.
+
+**Les droits** : chaque casquette (poste national, Jewrine de cellule, représentant finance, pointeur, Jewrine ou membre de commission, président ou chef de commission d'un comité, membre du Comité directeur) apporte ses capacités, dans son périmètre ; les droits d'une personne sont la somme de ses casquettes actives. Toute nomination est tracée (qui, par qui, depuis quand) et prend fin sans être effacée.
 
 ## 3. Les membres et les cartes
 
@@ -139,6 +142,7 @@ Un espace dédié, avec ses onglets : Tableau de bord, Commissions, Réunions et
 | **Membres** | Liste tenue par le super administrateur, avec ou sans poste |
 | **Réunions** | Convoquées par le Jewrine national, le Secrétaire général ou une personne désignée ; ordre du jour défini à l'avance |
 | **Secrétaire de séance** | Une seule personne : elle anime, rédige, publie et partage le PV |
+| **Présences** | Le quorum est une simple information : présents sur membres, sans seuil « atteint » ou « non atteint » |
 | **Décisions** | Pas de vote : unanimité, le dernier mot revient au Jewrine national ; registre numéroté avec état |
 | **Actions** | Qui, quoi, pour quand ; rappels et retards |
 | **Tableau de bord** | La vue d'ensemble de la Daara, réservée au Comité directeur et à une personne désignée |
@@ -152,6 +156,7 @@ Un espace dédié, avec ses onglets : Tableau de bord, Commissions, Réunions et
 | **Recettes** | Toujours rattachées : frais de carte, cotisations, Jàyante et Sass, participations des sympathisants, dons rattachés, réaffectations reçues |
 | **Dépenses** | Toujours rattachées (programme et commission, projet, ou fonctionnement), avec preuve ; libellés de dépenses créés librement |
 | **Ordre de dépense** | Aucun argent ne sort sans lui : comité de suivi des dépenses pour le Magal, Jewrine national pour tout le reste ; la Finance exécute |
+| **Validation croisée** | Personne ne valide son propre paiement ; des règles paramétrables désignent, pour chaque poste, les postes qui valident ses paiements |
 | **Représentants** | Un Goor Yalla et une Sokhna par cellule : validations, encaissements, caisse remise au national avec bordereau ; alertes après 48 heures d'attente et pour les caisses à remettre |
 | **Paiement mobile** | Wave et Orange Money : bouton de paiement, déclaration de la référence, contrôle de son format, validation sur relevé, rapprochement mensuel ; confirmation automatique en option plus tard |
 | **Erreurs** | Jamais de suppression : refus avant validation ; après validation, réaffectation, avoir sur le compte du membre, annulation par contre-passation, ou remboursement par ordre de dépense ; corrections réservées au Jewrine finance national ; membre prévenu, tout journalisé |
@@ -163,6 +168,7 @@ Un espace dédié, avec ses onglets : Tableau de bord, Commissions, Réunions et
 
 | Élément | Règle |
 | --- | --- |
+| **Qui** | La commission permanente Suivi et Évaluation : son Jewrine, désigné par le super administrateur, et les membres qu'il y ajoute |
 | **Vision** | Tout, en lecture, avec les totaux financiers seulement |
 | **Projets** | Indicateurs, feu tricolore, journal |
 | **Événements** | Fiche d'évaluation après chaque programme ; questionnaire facultatif à des membres choisis |
@@ -185,13 +191,26 @@ Un espace dédié, avec ses onglets : Tableau de bord, Commissions, Réunions et
 | --- | --- |
 | **Listes paramétrables** | Cellules, commissions, types de programmes, libellés de dépenses, caisses, montants |
 | **Exercices** | Dates, campagne de renouvellement |
-| **Nominations** | Postes, Comité directeur, Jewrine des commissions permanentes |
+| **Nominations** | Postes, Comité directeur, Jewrine des commissions permanentes ; historique de toutes les nominations |
 | **Sécurité** | Double authentification des responsables, sessions, comptes bloqués, cartes révoquées |
 | **Confidentialité** | Charte des responsables, journal des exports, demandes de suppression, déclaration à la CDP |
 | **Journaux et sauvegardes** | Qui a fait quoi ; sauvegardes chiffrées chaque nuit, restauration testée |
 | **Options à activer plus tard** | SMS aux membres ; messages WhatsApp automatiques ; confirmation automatique des paiements mobiles |
 | **Langue** | Français uniquement |
 
-## 13. Ce qui reste à décider hors conception
+## 13. Décisions complémentaires (version 1.1)
+
+Prises après l'inventaire de l'existant, en octobre 2026.
+
+| Sujet | Décision |
+| --- | --- |
+| **Rien ne se perd** | Un premier lot (R0) recense toutes les suppressions possibles et les effacements en cascade, et les remplace par une interdiction, un archivage ou une clôture |
+| **Validation croisée** | Les règles de validation des paiements par poste sont conservées : elles appliquent « personne ne valide son propre paiement » |
+| **Rôles** | Le rôle « administrateur » disparaît : les droits viennent uniquement de l'addition des casquettes |
+| **Quorum** | Simple information (présents sur membres), sans seuil |
+| **Commissions permanentes** | Administration, Suivi et Évaluation, Communication, Sociale, Culturelle (anciennement « Culturelle et religieuse »), Finance, Organisation |
+| **Suivi et Évaluation** | Devient une commission permanente avec son Jewrine, et non plus seulement un rôle |
+
+## 14. Ce qui reste à décider hors conception
 
 Le nom de domaine, le compte Wave Business et le compte marchand Orange Money, l'adresse d'envoi des emails, l'hébergement de la mise en ligne, et la déclaration à la Commission de protection des données personnelles.

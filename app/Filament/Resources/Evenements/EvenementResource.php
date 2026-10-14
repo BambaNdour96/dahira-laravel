@@ -3,13 +3,14 @@
 namespace App\Filament\Resources\Evenements;
 
 use App\Enums\StatutMembre;
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Evenements\Pages\ManageEvenements;
 use App\Models\Cellule;
 use App\Models\Evenement;
 use App\Models\User;
+use App\Services\ConservationService;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -21,6 +22,8 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use UnitEnum;
 
 /**
@@ -54,7 +57,7 @@ class EvenementResource extends Resource
                 ->helperText('Facultatif. Sans heure de fin, l\'événement dure jusqu\'à la fin de la journée.'),
             Select::make('cellule_id')
                 ->label('Pour qui')
-                ->options(fn (): array => Cellule::query()->orderBy('nom')->pluck('nom', 'id')->all())
+                ->options(fn (): array => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom', 'id')->all())
                 ->placeholder('Toute la Daara'),
             Textarea::make('description')->label('Description')->rows(4)->maxLength(5000),
             Select::make('controleurs')
@@ -77,6 +80,9 @@ class EvenementResource extends Resource
                 TextColumn::make('lieu')->label('Lieu')->limit(30),
                 TextColumn::make('cible')->label('Pour qui')->state(fn (Evenement $record): string => $record->libelleCible()),
                 TextColumn::make('presences_count')->label('Présents'),
+                TextColumn::make('annule_le')->label('')->badge()->color('danger')
+                    ->formatStateUsing(fn (): string => 'Annulé')
+                    ->tooltip(fn (Evenement $record): ?string => $record->motif_annulation),
                 TextColumn::make('participation')
                     ->label('Participation')
                     ->state(function (Evenement $record): string {
@@ -93,7 +99,15 @@ class EvenementResource extends Resource
                     ->url(fn (Evenement $record): string => route('evenements.presences.export', $record))
                     ->openUrlInNewTab(),
                 EditAction::make(),
-                DeleteAction::make(),
+                ConservationActions::annuler(
+                    fn (Model $record): bool => $record instanceof Evenement && Gate::allows('annuler', $record),
+                    function (Model $record, string $motif, User $auteur): void {
+                        if ($record instanceof Evenement) {
+                            app(ConservationService::class)->annulerEvenement($record, $motif, $auteur);
+                        }
+                    },
+                    'L\'événement reste dans l\'historique, avec son motif. Impossible si des présences sont déjà pointées.',
+                ),
             ])
             ->defaultSort('debut', 'desc');
     }

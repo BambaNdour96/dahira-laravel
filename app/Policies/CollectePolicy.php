@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\StatutCollecte;
 use App\Models\Collecte;
 use App\Models\Engagement;
 use App\Models\User;
@@ -54,12 +55,18 @@ class CollectePolicy
 
     public function update(User $user, Collecte $collecte): bool
     {
-        return $user->hasRole('super_administrateur');
+        return $user->hasRole('super_administrateur') && $collecte->statut !== StatutCollecte::Annulee;
     }
 
+    /** Rien ne se supprime : un programme s'annule (voir annuler). */
     public function delete(User $user, Collecte $collecte): bool
     {
-        return $user->hasRole('super_administrateur');
+        return false;
+    }
+
+    public function annuler(User $user, Collecte $collecte): bool
+    {
+        return $user->hasRole('super_administrateur') && $collecte->statut !== StatutCollecte::Annulee;
     }
 
     public function cloturer(User $user, Collecte $collecte): bool

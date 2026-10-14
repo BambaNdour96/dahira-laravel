@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Indelebile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -24,7 +25,12 @@ use Illuminate\Support\Carbon;
  */
 class ActionComite extends Model
 {
-    public const STATUTS = ['a_faire' => 'À faire', 'en_cours' => 'En cours', 'faite' => 'Faite'];
+    use Indelebile;
+
+    public const STATUTS = ['a_faire' => 'À faire', 'en_cours' => 'En cours', 'faite' => 'Faite', 'abandonnee' => 'Abandonnée'];
+
+    /** Une action faite ou abandonnée n'est plus suivie. */
+    public const TERMINEES = ['faite', 'abandonnee'];
 
     protected $table = 'actions_comite';
 
@@ -49,7 +55,7 @@ class ActionComite extends Model
 
     public function estEnRetard(): bool
     {
-        return $this->statut !== 'faite' && $this->echeance !== null && $this->echeance->lt(now()->startOfDay());
+        return ! in_array($this->statut, self::TERMINEES, true) && $this->echeance !== null && $this->echeance->lt(now()->startOfDay());
     }
 
     /** Le compte à prévenir pour cette action : le membre responsable, ou le chef de la commission. */

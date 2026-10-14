@@ -117,15 +117,25 @@ final class SympathisantService
         return 'https://wa.me/'.ltrim($sympathisant->telephone, '+').'?text='.rawurlencode($message);
     }
 
-    /** Efface les sympathisants qui ne sont pas revenus depuis 2 ans. */
+    /**
+     * Anonymise les sympathisants qui ne sont pas revenus depuis 2 ans : leurs données personnelles
+     * sont effacées, leurs visites et leurs participations restent.
+     */
     public function purger(): int
     {
-        return Sympathisant::query()
+        $aAnonymiser = Sympathisant::query()
+            ->auRegistre()
             ->whereNull('membre_id')
             ->where(fn ($query) => $query
                 ->where('derniere_visite_le', '<', now()->subYears(2))
                 ->orWhere(fn ($sansVisite) => $sansVisite->whereNull('derniere_visite_le')->where('created_at', '<', now()->subYears(2))))
-            ->delete();
+            ->get();
+
+        foreach ($aAnonymiser as $sympathisant) {
+            app(ConservationService::class)->anonymiserSympathisant($sympathisant);
+        }
+
+        return $aAnonymiser->count();
     }
 
     private function verifier(Evenement $evenement, Sexe $sexe, User $pointeur): void

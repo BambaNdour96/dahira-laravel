@@ -29,6 +29,7 @@ class ProchainsEvenements extends TableWidget
         return $table
             ->heading('Événements : à venir et récents')
             ->query(fn () => Evenement::query()
+                ->maintenus()
                 ->where('debut', '>=', now()->subDays(30))
                 ->withCount('presents'))
             ->columns([

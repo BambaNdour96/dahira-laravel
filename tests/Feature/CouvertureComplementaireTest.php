@@ -81,10 +81,11 @@ describe('les événements', function () {
 
         expect($this->super->can('view', $this->evenement))->toBeTrue()
             ->and($this->super->can('update', $this->evenement))->toBeTrue()
-            ->and($this->super->can('delete', $this->evenement))->toBeTrue()
+            ->and($this->super->can('delete', $this->evenement))->toBeFalse()
+            ->and($this->super->can('annuler', $this->evenement))->toBeTrue()
             ->and($this->admin->can('update', $this->evenement))->toBeTrue()
             ->and($tresorier->can('update', $this->evenement))->toBeFalse()
-            ->and($tresorier->can('delete', $this->evenement))->toBeFalse();
+            ->and($tresorier->can('annuler', $this->evenement))->toBeFalse();
     });
 });
 

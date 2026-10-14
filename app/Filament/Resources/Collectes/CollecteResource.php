@@ -5,12 +5,15 @@ namespace App\Filament\Resources\Collectes;
 use App\Enums\ModeCollecte;
 use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
+use App\Filament\Actions\ConservationActions;
 use App\Filament\Resources\Collectes\Pages\CreateCollecte;
 use App\Filament\Resources\Collectes\Pages\EditCollecte;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
 use App\Filament\Resources\Collectes\Pages\ViewCollecte;
 use App\Models\Collecte;
+use App\Models\User;
 use App\Services\CollecteService;
+use App\Services\ConservationService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -31,6 +34,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use UnitEnum;
 
@@ -94,7 +98,7 @@ class CollecteResource extends Resource
                         ->columnSpanFull(),
                     Select::make('cellule_id')
                         ->label('Membres concernés')
-                        ->relationship('cellule', 'nom')
+                        ->relationship('cellule', 'nom', modifyQueryUsing: fn ($query) => $query->whereNull('archive_le'))
                         ->placeholder('Toute la Daara'),
                 ]),
 
@@ -160,7 +164,10 @@ class CollecteResource extends Resource
                         ->default(true),
                     Select::make('statut')
                         ->label('État')
-                        ->options(StatutCollecte::class)
+                        ->options(collect(StatutCollecte::cases())
+                            ->reject(fn (StatutCollecte $statut): bool => $statut === StatutCollecte::Annulee)
+                            ->mapWithKeys(fn (StatutCollecte $statut): array => [$statut->value => $statut->getLabel()])
+                            ->all())
                         ->default(StatutCollecte::Ouverte->value)
                         ->required(),
                 ]),
@@ -219,6 +226,20 @@ class CollecteResource extends Resource
                 self::rouvrir(),
             ])
             ->defaultSort('ouverture', 'desc');
+    }
+
+    /** Un programme ne se supprime jamais : il s'annule, avec un motif, tant qu'il n'a reçu aucun versement. */
+    public static function annuler(): Action
+    {
+        return ConservationActions::annuler(
+            fn (Model $record): bool => $record instanceof Collecte && Gate::allows('annuler', $record),
+            function (Model $record, string $motif, User $auteur): void {
+                if ($record instanceof Collecte) {
+                    app(ConservationService::class)->annulerProgramme($record, $motif, $auteur);
+                }
+            },
+            'Le programme n\'apparaîtra plus aux membres. Possible seulement s\'il n\'a reçu aucun versement ; sinon, clôturez-le. Rien n\'est effacé.',
+        );
     }
 
     public static function cloturer(): Action

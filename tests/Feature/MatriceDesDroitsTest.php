@@ -57,7 +57,7 @@ it('réserve les données de référence au Secrétaire général', function (ar
             ->and($compte->can('view', $objet))->toBe($attendu, "view {$modele}")
             ->and($compte->can('create', $modele))->toBe($attendu, "create {$modele}")
             ->and($compte->can('update', $objet))->toBe($attendu, "update {$modele}")
-            ->and($compte->can('delete', $objet))->toBe($attendu, "delete {$modele}");
+            ->and($compte->can('delete', $objet))->toBeFalse("delete {$modele} : rien ne se supprime");
     }
 })->with('roles');
 
@@ -148,13 +148,13 @@ describe('les membres', function () {
             ->and($this->membre->can('update', $this->membreAilleurs))->toBeFalse();
     });
 
-    it('ne permet de supprimer qu\'une demande rejetée, et seulement à l\'administrateur', function () {
+    it('ne permet à personne de supprimer une fiche, même rejetée : elle sera anonymisée', function () {
         $rejete = Membre::factory()->for($this->saCellule)->create(['statut' => StatutMembre::Rejete]);
 
-        expect($this->admin->can('delete', $rejete))->toBeTrue()
+        expect($this->admin->can('delete', $rejete))->toBeFalse()
             ->and($this->admin->can('delete', $this->membreDeSaCellule))->toBeFalse()
             ->and($this->jewrine->can('delete', $rejete))->toBeFalse()
-            ->and($this->admin->can('deleteAny', Membre::class))->toBeTrue()
+            ->and($this->admin->can('deleteAny', Membre::class))->toBeFalse()
             ->and($this->jewrine->can('deleteAny', Membre::class))->toBeFalse();
     });
 

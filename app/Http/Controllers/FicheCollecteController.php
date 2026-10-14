@@ -27,7 +27,7 @@ class FicheCollecteController extends Controller
         $html = view('pdf.fiche-collecte', [
             'programmes' => ProgrammeCollecte::cases(),
             'modes' => ModeCollecte::cases(),
-            'cellules' => Cellule::query()->orderBy('nom')->pluck('nom')->all(),
+            'cellules' => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom')->all(),
             'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,
         ])->render();
 

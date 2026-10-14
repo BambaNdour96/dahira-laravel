@@ -75,7 +75,7 @@ class ActionComiteResource extends Resource
                 SelectFilter::make('instance_id')->label('Comité')->options(fn (): array => Instance::query()->pluck('nom', 'id')->all()),
                 SelectFilter::make('statut')->label('État')->options(ActionComite::STATUTS),
                 Filter::make('en_retard')->label('En retard')
-                    ->query(fn (Builder $query): Builder => $query->where('statut', '!=', 'faite')->whereDate('echeance', '<', now())),
+                    ->query(fn (Builder $query): Builder => $query->whereNotIn('statut', ActionComite::TERMINEES)->whereDate('echeance', '<', now())),
             ])
             ->recordActions([
                 Action::make('statut')
