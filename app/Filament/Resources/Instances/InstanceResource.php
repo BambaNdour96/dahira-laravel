@@ -142,7 +142,7 @@ class InstanceResource extends Resource
                             Select::make('chef_id')->label('Chef de commission')->options(fn (): array => ComiteService::choixMembres())->searchable(),
                             Select::make('membres')
                                 ->label('Membres de la commission')
-                                ->relationship('membres', 'nom')
+                                ->relationship('membres', 'nom', modifyQueryUsing: fn (Builder $query) => $query->select(['membres.id', 'membres.prenom', 'membres.nom', 'membres.matricule'])->where('membres.statut', 'valide'))
                                 ->getOptionLabelFromRecordUsing(fn (Membre $record): string => $record->prenom.' '.$record->nom.' — '.$record->matricule)
                                 ->multiple()
                                 ->searchable(['prenom', 'nom', 'matricule'])
