@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActionComite;
 use App\Models\CommissionComite;
 use App\Models\Instance;
+use App\Models\Membre;
 use App\Models\User;
 use App\Services\ComiteService;
 use DomainException;
@@ -38,7 +39,13 @@ class ComitesController extends Controller
             ->orderBy('echeance')
             ->get();
 
-        return view('espace.comites', ['instances' => $instances, 'actions' => $actions]);
+        $mesCommissions = CommissionComite::query()
+            ->with(['instance', 'membres', 'actions.responsable', 'besoins' => fn ($query) => $query->latest(), 'depenses' => fn ($query) => $query->latest('date_depense')])
+            ->where('chef_id', $membre->id)
+            ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))
+            ->get();
+
+        return view('espace.comites', ['instances' => $instances, 'actions' => $actions, 'mesCommissions' => $mesCommissions]);
     }
 
     public function statut(Request $request, ActionComite $action, ComiteService $comites): RedirectResponse
@@ -54,5 +61,64 @@ class ComitesController extends Controller
         }
 
         return back()->with('comite_succes', '« '.$action->description.' » : '.mb_strtolower(ActionComite::STATUTS[$statut]).'.');
+    }
+
+    public function ajouterMembre(Request $request, CommissionComite $commission, ComiteService $comites): RedirectResponse
+    {
+        $saisie = (string) $request->validate(['membre' => ['required', 'string', 'max:30']])['membre'];
+        $membre = ComiteService::trouverMembre($saisie);
+
+        if ($membre === null) {
+            return back()->with('comite_erreur', 'Aucun membre validé avec ce matricule ou ce numéro.');
+        }
+
+        try {
+            $comites->ajouterMembreCommission($commission, $membre, $this->utilisateur($request));
+        } catch (DomainException $e) {
+            return back()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', $membre->prenom.' '.$membre->nom.' rejoint la commission '.$commission->nom.'.');
+    }
+
+    public function retirerMembre(Request $request, CommissionComite $commission, Membre $membre, ComiteService $comites): RedirectResponse
+    {
+        try {
+            $comites->retirerMembreCommission($commission, $membre, $this->utilisateur($request));
+        } catch (DomainException $e) {
+            return back()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', $membre->prenom.' '.$membre->nom.' ne fait plus partie de la commission.');
+    }
+
+    public function tache(Request $request, CommissionComite $commission, ComiteService $comites): RedirectResponse
+    {
+        $donnees = $request->validate([
+            'description' => ['required', 'string', 'max:255'],
+            'membre_id' => ['required', 'integer'],
+            'echeance' => ['nullable', 'date', 'after_or_equal:today'],
+        ]);
+        $membre = Membre::query()->find((int) $donnees['membre_id']);
+
+        if ($membre === null) {
+            return back()->with('comite_erreur', 'Membre introuvable.');
+        }
+
+        try {
+            $comites->confierTache($commission, (string) $donnees['description'], $membre, isset($donnees['echeance']) ? (string) $donnees['echeance'] : null, $this->utilisateur($request));
+        } catch (DomainException $e) {
+            return back()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', 'Tâche confiée à '.$membre->prenom.' '.$membre->nom.' : il est prévenu.');
+    }
+
+    private function utilisateur(Request $request): User
+    {
+        $utilisateur = $request->user();
+        abort_unless($utilisateur instanceof User, 403);
+
+        return $utilisateur;
     }
 }

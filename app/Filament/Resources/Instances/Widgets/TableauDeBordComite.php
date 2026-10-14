@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Instances\Widgets;
 
 use App\Models\Instance;
+use App\Services\BudgetComiteService;
 use App\Services\CollecteService;
 use App\Services\ComiteService;
 use Filament\Widgets\StatsOverviewWidget;
@@ -44,6 +45,17 @@ class TableauDeBordComite extends StatsOverviewWidget
         if ($this->record->collecte !== null) {
             $statistiques[] = Stat::make('Collecte liée', $this->record->collecte->taux().' %')
                 ->description(CollecteService::fcfa($this->record->collecte->totalVerse()).' collectés');
+        }
+
+        $budget = app(BudgetComiteService::class)->recapitulatif($this->record);
+
+        if ($budget['budget'] > 0 || $budget['depenses'] > 0) {
+            $statistiques[] = Stat::make('Dépenses', CollecteService::fcfa($budget['depenses']))
+                ->description('sur un budget de '.CollecteService::fcfa($budget['budget']))
+                ->color($budget['depenses'] > $budget['budget'] ? 'danger' : 'gray');
+            $statistiques[] = Stat::make('Solde', CollecteService::fcfa($budget['solde']))
+                ->description('recettes moins dépenses')
+                ->color($budget['solde'] < 0 ? 'danger' : 'success');
         }
 
         return $statistiques;

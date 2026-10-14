@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Instances\Pages;
 
 use App\Filament\Resources\Instances\InstanceResource;
 use App\Filament\Resources\Instances\Widgets\AvancementCommissions;
+use App\Filament\Resources\Instances\Widgets\BudgetCommissions;
 use App\Filament\Resources\Instances\Widgets\MembresInstance;
 use App\Filament\Resources\Instances\Widgets\ReunionsInstance;
 use App\Filament\Resources\Instances\Widgets\TableauDeBordComite;
@@ -58,6 +59,12 @@ class ViewInstance extends ViewRecord
 
                     Notification::make()->title($nombre.' commission(s) reprise(s). Désignez maintenant leurs chefs.')->success()->send();
                 }),
+            Action::make('bilan')
+                ->label('Bilan (PDF)')
+                ->icon('heroicon-o-document-chart-bar')
+                ->color('gray')
+                ->visible(fn (Instance $record): bool => ! $record->estComiteDirecteur())
+                ->url(fn (Instance $record): string => route('comites.bilan', $record)),
             EditAction::make(),
         ];
     }
@@ -71,6 +78,6 @@ class ViewInstance extends ViewRecord
     /** @return array<int, class-string> */
     protected function getFooterWidgets(): array
     {
-        return [AvancementCommissions::class, ReunionsInstance::class, MembresInstance::class];
+        return [AvancementCommissions::class, BudgetCommissions::class, ReunionsInstance::class, MembresInstance::class];
     }
 }

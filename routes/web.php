@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbonnementTelephoneController;
 use App\Http\Controllers\BordereauRemiseController;
+use App\Http\Controllers\BudgetComiteController;
 use App\Http\Controllers\CaisseController;
 use App\Http\Controllers\CarteController;
 use App\Http\Controllers\CharteController;
@@ -111,6 +112,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::post('/comites/commissions/{commission}/besoins', [BudgetComiteController::class, 'besoin'])->name('comites.besoins.store');
+    Route::post('/comites/commissions/{commission}/depenses', [BudgetComiteController::class, 'depense'])->name('comites.depenses.store');
+    Route::post('/comites/commissions/{commission}/membres', [ComitesController::class, 'ajouterMembre'])->name('comites.membres.ajouter');
+    Route::post('/comites/commissions/{commission}/membres/{membre}/retirer', [ComitesController::class, 'retirerMembre'])->name('comites.membres.retirer');
+    Route::post('/comites/commissions/{commission}/taches', [ComitesController::class, 'tache'])->name('comites.taches.store');
+    Route::get('/justificatifs/{depense}', [BudgetComiteController::class, 'justificatif'])->name('justificatifs.show');
+    Route::get('/comites/{instance}/bilan', [BudgetComiteController::class, 'bilan'])->name('comites.bilan');
     Route::post('/comites/actions/{action}/statut', [ComitesController::class, 'statut'])->name('comites.actions.statut');
     Route::get('/mes-comites', ComitesController::class.'@index')->name('comites.index');
     Route::get('/reunions/{reunion}/pv', PvReunionController::class)->name('reunions.pv');

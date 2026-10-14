@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\NotificationMembre;
 use DomainException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -149,7 +150,7 @@ final class ComiteService
         $instance->membres()->syncWithoutDetaching(array_values(array_unique($ids)));
     }
 
-    /** Recopie les commissions du comité précédent du même type (sans les chefs, qui changent chaque année). */
+    /** Recopie les commissions du comité précédent du même type, sans les chefs ; ses besoins retenus reviennent en propositions. */
     public function reprendreCommissions(Instance $instance): int
     {
         $precedent = Instance::query()
@@ -166,10 +167,19 @@ final class ComiteService
         $nombre = 0;
 
         foreach ($precedent->commissions as $commission) {
-            CommissionComite::query()->firstOrCreate(
+            $nouvelle = CommissionComite::query()->firstOrCreate(
                 ['instance_id' => $instance->id, 'nom' => $commission->nom],
                 ['mission' => $commission->mission, 'ordre' => $commission->ordre],
             );
+
+            foreach ($commission->besoins()->where('statut', 'retenu')->get() as $besoin) {
+                $nouvelle->besoins()->create([
+                    'designation' => $besoin->designation,
+                    'quantite' => $besoin->quantite,
+                    'prix_unitaire' => $besoin->prix_unitaire,
+                ]);
+            }
+
             $nombre++;
         }
 
@@ -309,7 +319,80 @@ final class ComiteService
             return true;
         }
 
+        if ($action->commission !== null && self::dirige($utilisateur, $action->commission)) {
+            return true;
+        }
+
         return $action->compteResponsable()?->id === $utilisateur->id;
+    }
+
+    /** Le chef d'une commission (ou les organisateurs du comité) dirige sa commission : ses membres et ses tâches. */
+    public static function dirige(User $utilisateur, CommissionComite $commission): bool
+    {
+        return ($commission->chef !== null && $commission->chef->user_id === $utilisateur->id)
+            || self::peutOrganiser($utilisateur, $commission->instance);
+    }
+
+    /** Retrouve un membre validé par son matricule ou son téléphone. */
+    public static function trouverMembre(string $saisie): ?Membre
+    {
+        $saisie = trim($saisie);
+        $telephone = TelephoneNormalizer::normaliser($saisie);
+
+        return Membre::query()
+            ->where('statut', StatutMembre::Valide->value)
+            ->where(fn ($query) => $query->where('matricule', mb_strtoupper($saisie))->when($telephone !== null, fn ($parTelephone) => $parTelephone->orWhere('telephone', $telephone)))
+            ->first();
+    }
+
+    public function ajouterMembreCommission(CommissionComite $commission, Membre $membre, User $auteur): void
+    {
+        if (! self::dirige($auteur, $commission)) {
+            throw new DomainException('Seul le chef de la commission gère ses membres.');
+        }
+
+        $commission->membres()->syncWithoutDetaching([$membre->id]);
+        $commission->instance->membres()->syncWithoutDetaching([$membre->id]);
+    }
+
+    public function retirerMembreCommission(CommissionComite $commission, Membre $membre, User $auteur): void
+    {
+        if (! self::dirige($auteur, $commission)) {
+            throw new DomainException('Seul le chef de la commission gère ses membres.');
+        }
+
+        $commission->membres()->detach($membre->id);
+    }
+
+    /** Le chef confie une tâche à un membre de sa commission, sans attendre une réunion. */
+    public function confierTache(CommissionComite $commission, string $description, Membre $membre, ?string $echeance, User $auteur): ActionComite
+    {
+        if (! self::dirige($auteur, $commission)) {
+            throw new DomainException('Seul le chef de la commission répartit ses tâches.');
+        }
+
+        if (! $commission->membres()->whereKey($membre->id)->exists() && $commission->chef_id !== $membre->id) {
+            throw new DomainException('La tâche est confiée à un membre de la commission.');
+        }
+
+        $tache = ActionComite::query()->create([
+            'instance_id' => $commission->instance_id,
+            'commission_id' => $commission->id,
+            'responsable_id' => $membre->id,
+            'description' => $description,
+            'echeance' => $echeance,
+        ]);
+
+        if ($membre->user_id !== null && ($compte = User::query()->find($membre->user_id)) !== null && $compte->id !== $auteur->id) {
+            $compte->notify(new NotificationMembre(
+                'Nouvelle tâche : commission '.$commission->nom,
+                $description.($echeance !== null ? ' — pour le '.Carbon::parse($echeance)->format('d/m/Y') : '').'.',
+                route('comites.index'),
+                'Voir mes tâches',
+            ));
+        }
+
+        return $tache;
     }
 
     public function changerStatut(ActionComite $action, string $statut, User $utilisateur): void
@@ -348,7 +431,8 @@ final class ComiteService
     }
 
     /**
-     * Chaque matin : rappel aux responsables 2 jours avant l'échéance et le jour même ; le lendemain d'un retard, le président est prévenu.
+     * Chaque matin : rappel aux responsables 2 jours avant l'échéance et le jour même ; le lendemain d'un retard,
+     * le chef est prévenu pour une tâche de sa commission, le président pour une action décidée en réunion.
      *
      * @return array{rappels: int, retards: int}
      */
@@ -378,9 +462,11 @@ final class ComiteService
                 $rappels++;
             }
 
-            $president = $action->instance->president;
+            $superviseur = $action->reunion_id === null && $action->commission !== null
+                ? $action->commission->chef
+                : $action->instance->president;
 
-            if ($ecart === -1 && $president !== null && $president->user_id !== null && ($compte = User::query()->find($president->user_id)) !== null) {
+            if ($ecart === -1 && $superviseur !== null && $superviseur->user_id !== null && ($compte = User::query()->find($superviseur->user_id)) !== null) {
                 $compte->notify(new NotificationMembre(
                     $action->instance->nom,
                     'Action en retard : '.$action->description.' ('.$action->responsableTexte().').',

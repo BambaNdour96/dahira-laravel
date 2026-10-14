@@ -43,6 +43,30 @@ class CommissionComite extends Model
         return $this->belongsToMany(Membre::class, 'commission_comite_membre')->withTimestamps();
     }
 
+    /** @return HasMany<BesoinCommission, $this> */
+    public function besoins(): HasMany
+    {
+        return $this->hasMany(BesoinCommission::class, 'commission_id');
+    }
+
+    /** @return HasMany<DepenseCommission, $this> */
+    public function depenses(): HasMany
+    {
+        return $this->hasMany(DepenseCommission::class, 'commission_id');
+    }
+
+    /** Le budget : la somme des besoins retenus. */
+    public function budget(): int
+    {
+        return (int) $this->besoins()->where('statut', 'retenu')->get()->sum(fn (BesoinCommission $besoin): int => $besoin->montant());
+    }
+
+    /** Ce qui a été dépensé : les dépenses validées par le Jewrine finance. */
+    public function depense(): int
+    {
+        return (int) $this->depenses()->where('statut', 'validee')->sum('montant');
+    }
+
     /** @return HasMany<ActionComite, $this> */
     public function actions(): HasMany
     {
