@@ -23,6 +23,13 @@ Web Push, empreinte WebAuthn). Pas d'API ni d'application native pour l'instant.
 ./vendor/bin/pint && ./vendor/bin/phpstan analyse && ./vendor/bin/pest --testsuite=Unit,Feature --coverage --min=90 | tail -6 && ./vendor/bin/pest --testsuite=Browser
 ```
 
+**Toujours lancer les tests Feature aussi sous PostgreSQL avant un commit** (base de test `dahira_test` dans le
+conteneur Docker, jamais la base de développement) :
+
+```bash
+composer test:pgsql
+```
+
 Ne jamais committer ni pousser si une étape échoue. Couverture minimale : 90 % (objectif : au-dessus de 92 %).
 Après une migration : `php artisan migrate`. Après une vue : `php artisan view:clear`. Après le `.env` : `php artisan config:clear`.
 
@@ -65,6 +72,9 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 10. **Tests** : les membres créés par la fabrique n'ont pas de matricule ; utiliser le téléphone pour les retrouver.
     Le Jewrine finance reçoit aussi une tâche « paiement à vérifier » à chaque déclaration : ne pas compter
     ses notifications au total, chercher la notification attendue par son contenu.
+11. **Tests Browser** : à la fin, Pest laisse tourner le serveur Playwright, qui garde la sortie ouverte. Une commande
+    `pest --testsuite=Browser | tail` semble alors bloquée alors que les tests sont finis. Envoyer la sortie dans un
+    fichier, attendre la fin de Pest, puis arrêter le serveur : `pkill -f "[p]laywright run-server"`.
 
 ## Commandes utiles
 

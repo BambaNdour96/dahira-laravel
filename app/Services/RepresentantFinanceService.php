@@ -13,6 +13,7 @@ use App\Models\RemiseFonds;
 use App\Models\RepresentantFinance;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
+use App\Support\Numerotation;
 use DomainException;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
@@ -181,19 +182,22 @@ final class RepresentantFinanceService
         }
 
         return DB::transaction(function () use ($representant, $receveur, $operations): RemiseFonds {
-            $prefixe = 'REM-'.now()->format('Y').'-';
-            $rang = RemiseFonds::query()->where('numero', 'like', $prefixe.'%')->lockForUpdate()->count() + 1;
             $celluleId = RepresentantFinance::query()->where('user_id', $representant->id)->value('cellule_id')
                 ?? $operations->first()->membre->cellule_id;
 
-            $remise = RemiseFonds::query()->create([
-                'numero' => $prefixe.str_pad((string) $rang, 4, '0', STR_PAD_LEFT),
-                'cellule_id' => $celluleId,
-                'representant_id' => $representant->id,
-                'recue_par' => $receveur->id,
-                'montant' => (int) $operations->sum('montant'),
-                'nombre_operations' => $operations->count(),
-            ]);
+            $remise = Numerotation::creer(
+                RemiseFonds::class,
+                'numero',
+                'REM-'.now()->format('Y').'-',
+                fn (string $numero): RemiseFonds => RemiseFonds::query()->create([
+                    'numero' => $numero,
+                    'cellule_id' => $celluleId,
+                    'representant_id' => $representant->id,
+                    'recue_par' => $receveur->id,
+                    'montant' => (int) $operations->sum('montant'),
+                    'nombre_operations' => $operations->count(),
+                ]),
+            );
 
             Paiement::query()->whereIn('id', $operations->modelKeys())->update(['remise_id' => $remise->id]);
 

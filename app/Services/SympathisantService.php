@@ -10,8 +10,8 @@ use App\Models\ParticipationSympathisant;
 use App\Models\Sympathisant;
 use App\Models\User;
 use App\Models\VisiteSympathisant;
+use App\Support\Numerotation;
 use DomainException;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Les sympathisants : enregistrement au pointage (avec leur accord), visites, visiteurs anonymes,
@@ -89,19 +89,19 @@ final class SympathisantService
             throw new DomainException('Indiquez le montant reçu.');
         }
 
-        return DB::transaction(function () use ($collecte, $sympathisant, $montant, $moyen, $tresorier): ParticipationSympathisant {
-            $prefixe = 'SYM-'.now()->format('Y').'-';
-            $dernier = ParticipationSympathisant::query()->where('numero_recu', 'like', $prefixe.'%')->lockForUpdate()->count();
-
-            return ParticipationSympathisant::query()->create([
+        return Numerotation::creer(
+            ParticipationSympathisant::class,
+            'numero_recu',
+            'SYM-'.now()->format('Y').'-',
+            fn (string $numero): ParticipationSympathisant => ParticipationSympathisant::query()->create([
                 'collecte_id' => $collecte->id,
                 'sympathisant_id' => $sympathisant->id,
                 'montant' => $montant,
                 'moyen' => $moyen,
-                'numero_recu' => $prefixe.str_pad((string) ($dernier + 1), 4, '0', STR_PAD_LEFT),
+                'numero_recu' => $numero,
                 'enregistre_par' => $tresorier->id,
-            ]);
-        });
+            ]),
+        );
     }
 
     public function lienInvitation(Sympathisant $sympathisant): ?string

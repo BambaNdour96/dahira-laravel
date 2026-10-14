@@ -58,6 +58,17 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "test:pgsql": [
+            "Composer\\Config::disableProcessTimeout",
+            "@putenv DB_CONNECTION=pgsql",
+            "@putenv DB_HOST=127.0.0.1",
+            "@putenv DB_PORT=5432",
+            "@putenv DB_DATABASE=dahira_test",
+            "@putenv DB_USERNAME=dahira",
+            "@putenv DB_PASSWORD=dahira_dev",
+            "@putenv DB_URL=",
+            "./vendor/bin/pest --testsuite=Unit,Feature"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
