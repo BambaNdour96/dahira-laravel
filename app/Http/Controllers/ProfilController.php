@@ -11,6 +11,7 @@ use App\Models\Cellule;
 use App\Models\Membre;
 use App\Models\User;
 use App\Rules\EmailFiable;
+use App\Services\CompetencesService;
 use App\Services\StatutMembreService;
 use App\Support\Langues;
 use App\Support\MessagesValidation;
@@ -35,10 +36,12 @@ class ProfilController extends Controller
             'membre' => $membre,
             'correction' => $membre->statut === StatutMembre::ACorriger,
             'cellules' => Cellule::query()->enActivite()->orderBy('nom')->get(['id', 'nom']),
+            'competences' => CompetencesService::liste(),
+            'mesCompetences' => $membre->competences()->pluck('competences.id')->map(fn (mixed $id): int => (int) $id)->all(),
         ]);
     }
 
-    public function update(Request $request, StatutMembreService $statuts): RedirectResponse
+    public function update(Request $request, StatutMembreService $statuts, CompetencesService $competences): RedirectResponse
     {
         $membre = $this->membre($request);
         $correction = $membre->statut === StatutMembre::ACorriger;
@@ -59,6 +62,8 @@ class ProfilController extends Controller
             'profession' => ['nullable', 'string', 'max:150'],
             'secteur_activite' => ['nullable', 'string', 'max:150'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
+            'competences' => ['nullable', 'array'],
+            'competences.*' => ['integer'],
         ];
 
         if ($correction) {
@@ -88,6 +93,10 @@ class ProfilController extends Controller
 
         $membre->update($champs);
         $membre->user?->update(['email' => $donnees['email'] ?? null]);
+
+        if (! $correction && ($auteur = $request->user()) instanceof User) {
+            $competences->definir($membre, array_values(array_map('intval', (array) ($donnees['competences'] ?? []))), $auteur);
+        }
 
         if ($correction) {
             $auteur = $request->user();

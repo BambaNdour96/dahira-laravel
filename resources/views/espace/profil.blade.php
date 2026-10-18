@@ -109,6 +109,21 @@
             <x-champ nom="secteur_activite" libelle="Secteur d'activité" :value="$membre->secteur_activite" />
         </fieldset>
 
+        @if (! $correction)
+            <fieldset class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+                <legend class="px-1 font-semibold text-emerald-900">Mes savoir-faire</legend>
+                <p class="text-xs text-stone-500">Pour être appelé quand la Daara a besoin de vous (Magal, Ziar, chantiers…).</p>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    @foreach ($competences as $id => $nom)
+                        <label class="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50">
+                            <input type="checkbox" name="competences[]" value="{{ $id }}" class="rounded" @checked(in_array($id, old('competences', $mesCompetences), false))>
+                            {{ $nom }}
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+        @endif
+
         <fieldset class="space-y-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
             <legend class="px-1 font-semibold text-emerald-900">Photo</legend>
             <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp"
@@ -123,6 +138,12 @@
             {{ $correction ? 'Renvoyer ma fiche corrigée' : 'Enregistrer' }}
         </button>
     </form>
+
+    @if (! $correction)
+        <a href="{{ route('cellule.index') }}" class="mt-4 block rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+            📍 Ma cellule : {{ $membre->cellule->nom }} · <span class="underline">changer de cellule</span>
+        </a>
+    @endif
 
     <a href="{{ route('espace') }}" class="mt-4 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
 @endsection

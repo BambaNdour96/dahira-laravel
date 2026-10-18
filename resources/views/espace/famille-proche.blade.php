@@ -98,6 +98,22 @@
         </div>
     @endif
 
+    @if ($estValide && $competences !== [])
+        <form method="POST" action="{{ route('famille.competences', $proche) }}" class="mt-5 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+            @csrf
+            <h2 class="font-semibold text-emerald-900">Ses savoir-faire</h2>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                @foreach ($competences as $id => $nom)
+                    <label class="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50">
+                        <input type="checkbox" name="competences[]" value="{{ $id }}" class="rounded" @checked(in_array($id, $sesCompetences, true))>
+                        {{ $nom }}
+                    </label>
+                @endforeach
+            </div>
+            <button type="submit" class="mt-3 w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white hover:bg-emerald-900">Enregistrer</button>
+        </form>
+    @endif
+
     {{-- Son propre compte : proposé à 18 ans, jamais imposé --}}
     @if ($peutDonnerSonCompte)
         <div class="mt-5 rounded-xl bg-or-100 p-5 ring-1 ring-or-400">

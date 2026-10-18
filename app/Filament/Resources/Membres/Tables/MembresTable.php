@@ -54,6 +54,7 @@ class MembresTable
                 SelectFilter::make('situation_professionnelle')->label('Situation professionnelle')->options(SituationProfessionnelle::class),
                 SelectFilter::make('niveau_etudes')->label('Niveau d\'études')->options(NiveauEtudes::class),
                 SelectFilter::make('sexe')->label('Sexe')->options(Sexe::class),
+                SelectFilter::make('competences')->label('Savoir-faire')->relationship('competences', 'nom')->multiple(),
             ])
             ->recordActions([
                 EditAction::make(),

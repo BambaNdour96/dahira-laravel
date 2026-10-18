@@ -547,6 +547,12 @@ final class ComiteService
             throw new DomainException('Seul le chef de la commission gère ses membres.');
         }
 
+        $this->accueillir($commission, $membre);
+    }
+
+    /** Le membre entre dans la commission et dans son comité (décision déjà prise : chef, ou volontariat accepté). */
+    public function accueillir(CommissionComite $commission, Membre $membre): void
+    {
         if ($commission->membres()->syncWithoutDetaching([$membre->id])['attached'] !== []) {
             JournalActivite::appartenance($commission, 'Membres', $membre, true);
         }

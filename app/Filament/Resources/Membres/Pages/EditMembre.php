@@ -22,7 +22,7 @@ class EditMembre extends EditRecord
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [...ChangerStatutAction::toutes(), ...CarteActions::toutes(), FamilleActions::donnerSonCompte()];
+        return [...ChangerStatutAction::toutes(), ...CarteActions::toutes(), FamilleActions::donnerSonCompte(), FamilleActions::demanderChangementCellule()];
     }
 
     /**

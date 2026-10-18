@@ -120,6 +120,16 @@ class MembreForm
                     TextInput::make('secteur_activite')->label('Secteur d\'activité')->maxLength(150),
                 ]),
 
+            Section::make('Savoir-faire')
+                ->columnSpanFull()
+                ->collapsible()
+                ->schema([
+                    CheckboxList::make('competences')
+                        ->label('')
+                        ->relationship('competences', 'nom', modifyQueryUsing: fn ($query) => $query->whereNull('competences.archive_le'))
+                        ->columns(3),
+                ]),
+
             Section::make('Famille')
                 ->description('Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara, qui gère sa fiche depuis son téléphone. Le proche prend sa cellule.')
                 ->columns(2)
@@ -143,7 +153,12 @@ class MembreForm
                 ->schema([
                     Select::make('cellule_id')
                         ->label('Cellule')
-                        ->helperText(fn (Get $get): ?string => filled($get('responsable_id')) ? 'Le proche prend la cellule du membre qui gère sa fiche.' : null)
+                        ->helperText(fn (Get $get, string $operation): ?string => match (true) {
+                            filled($get('responsable_id')) => 'Le proche prend la cellule du membre qui gère sa fiche.',
+                            $operation === 'edit' => 'Pour changer de cellule : « Demander un changement de cellule », validé par le super administrateur.',
+                            default => null,
+                        })
+                        ->disabledOn('edit')
                         ->relationship('cellule', 'nom', modifyQueryUsing: fn ($query) => MembreResource::limiterCellules($query))
                         ->searchable()
                         ->preload()

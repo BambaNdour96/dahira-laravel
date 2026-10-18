@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Collectes\Widgets;
 
 use App\Models\Collecte;
 use App\Models\Engagement;
+use App\Services\CollecteService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,12 +27,13 @@ class CollecteParCellule extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        $parCellule = $this->record->engagements()->with(['membre.cellule', 'collecte'])->get()
+        // L'engagé suit la cellule actuelle du membre ; le versé, la cellule du moment de chaque versement.
+        $verses = app(CollecteService::class)->versesParCellule($this->record);
+        $engages = $this->record->engagements()->with('membre.cellule')->get()
             ->groupBy(fn (Engagement $engagement): string => $engagement->membre->cellule->nom)
-            ->map(fn ($groupe): array => [
-                'engage' => (int) $groupe->sum('montant'),
-                'verse' => (int) $groupe->sum(fn (Engagement $engagement): int => $engagement->verse()),
-            ])
+            ->map(fn ($groupe): int => (int) $groupe->sum('montant'));
+        $parCellule = collect(array_unique([...$engages->keys()->all(), ...array_keys($verses)]))
+            ->mapWithKeys(fn (string $nom): array => [$nom => ['engage' => (int) ($engages[$nom] ?? 0), 'verse' => $verses[$nom] ?? 0]])
             ->sortKeys();
 
         return [

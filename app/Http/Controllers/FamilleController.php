@@ -10,6 +10,7 @@ use App\Models\Membre;
 use App\Models\Parametre;
 use App\Models\User;
 use App\Policies\MembrePolicy;
+use App\Services\CompetencesService;
 use App\Services\CotisationService;
 use App\Services\FamilleService;
 use App\Services\PaiementService;
@@ -91,7 +92,20 @@ class FamilleController extends Controller
             'retard' => $proche->statut === StatutMembre::Valide ? count($cotisations->moisEnRetard($proche)) : 0,
             'recus' => $proche->paiements()->where('statut', StatutPaiement::Confirme->value)->whereNotNull('numero_recu')->latest('traite_le')->limit(12)->get(),
             'peutDonnerSonCompte' => $familles->peutDonnerSonCompte($utilisateur, $proche) && ! $proche->estEnfant(),
+            'competences' => $proche->estEnfant() ? [] : CompetencesService::liste(),
+            'sesCompetences' => $proche->competences()->pluck('competences.id')->map(fn (mixed $id): int => (int) $id)->all(),
         ]);
+    }
+
+    /** Les savoir-faire d'un proche adulte, indiqués par le membre qui gère sa fiche. */
+    public function competences(Request $request, Membre $proche, CompetencesService $competences): RedirectResponse
+    {
+        $utilisateur = self::utilisateur($request);
+        self::verifier($utilisateur, $proche);
+        $choix = $request->validate(['competences' => ['nullable', 'array'], 'competences.*' => ['integer']])['competences'] ?? [];
+        $competences->definir($proche, array_values(array_map('intval', (array) $choix)), $utilisateur);
+
+        return redirect()->route('famille.show', $proche)->with('succes', 'Les savoir-faire de '.$proche->prenom.' sont enregistrés.');
     }
 
     /** Le responsable déclare le paiement Wave des frais de carte de son proche. */

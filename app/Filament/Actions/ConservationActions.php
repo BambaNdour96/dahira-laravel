@@ -5,6 +5,7 @@ namespace App\Filament\Actions;
 use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\CommissionComite;
+use App\Models\Competence;
 use App\Models\Indicateur;
 use App\Models\Jalon;
 use App\Models\RepresentantFinance;
@@ -117,7 +118,7 @@ final class ConservationActions
     /** @phpstan-assert-if-true Cellule|CommissionComite|Jalon|Indicateur $record */
     private static function estArchivable(Model $record): bool
     {
-        return $record instanceof Cellule || $record instanceof CommissionComite || $record instanceof Jalon || $record instanceof Indicateur;
+        return $record instanceof Cellule || $record instanceof CommissionComite || $record instanceof Jalon || $record instanceof Indicateur || $record instanceof Competence;
     }
 
     private static function executer(Closure $operation, string $succes): void

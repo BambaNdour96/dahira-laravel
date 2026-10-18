@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\ActionComite;
 use App\Models\Commission;
 use App\Models\CommissionComite;
+use App\Models\Competence;
 use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\User;
+use App\Models\Volontariat;
 use App\Services\ComiteService;
+use App\Services\CompetencesService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,7 +44,10 @@ class ComitesController extends Controller
             ->get();
 
         $mesCommissions = CommissionComite::query()
-            ->with(['instance', 'membres', 'actions.responsable', 'besoins' => fn ($query) => $query->latest(), 'depenses' => fn ($query) => $query->latest('date_depense')])
+            ->with([
+                'instance', 'membres', 'actions.responsable', 'besoins' => fn ($query) => $query->latest(), 'depenses' => fn ($query) => $query->latest('date_depense'),
+                'volontariats' => fn ($query) => $query->whereIn('statut', Volontariat::EN_ATTENTE)->with('membre.cellule')->oldest(),
+            ])
             ->where('chef_id', $membre->id)
             ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))
             ->get();
@@ -55,7 +61,15 @@ class ComitesController extends Controller
             ->orderBy('nom')
             ->get();
 
+        // Le chef cherche des membres par savoir-faire, dans toute la Daara (nom et cellule seulement).
+        $competence = $mesCommissions->isNotEmpty() && $request->filled('competence')
+            ? Competence::query()->enActivite()->whereKey($request->integer('competence'))->first()
+            : null;
+
         return view('espace.comites', [
+            'competences' => $mesCommissions->isNotEmpty() ? CompetencesService::liste() : [],
+            'competence' => $competence,
+            'trouves' => $competence !== null ? app(CompetencesService::class)->rechercher($competence) : collect(),
             'instances' => $instances,
             'actions' => $actions,
             'mesCommissions' => $mesCommissions,

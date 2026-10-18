@@ -2,6 +2,7 @@
 
 use App\Models\Cellule;
 use App\Models\Commission;
+use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\Parametre;
@@ -58,7 +59,7 @@ it('ouvre toutes les pages du membre sans erreur dans la console', function () {
     $this->actingAs($this->compte);
 
     visit([
-        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications', '/ma-famille', '/ma-famille/ajouter', '/payer-pour-un-membre',
+        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications', '/ma-famille', '/ma-famille/ajouter', '/payer-pour-un-membre', '/ma-cellule', '/se-porter-volontaire', '/mon-espace/profil',
         '/evenements', '/mon-compte/mot-de-passe', '/mon-compte/suppression',
     ])->assertNoJavascriptErrors();
 });
@@ -143,6 +144,8 @@ it('n\'oblige jamais à faire défiler la page de côté sur un téléphone', fu
     'ma famille' => ['/ma-famille', true],
     'ajouter un proche' => ['/ma-famille/ajouter', true],
     'payer pour un membre' => ['/payer-pour-un-membre', true],
+    'ma cellule' => ['/ma-cellule', true],
+    'se porter volontaire' => ['/se-porter-volontaire', true],
 ]);
 
 it('ouvre les écrans du panneau sans erreur dans la console', function () {
@@ -150,7 +153,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule',
     ])->assertNoJavascriptErrors();
 });
 
@@ -300,5 +303,28 @@ it('retrouve un membre à payer par son téléphone, sur le téléphone', functi
         ->press('Chercher')
         ->assertSee('Aïssatou')
         ->assertSee('J\'ai payé sa cotisation')
+        ->assertNoJavascriptErrors();
+});
+
+it('laisse un membre demander à changer de cellule, puis se porter volontaire, depuis son téléphone', function () {
+    Cellule::factory()->create(['nom' => 'Sam']);
+    $chef = Membre::factory()->for(User::factory())->valide()->create();
+    $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+    CommissionComite::query()->create(['instance_id' => $cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $chef->id]);
+    $this->actingAs($this->compte);
+
+    visit('/ma-cellule')->on()->mobile()
+        ->select('cellule_id', (string) Cellule::query()->where('nom', 'Sam')->value('id'))
+        ->fill('motif', 'Déménagement')
+        ->press('Envoyer ma demande')
+        ->assertSee('Votre demande est envoyée au super administrateur')
+        ->assertSee('En attente')
+        ->assertNoJavascriptErrors();
+
+    visit('/se-porter-volontaire')->on()->mobile()
+        ->assertSee('CDGMT 2026')
+        ->press('Je me propose')
+        ->assertSee('Votre proposition est envoyée au chef de la commission Cuisine')
+        ->assertSee('Proposition en attente')
         ->assertNoJavascriptErrors();
 });

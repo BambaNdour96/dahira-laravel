@@ -48,6 +48,16 @@ class CommissionComite extends Model
         return $this->belongsToMany(Membre::class, 'commission_comite_membre')->withTimestamps();
     }
 
+    /**
+     * Les volontaires : propositions et invitations, avec leur décision.
+     *
+     * @return HasMany<Volontariat, $this>
+     */
+    public function volontariats(): HasMany
+    {
+        return $this->hasMany(Volontariat::class, 'commission_comite_id');
+    }
+
     /** @return HasMany<BesoinCommission, $this> */
     public function besoins(): HasMany
     {

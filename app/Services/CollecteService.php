@@ -301,6 +301,22 @@ final class CollecteService
     }
 
     /**
+     * Les versements confirmés d'une collecte, par cellule : chacun compte pour la cellule du moment où il a été fait.
+     *
+     * @return array<string, int>
+     */
+    public function versesParCellule(Collecte $collecte): array
+    {
+        return $collecte->paiements()
+            ->with(['cellule', 'membre.cellule'])
+            ->where('statut', StatutPaiement::Confirme->value)
+            ->get()
+            ->groupBy(fn (Paiement $paiement): string => ($paiement->cellule ?? $paiement->membre->cellule)->nom)
+            ->map(fn ($paiements): int => (int) $paiements->sum('montant'))
+            ->all();
+    }
+
+    /**
      * L'avancement cellule par cellule : membres concernés, engagés, à jour, montants et taux.
      *
      * @return array<string, array{concernes: int, engages: int, a_jour: int, engage: int, verse: int, taux: int}>
@@ -308,11 +324,12 @@ final class CollecteService
     public function parCellule(Collecte $collecte): array
     {
         $resultat = [];
+        $versesParCellule = $this->versesParCellule($collecte);
 
         foreach ($collecte->membresConcernes()->with('cellule')->get()->groupBy(fn (Membre $membre): string => $membre->cellule->nom) as $nom => $membres) {
             $engagements = $collecte->engagements()->with('collecte')->whereIn('membre_id', $membres->modelKeys())->get();
             $engage = (int) $engagements->sum('montant');
-            $verse = (int) $engagements->sum(fn (Engagement $engagement): int => $engagement->verse());
+            $verse = $versesParCellule[(string) $nom] ?? 0;
 
             $resultat[(string) $nom] = [
                 'concernes' => $membres->count(),

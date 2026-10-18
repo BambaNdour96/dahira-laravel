@@ -33,11 +33,12 @@ class EncaissementsParCellule extends RepartitionWidget
     protected function repartition(): array
     {
         return Paiement::query()
-            ->with('membre.cellule')
+            ->with(['cellule', 'membre.cellule'])
             ->where('statut', StatutPaiement::Confirme->value)
             ->where('traite_le', '>=', now()->startOfYear())
             ->get()
-            ->groupBy(fn (Paiement $paiement): string => $paiement->membre->cellule->nom)
+            // Un versement compte pour la cellule du moment où il a été fait.
+            ->groupBy(fn (Paiement $paiement): string => ($paiement->cellule ?? $paiement->membre->cellule)->nom)
             ->map(fn ($paiements): int => (int) $paiements->sum('montant'))
             ->sortKeys()
             ->all();

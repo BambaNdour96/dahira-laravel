@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $numero_wave
  * @property StatutPaiement $statut
  * @property string|null $motif_refus
+ * @property int|null $cellule_id
  * @property Carbon $declare_le
  * @property int|null $declare_par
  * @property Carbon|null $traite_le
@@ -37,12 +38,19 @@ class Paiement extends Model
     use Indelebile, Journalise;
 
     protected $fillable = [
-        'membre_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
+        'membre_id', 'cellule_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
         'motif_refus', 'declare_le', 'declare_par', 'traite_le', 'traite_par',
     ];
 
     protected static function booted(): void
     {
+        // Un versement garde la cellule du membre au moment où il est fait, même s'il change de cellule ensuite.
+        static::creating(function (Paiement $paiement): void {
+            if ($paiement->cellule_id === null) {
+                $paiement->cellule_id = Membre::query()->whereKey($paiement->membre_id)->value('cellule_id');
+            }
+        });
+
         // Tout paiement confirmé reçoit un numéro de reçu unique, selon sa nature.
         static::saving(function (Paiement $paiement): void {
             if ($paiement->statut === StatutPaiement::Confirme && $paiement->numero_recu === null) {
@@ -150,6 +158,16 @@ class Paiement extends Model
     public function declarant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'declare_par');
+    }
+
+    /**
+     * La cellule du membre au moment du versement.
+     *
+     * @return BelongsTo<Cellule, $this>
+     */
+    public function cellule(): BelongsTo
+    {
+        return $this->belongsTo(Cellule::class);
     }
 
     /** @return BelongsTo<User, $this> */

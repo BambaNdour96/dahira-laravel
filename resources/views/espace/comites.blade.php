@@ -131,6 +131,74 @@
                 <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Ajouter</button>
             </form>
 
+            @php
+                $volontaires = $commission->volontariats->where('statut', \App\Models\Volontariat::PROPOSE);
+                $invites = $commission->volontariats->where('statut', \App\Models\Volontariat::INVITE);
+            @endphp
+            @if ($volontaires->isNotEmpty())
+                <h3 class="mt-4 font-semibold text-emerald-900">Volontaires à accueillir ({{ $volontaires->count() }})</h3>
+                <ul class="mt-2 space-y-3 text-sm" data-test="volontaires">
+                    @foreach ($volontaires as $volontaire)
+                        <li class="rounded-lg bg-emerald-50 p-3">
+                            <p><span class="font-semibold">{{ $volontaire->membre->prenom }} {{ $volontaire->membre->nom }}</span> <span class="text-xs text-stone-500">· {{ $volontaire->membre->cellule->nom }}</span></p>
+                            @if ($volontaire->message)
+                                <p class="text-xs text-stone-600">« {{ $volontaire->message }} »</p>
+                            @endif
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <form method="POST" action="{{ route('comites.volontaires.decider', $volontaire) }}">
+                                    @csrf
+                                    <input type="hidden" name="accepte" value="1">
+                                    <button type="submit" class="rounded-lg bg-emerald-800 px-3 py-1.5 text-xs font-semibold text-white">Accepter</button>
+                                </form>
+                                <form method="POST" action="{{ route('comites.volontaires.decider', $volontaire) }}" class="flex gap-2">
+                                    @csrf
+                                    <input type="hidden" name="accepte" value="0">
+                                    <input type="text" name="motif" maxlength="255" placeholder="Motif (facultatif)" class="w-36 rounded-lg border border-stone-300 px-2 py-1 text-xs">
+                                    <button type="submit" class="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 ring-1 ring-stone-300">Ne pas retenir</button>
+                                </form>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            <details class="mt-4 text-sm" {{ (int) request('commission') === $commission->id ? 'open' : '' }}>
+                <summary class="cursor-pointer font-semibold text-emerald-900">Trouver des membres par savoir-faire</summary>
+                <form method="GET" action="{{ route('comites.index') }}" class="mt-2 flex gap-2">
+                    <input type="hidden" name="commission" value="{{ $commission->id }}">
+                    <select name="competence" aria-label="Savoir-faire" class="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
+                        @foreach ($competences as $id => $nom)
+                            <option value="{{ $id }}" @selected($competence?->id === $id)>{{ $nom }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Chercher</button>
+                </form>
+                @if ($competence && (int) request('commission') === $commission->id)
+                    <ul class="mt-3 divide-y divide-stone-100">
+                        @forelse ($trouves as $trouve)
+                            <li class="flex items-center justify-between gap-2 py-2">
+                                <span>{{ $trouve->prenom }} {{ $trouve->nom }} <span class="text-xs text-stone-500">· {{ $trouve->cellule->nom }}</span></span>
+                                @if ($commission->membres->contains($trouve) || $commission->chef_id === $trouve->id)
+                                    <span class="text-xs font-semibold text-emerald-800">Déjà membre</span>
+                                @elseif ($commission->volontariats->contains('membre_id', $trouve->id))
+                                    <span class="text-xs font-semibold text-amber-800">En attente</span>
+                                @else
+                                    <form method="POST" action="{{ route('comites.volontaires.inviter', [$commission, $trouve]) }}">
+                                        @csrf
+                                        <button type="submit" class="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-300">Inviter</button>
+                                    </form>
+                                @endif
+                            </li>
+                        @empty
+                            <li class="py-2 text-stone-500">Aucun membre n'a encore indiqué « {{ $competence->nom }} ».</li>
+                        @endforelse
+                    </ul>
+                @endif
+                @if ($invites->isNotEmpty())
+                    <p class="mt-2 text-xs text-stone-500">Invitations en attente : {{ $invites->map(fn ($invite) => $invite->membre->prenom.' '.$invite->membre->nom)->join(', ') }}.</p>
+                @endif
+            </details>
+
             <h3 class="mt-4 font-semibold text-emerald-900">Tâches de la commission</h3>
             <ul class="mt-2 space-y-1 text-sm">
                 @forelse ($commission->actions as $tache)

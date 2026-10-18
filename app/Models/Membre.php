@@ -99,6 +99,9 @@ class Membre extends Model
         'responsable_id', 'lien_famille', 'inscrit_par', 'compte_propose_le',
     ];
 
+    /** Le changement de cellule validé en cours d'application, noté dans l'historique (non enregistré en base). */
+    public ?int $changementEnCours = null;
+
     /** Âge de la majorité : en dessous, le membre est un enfant, sans compte de connexion. */
     public const AGE_MAJORITE = 18;
 
@@ -106,11 +109,29 @@ class Membre extends Model
     {
         // Un sympathisant qui s'inscrit avec le même numéro garde son historique de visites.
         static::created(function (Membre $membre): void {
+            // Chaque membre ouvre son historique de cellules dès son inscription.
+            HistoriqueCellule::query()->create(['membre_id' => $membre->id, 'cellule_id' => $membre->cellule_id, 'debut_le' => now()->toDateString()]);
+
             if ($membre->telephone === null) {
                 return;
             }
 
             Sympathisant::query()->whereNull('membre_id')->where('telephone', $membre->telephone)->update(['membre_id' => $membre->id]);
+        });
+
+        // L'historique des cellules suit chaque changement : la période en cours se ferme, une nouvelle s'ouvre.
+        static::updated(function (Membre $membre): void {
+            if (! $membre->wasChanged('cellule_id')) {
+                return;
+            }
+
+            HistoriqueCellule::query()->where('membre_id', $membre->id)->whereNull('fin_le')->update(['fin_le' => now()->toDateString()]);
+            HistoriqueCellule::query()->create([
+                'membre_id' => $membre->id,
+                'cellule_id' => $membre->cellule_id,
+                'debut_le' => now()->toDateString(),
+                'changement_id' => $membre->changementEnCours,
+            ]);
         });
 
         // Règle 4.6 : toute nouvelle photo est retraitée avant l'enregistrement.
@@ -254,6 +275,46 @@ class Membre extends Model
     public function paiements(): HasMany
     {
         return $this->hasMany(Paiement::class);
+    }
+
+    /**
+     * Les commissions d'événement dont il est membre.
+     *
+     * @return BelongsToMany<CommissionComite, $this>
+     */
+    public function commissionsComite(): BelongsToMany
+    {
+        return $this->belongsToMany(CommissionComite::class, 'commission_comite_membre')->withTimestamps();
+    }
+
+    /**
+     * Ses savoir-faire, pour être mobilisé.
+     *
+     * @return BelongsToMany<Competence, $this>
+     */
+    public function competences(): BelongsToMany
+    {
+        return $this->belongsToMany(Competence::class)->withTimestamps()->orderBy('ordre');
+    }
+
+    /**
+     * Ses cellules successives, la plus récente d'abord.
+     *
+     * @return HasMany<HistoriqueCellule, $this>
+     */
+    public function historiqueCellules(): HasMany
+    {
+        return $this->hasMany(HistoriqueCellule::class)->latest('debut_le')->latest('id');
+    }
+
+    /**
+     * Ses demandes de changement de cellule.
+     *
+     * @return HasMany<ChangementCellule, $this>
+     */
+    public function changementsCellule(): HasMany
+    {
+        return $this->hasMany(ChangementCellule::class);
     }
 
     /** @return BelongsTo<Membre, $this> */
