@@ -14,6 +14,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -68,17 +69,24 @@ class ViewReunion extends ViewRecord
                 ->color('gray')
                 ->visible(fn (Reunion $record): bool => ($utilisateur = self::utilisateur()) !== null && ComiteService::peutModifierConvocation($utilisateur, $record))
                 ->modalHeading('Modifier la convocation')
-                ->modalDescription('Jusqu\'au début de la réunion. Chaque membre du comité reçoit une « convocation modifiée ». Les présences, le compte rendu et le PV restent au secrétaire de séance.')
+                ->modalDescription('Jusqu\'au début de la réunion. Un changement de date, de lieu ou d\'ordre du jour envoie une « convocation modifiée » à chaque membre du comité. Les présences, le compte rendu et le PV restent au secrétaire de séance.')
                 ->fillForm(fn (Reunion $record): array => [
                     'debut' => $record->debut,
                     'lieu' => $record->lieu,
                     'lien' => $record->lien,
+                    'secretaire_id' => $record->secretaire_id,
                     'points' => $record->points->map(fn (PointOrdreDuJour $point): array => ['id' => $point->id, 'titre' => $point->titre])->all(),
                 ])
                 ->schema([
                     DateTimePicker::make('debut')->label('Date et heure')->required()->native(false)->seconds(false)->after('now'),
                     TextInput::make('lieu')->label('Lieu')->required()->maxLength(150),
                     TextInput::make('lien')->label('Lien de visioconférence (facultatif)')->url()->maxLength(255),
+                    Select::make('secretaire_id')
+                        ->label('Secrétaire de séance')
+                        ->helperText('S\'il change, l\'ancien et le nouveau secrétaire sont prévenus.')
+                        ->options(fn (Reunion $record): array => ComiteService::secretairesPossibles($record->instance))
+                        ->searchable()
+                        ->required(),
                     Repeater::make('points')
                         ->label('Ordre du jour')
                         ->addActionLabel('Ajouter un point')
@@ -98,6 +106,7 @@ class ViewReunion extends ViewRecord
                             'debut' => (string) $data['debut'],
                             'lieu' => (string) $data['lieu'],
                             'lien' => isset($data['lien']) ? (string) $data['lien'] : null,
+                            'secretaire_id' => (int) $data['secretaire_id'],
                             'points' => array_values(array_map(
                                 fn (array $point): array => ['id' => isset($point['id']) && $point['id'] !== '' ? (int) $point['id'] : null, 'titre' => (string) $point['titre']],
                                 (array) $data['points'],
@@ -105,6 +114,12 @@ class ViewReunion extends ViewRecord
                         ], $auteur);
                     } catch (DomainException $e) {
                         Notification::make()->title($e->getMessage())->danger()->send();
+
+                        return;
+                    }
+
+                    if ($message === null) {
+                        Notification::make()->title('Secrétaire de séance changé : l\'ancien et le nouveau sont prévenus.')->success()->send();
 
                         return;
                     }

@@ -237,6 +237,28 @@ describe('la convocation modifiée', function () {
         expect($this->service->messageConvocation($reunion, modifiee: true))->toContain('Convocation modifiée')->toContain('Cuisine');
     });
 
+    it('laisse l\'organisateur changer de secrétaire de séance, et prévient l\'ancien et le nouveau', function () {
+        Notification::fake();
+        $points = $this->reunion->points->map(fn ($point): array => ['id' => $point->id, 'titre' => $point->titre])->all();
+        $donnees = ['debut' => $this->reunion->debut->toDateTimeString(), 'lieu' => 'Kaolack', 'points' => $points];
+
+        expect(fn () => $this->service->modifierConvocation($this->reunion, [...$donnees, 'secretaire_id' => $this->fatou->id], $this->president))
+            ->toThrow(DomainException::class, 'membres prévus');
+
+        $this->actingAs($this->president);
+        Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])
+            ->callAction('modifierConvocation', [...$donnees, 'secretaire_id' => $this->ousmane->id])
+            ->assertHasNoActionErrors();
+
+        $estPourLeSecretariat = fn (Membre $membre, string $texte): Closure => fn (NotificationMembre $notification): bool => str_contains($notification->toArray($membre->user)['message'] ?? '', $texte);
+        expect($this->reunion->fresh()->secretaire_id)->toBe($this->ousmane->id)
+            ->and(ComiteService::peutRediger($this->president, $this->reunion->fresh()))->toBeTrue()
+            ->and(ComiteService::peutRediger($this->secretaire, $this->reunion->fresh()))->toBeFalse();
+        Notification::assertSentTo($this->secretaire, NotificationMembre::class, $estPourLeSecretariat($this->modou, 'n\'êtes plus secrétaire'));
+        Notification::assertSentTo($this->president, NotificationMembre::class, $estPourLeSecretariat($this->ousmane, 'êtes désigné secrétaire'));
+        Notification::assertNotSentTo(User::query()->findOrFail($this->fatou->user_id), NotificationMembre::class);
+    });
+
     it('réserve au secrétaire de séance les présences et le PV, et fige la convocation dans son formulaire', function () {
         $this->actingAs($this->secretaire);
         Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])

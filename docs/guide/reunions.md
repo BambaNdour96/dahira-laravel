@@ -23,9 +23,10 @@ Une seule personne : elle anime la réunion, enregistre les présences, rédige,
 administrateur reste le secours.
 
 **Jusqu'au début de la réunion**, l'organisateur peut encore changer la **date**, le **lieu** (ou le lien de
-visioconférence) et l'**ordre du jour** : bouton « Modifier la convocation » sur la page de la réunion. Chaque
-modification envoie une **convocation modifiée** à tous les membres du comité, qui indique ce qui a changé, et propose
-de la partager sur le groupe WhatsApp. Un point qui a déjà un résumé ne peut plus être retiré. Dans le formulaire du
+visioconférence), l'**ordre du jour** et le **secrétaire de séance** : bouton « Modifier la convocation » sur la page
+de la réunion. Un changement de date, de lieu ou d'ordre du jour envoie une **convocation modifiée** à tous les membres
+du comité, qui indique ce qui a changé, et propose de la partager sur le groupe WhatsApp. Un changement de secrétaire
+prévient l'ancien et le nouveau secrétaire. Un point qui a déjà un résumé ne peut plus être retiré. Dans le formulaire du
 secrétaire, ces champs sont alors figés : il ne complète que les résumés, les décisions, les actions et les divers.
 Une fois publié, le PV est figé et les membres du comité en sont prévenus.
 

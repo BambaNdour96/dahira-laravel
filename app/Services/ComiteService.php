@@ -263,12 +263,14 @@ final class ComiteService
     }
 
     /**
-     * L'organisateur modifie la date, le lieu ou l'ordre du jour d'une réunion convoquée, jusqu'à son début.
-     * Chaque modification envoie une « convocation modifiée » aux membres ; renvoie le message pour le groupe WhatsApp.
+     * L'organisateur modifie la date, le lieu, l'ordre du jour ou le secrétaire de séance d'une réunion convoquée,
+     * jusqu'à son début. Un changement de date, de lieu ou d'ordre du jour envoie une « convocation modifiée » aux
+     * membres et renvoie le message pour le groupe WhatsApp ; un changement de secrétaire prévient l'ancien et le
+     * nouveau (rien n'est renvoyé aux membres s'il est le seul changement).
      *
-     * @param  array{debut: string, lieu: string, lien?: string|null, points: list<array{id?: int|null, titre: string}>}  $donnees
+     * @param  array{debut: string, lieu: string, lien?: string|null, secretaire_id?: int|null, points: list<array{id?: int|null, titre: string}>}  $donnees
      */
-    public function modifierConvocation(Reunion $reunion, array $donnees, User $auteur): string
+    public function modifierConvocation(Reunion $reunion, array $donnees, User $auteur): ?string
     {
         if (! self::peutModifierConvocation($auteur, $reunion)) {
             throw new DomainException('Seul l\'organisateur modifie une réunion convoquée, et seulement avant son début.');
@@ -302,12 +304,20 @@ final class ComiteService
             $changements[] = 'ordre du jour modifié';
         }
 
-        if ($changements === []) {
+        $ancienSecretaire = $reunion->secretaire;
+        $secretaireId = $donnees['secretaire_id'] ?? $reunion->secretaire_id;
+        $changeDeSecretaire = $secretaireId !== $reunion->secretaire_id;
+
+        if ($changeDeSecretaire && ($secretaireId === null || ! array_key_exists($secretaireId, self::secretairesPossibles($reunion->instance)))) {
+            throw new DomainException('Le secrétaire de séance est choisi parmi les membres prévus pour ce comité.');
+        }
+
+        if ($changements === [] && ! $changeDeSecretaire) {
             throw new DomainException('Rien n\'a changé : la convocation n\'est pas renvoyée.');
         }
 
-        DB::transaction(function () use ($reunion, $donnees, $debut, $lien, $titres, $ordreAvant): void {
-            $reunion->update(['debut' => $debut, 'lieu' => trim($donnees['lieu']), 'lien' => $lien]);
+        DB::transaction(function () use ($reunion, $donnees, $debut, $lien, $titres, $ordreAvant, $secretaireId): void {
+            $reunion->update(['debut' => $debut, 'lieu' => trim($donnees['lieu']), 'lien' => $lien, 'secretaire_id' => $secretaireId]);
             $this->remplacerOrdreDuJour($reunion, $donnees['points']);
 
             if ($titres !== $ordreAvant) {
@@ -320,6 +330,14 @@ final class ComiteService
 
         $reunion->refresh();
 
+        if ($changeDeSecretaire) {
+            $this->prevenirSecretaires($reunion, $ancienSecretaire);
+        }
+
+        if ($changements === []) {
+            return null;
+        }
+
         foreach ($this->comptesDesMembres($reunion->instance) as $compte) {
             $compte->notify(new NotificationMembre(
                 'Convocation modifiée : '.$reunion->instance->nom,
@@ -330,6 +348,32 @@ final class ComiteService
         }
 
         return $this->messageConvocation($reunion, modifiee: true);
+    }
+
+    /** L'ancien secrétaire de séance est déchargé, le nouveau reçoit la réunion à animer. */
+    private function prevenirSecretaires(Reunion $reunion, ?Membre $ancien): void
+    {
+        $quand = $reunion->titre.' — '.$reunion->debut->translatedFormat('l j F à H\hi').', '.$reunion->lieu;
+
+        if ($ancien !== null && $ancien->user_id !== null && ($compte = User::query()->whereKey($ancien->user_id)->first()) !== null) {
+            $compte->notify(new NotificationMembre(
+                'Secrétaire de séance : '.$reunion->instance->nom,
+                'Vous n\'êtes plus secrétaire de séance de la réunion '.$quand.'.',
+                route('comites.index'),
+                'Voir mes comités',
+            ));
+        }
+
+        $nouveau = $reunion->secretaire;
+
+        if ($nouveau !== null && $nouveau->user_id !== null && ($compte = User::query()->whereKey($nouveau->user_id)->first()) !== null) {
+            $compte->notify(new NotificationMembre(
+                'Secrétaire de séance : '.$reunion->instance->nom,
+                'Vous êtes désigné secrétaire de séance de la réunion '.$quand.' : vous animez, notez les présences et rédigez le PV.',
+                route('filament.admin.resources.reunions.view', $reunion),
+                'Ouvrir la réunion',
+            ));
+        }
     }
 
     /**
