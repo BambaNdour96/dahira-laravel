@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $fin_le
  * @property int|null $changement_id
  * @property-read Cellule $cellule
+ * @property-read ChangementCellule|null $changement
  */
 class HistoriqueCellule extends Model
 {
@@ -36,5 +37,11 @@ class HistoriqueCellule extends Model
     public function cellule(): BelongsTo
     {
         return $this->belongsTo(Cellule::class);
+    }
+
+    /** @return BelongsTo<ChangementCellule, $this> */
+    public function changement(): BelongsTo
+    {
+        return $this->belongsTo(ChangementCellule::class, 'changement_id');
     }
 }

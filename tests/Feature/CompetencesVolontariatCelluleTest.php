@@ -7,6 +7,7 @@ use App\Enums\StatutMembre;
 use App\Filament\Resources\ChangementsCellule\Pages\ListChangementsCellule;
 use App\Filament\Resources\Competences\CompetenceResource;
 use App\Filament\Resources\Membres\Pages\EditMembre;
+use App\Filament\Resources\Membres\Widgets\HistoriqueCellulesDuMembre;
 use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\ChangementCellule;
@@ -212,6 +213,11 @@ describe('le changement de cellule', function () {
             ->and(app(CollecteService::class)->versesParCellule($collecte))->toBe(['Médina' => 4000, 'Sam' => 3000]);
 
         $this->actingAs($this->awa->user)->get(route('cellule.index'))->assertSee('Mes cellules')->assertSee('Médina')->assertSee('Validé');
+
+        $this->actingAs($this->super);
+        Livewire::test(HistoriqueCellulesDuMembre::class, ['record' => $this->awa->fresh()])
+            ->assertSee('Historique des cellules')->assertSee('Médina')->assertSee('Sam')->assertSee('En cours')
+            ->assertSee('Inscription ou rattachement à la famille')->assertSee('Déménagement');
     });
 
     it('avertit avant de valider le départ d\'un Jewrine, met fin à ses postes et prévient le Jewrine national', function () {

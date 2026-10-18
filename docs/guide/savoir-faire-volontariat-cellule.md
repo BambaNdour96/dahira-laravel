@@ -43,6 +43,7 @@ voit ce que le changement entraîne :
 Après la validation, le membre, l'ancien et le nouveau Jewrine sont prévenus. Le refus se fait avec un motif, transmis
 au membre et au demandeur.
 
-**L'historique** : chaque membre garde la liste de ses cellules successives (du … au …). Les dahiras, les présences et
+**L'historique** : chaque membre garde la liste de ses cellules successives (du … au …), visible sur son téléphone
+(Ma cellule) et, dans le panneau, en bas de sa fiche (« Historique des cellules » : qui a demandé, qui a validé, motif). Les dahiras, les présences et
 les **versements** passés restent comptés pour l'ancienne cellule : chaque versement garde la cellule du moment où il a
 été fait.

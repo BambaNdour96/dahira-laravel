@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property-read Cellule $depart
  * @property-read Cellule $arrivee
  * @property-read User $demandeur
+ * @property-read User|null $decideur
  */
 class ChangementCellule extends Model
 {
@@ -75,5 +76,11 @@ class ChangementCellule extends Model
     public function demandeur(): BelongsTo
     {
         return $this->belongsTo(User::class, 'demande_par');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function decideur(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decide_par');
     }
 }

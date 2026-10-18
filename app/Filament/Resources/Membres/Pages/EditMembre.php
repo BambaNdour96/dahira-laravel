@@ -7,6 +7,7 @@ use App\Filament\Resources\Membres\Actions\ChangerStatutAction;
 use App\Filament\Resources\Membres\Actions\FamilleActions;
 use App\Filament\Resources\Membres\MembreResource;
 use App\Filament\Resources\Membres\Widgets\CasquettesDuMembre;
+use App\Filament\Resources\Membres\Widgets\HistoriqueCellulesDuMembre;
 use App\Models\Membre;
 use App\Services\FamilleService;
 use DomainException;
@@ -47,6 +48,6 @@ class EditMembre extends EditRecord
     /** @return array<int, class-string> */
     protected function getFooterWidgets(): array
     {
-        return [CasquettesDuMembre::class];
+        return [CasquettesDuMembre::class, HistoriqueCellulesDuMembre::class];
     }
 }
