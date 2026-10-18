@@ -98,9 +98,24 @@ class AvisMembreObserver
         );
     }
 
+    /**
+     * Le membre est prévenu sur son compte. Un proche sans compte (enfant, adulte sans téléphone) l'est par le membre
+     * qui gère sa fiche, avec un lien vers sa fiche dans « Ma famille ».
+     */
     private static function avertir(Membre $membre, string $titre, string $message, ?string $lien, ?string $libelle): void
     {
-        $membre->user?->notify(new NotificationMembre($titre, $message, $lien, $libelle));
+        if ($membre->user !== null) {
+            $membre->user->notify(new NotificationMembre($titre, $message, $lien, $libelle));
+
+            return;
+        }
+
+        $membre->responsable?->user?->notify(new NotificationMembre(
+            $membre->prenom.' : '.$titre,
+            'Pour '.$membre->prenom.' '.$membre->nom.'. '.$message,
+            route('famille.show', $membre),
+            'Voir sa fiche',
+        ));
     }
 
     private static function fcfa(int $montant): string

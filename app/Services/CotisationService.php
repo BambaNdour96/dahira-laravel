@@ -196,8 +196,8 @@ final class CotisationService
         });
     }
 
-    /** Le membre déclare un paiement Wave pour plusieurs mois. */
-    public function declarer(Membre $membre, string $reference, int $nombreMois, ?string $numeroWave = null): Paiement
+    /** Le membre (ou le proche qui gère sa fiche, le déclarant) déclare un paiement Wave pour plusieurs mois. */
+    public function declarer(Membre $membre, string $reference, int $nombreMois, ?string $numeroWave = null, ?User $declarant = null): Paiement
     {
         $this->verifierPeutCotiser($membre, $nombreMois);
 
@@ -221,6 +221,7 @@ final class CotisationService
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
+            'declare_par' => $declarant->id ?? $membre->user_id,
         ]);
 
         RepresentantFinanceService::prevenir($paiement);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LienFamille;
 use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
@@ -26,6 +27,10 @@ use Illuminate\Support\Str;
 /**
  * @property int $id
  * @property int|null $user_id
+ * @property int|null $responsable_id
+ * @property LienFamille|null $lien_famille
+ * @property int|null $inscrit_par
+ * @property Carbon|null $compte_propose_le
  * @property string|null $matricule
  * @property string $prenom
  * @property string $nom
@@ -33,7 +38,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $date_naissance
  * @property string|null $niveau_etudes_autre
  * @property string|null $lieu_naissance
- * @property string $telephone
+ * @property string|null $telephone
  * @property string|null $email
  * @property string|null $adresse
  * @property string|null $ville
@@ -57,6 +62,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $consentement_le
  * @property string|null $consentement_version
  * @property-read Cellule $cellule
+ * @property-read Membre|null $responsable
  */
 class Membre extends Model
 {
@@ -90,12 +96,20 @@ class Membre extends Model
         'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
         'situation_professionnelle', 'profession', 'secteur_activite',
         'date_adhesion', 'consentement_le', 'consentement_version',
+        'responsable_id', 'lien_famille', 'inscrit_par', 'compte_propose_le',
     ];
+
+    /** Âge de la majorité : en dessous, le membre est un enfant, sans compte de connexion. */
+    public const AGE_MAJORITE = 18;
 
     protected static function booted(): void
     {
         // Un sympathisant qui s'inscrit avec le même numéro garde son historique de visites.
         static::created(function (Membre $membre): void {
+            if ($membre->telephone === null) {
+                return;
+            }
+
             Sympathisant::query()->whereNull('membre_id')->where('telephone', $membre->telephone)->update(['membre_id' => $membre->id]);
         });
 
@@ -133,6 +147,8 @@ class Membre extends Model
             'accepte_le' => 'datetime',
             'valide_le' => 'datetime',
             'consentement_le' => 'datetime',
+            'lien_famille' => LienFamille::class,
+            'compte_propose_le' => 'datetime',
         ];
     }
 
@@ -154,6 +170,24 @@ class Membre extends Model
             'profession' => ! in_array($this->situation_professionnelle, [SituationProfessionnelle::Retraite, SituationProfessionnelle::EleveEtudiant], true),
             default => true,
         };
+    }
+
+    /** Un enfant : moins de 18 ans. Sans date de naissance, on ne le suppose pas enfant. */
+    public function estEnfant(): bool
+    {
+        return $this->date_naissance !== null && $this->date_naissance->copy()->addYears(self::AGE_MAJORITE)->isFuture();
+    }
+
+    /** Un proche dont la fiche est gérée par un autre membre (enfant, ou adulte sans téléphone). */
+    public function estGereParUnProche(): bool
+    {
+        return $this->responsable_id !== null;
+    }
+
+    /** Le numéro où le joindre : le sien, ou à défaut celui du membre qui gère sa fiche (sans le « + »). */
+    public function numeroDeContact(): string
+    {
+        return ltrim($this->telephone ?? $this->responsable->telephone ?? '', '+');
     }
 
     /** Date limite pour régler les frais de carte. */
@@ -222,6 +256,22 @@ class Membre extends Model
         return $this->hasMany(Paiement::class);
     }
 
+    /** @return BelongsTo<Membre, $this> */
+    public function responsable(): BelongsTo
+    {
+        return $this->belongsTo(Membre::class, 'responsable_id');
+    }
+
+    /**
+     * Les proches dont il gère la fiche.
+     *
+     * @return HasMany<Membre, $this>
+     */
+    public function proches(): HasMany
+    {
+        return $this->hasMany(Membre::class, 'responsable_id');
+    }
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
@@ -252,9 +302,16 @@ class Membre extends Model
         return Attribute::get(fn (): string => trim($this->prenom.' '.$this->nom));
     }
 
-    /** @return Attribute<never, string> */
+    /**
+     * Facultatif (un enfant, un membre sans téléphone) ; toujours enregistré au format international.
+     *
+     * @return Attribute<string|null, string|null>
+     */
     protected function telephone(): Attribute
     {
-        return Attribute::set(fn (string $valeur): string => TelephoneNormalizer::normaliser($valeur) ?? $valeur);
+        return Attribute::make(
+            get: fn (?string $valeur): ?string => $valeur,
+            set: fn (?string $valeur): ?string => blank($valeur) ? null : (TelephoneNormalizer::normaliser($valeur) ?? $valeur),
+        );
     }
 }

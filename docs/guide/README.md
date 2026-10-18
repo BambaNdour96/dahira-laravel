@@ -5,6 +5,7 @@ Il est mis à jour à chaque changement d'écran.
 
 | Page | Pour qui |
 | --- | --- |
+| [Ma famille, comptes enfants, membres sans téléphone](famille.md) | Membres, Jewrine de cellule |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |

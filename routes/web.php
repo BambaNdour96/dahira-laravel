@@ -17,6 +17,7 @@ use App\Http\Controllers\EnTantQueController;
 use App\Http\Controllers\EspaceController;
 use App\Http\Controllers\EvenementController;
 use App\Http\Controllers\ExportPresencesController;
+use App\Http\Controllers\FamilleController;
 use App\Http\Controllers\FicheCollecteController;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\MesDonneesController;
@@ -96,6 +97,17 @@ Route::middleware('auth')->group(function () {
     Route::put('/mon-compte/mot-de-passe', [MotDePasseController::class, 'update'])
         ->middleware('throttle:connexion')
         ->name('mot-de-passe.update');
+
+    Route::get('/ma-famille', [FamilleController::class, 'index'])->name('famille.index');
+    Route::get('/ma-famille/ajouter', [FamilleController::class, 'create'])->name('famille.create');
+    Route::post('/ma-famille', [FamilleController::class, 'store'])->middleware('throttle:inscription')->name('famille.store');
+    Route::get('/ma-famille/{proche}', [FamilleController::class, 'show'])->name('famille.show');
+    Route::post('/ma-famille/{proche}/frais', [FamilleController::class, 'frais'])->middleware('throttle:inscription')->name('famille.frais');
+    Route::post('/ma-famille/{proche}/compte', [FamilleController::class, 'compte'])->name('famille.compte');
+    Route::get('/ma-famille/{proche}/carte', [CarteController::class, 'show'])->name('famille.carte');
+    Route::get('/ma-famille/{proche}/carte/pdf', [CarteController::class, 'pdf'])->name('famille.carte.pdf');
+    Route::get('/ma-famille/{proche}/cotisations', [CotisationController::class, 'show'])->name('famille.cotisations');
+    Route::post('/ma-famille/{proche}/cotisations', [CotisationController::class, 'declarer'])->middleware('throttle:inscription')->name('famille.cotisations.declarer');
 
     Route::get('/mes-cotisations', [CotisationController::class, 'show'])->name('cotisations');
     Route::post('/mes-cotisations', [CotisationController::class, 'declarer'])

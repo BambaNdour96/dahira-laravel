@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StatutPaiement;
 use App\Models\Paiement;
 use App\Models\User;
+use App\Policies\MembrePolicy;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -12,11 +13,12 @@ use Illuminate\Support\Facades\Gate;
 
 class RecuController extends Controller
 {
-    /** Le membre télécharge ses reçus ; le bureau peut télécharger tous les reçus. */
+    /** Le membre télécharge ses reçus et ceux des proches dont il gère la fiche ; le bureau peut télécharger tous les reçus. */
     public function show(Request $request, Paiement $paiement): Response
     {
         $utilisateur = $request->user();
-        $proprietaire = $utilisateur instanceof User && $paiement->membre->user_id === $utilisateur->id;
+        $proprietaire = $utilisateur instanceof User
+            && ($paiement->membre->user_id === $utilisateur->id || MembrePolicy::gereLaFiche($utilisateur, $paiement->membre));
 
         abort_unless($proprietaire || Gate::allows('view', $paiement), 403);
         abort_if($paiement->statut !== StatutPaiement::Confirme || $paiement->numero_recu === null, 404);

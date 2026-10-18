@@ -17,9 +17,10 @@ use Illuminate\View\View;
 
 class CotisationController extends Controller
 {
-    public function show(Request $request, CotisationService $cotisations): View
+    /** Ses cotisations, ou celles d'un proche dont il gère la fiche (« Ma famille »). */
+    public function show(Request $request, CotisationService $cotisations, ?Membre $proche = null): View
     {
-        $membre = $this->membre($request);
+        $membre = $this->membre($request, $proche);
         $mensuel = $cotisations->montantMensuel();
         $paiements = Paiement::query()->where('membre_id', $membre->id)->where('objet', 'cotisation');
 
@@ -29,6 +30,7 @@ class CotisationController extends Controller
 
         return view('espace.cotisations', [
             'membre' => $membre,
+            'proche' => $proche,
             'mensuel' => $mensuel,
             'retard' => $cotisations->moisEnRetard($membre),
             'regleJusqua' => $cotisations->regleJusqua($membre),
@@ -43,9 +45,9 @@ class CotisationController extends Controller
         ]);
     }
 
-    public function declarer(Request $request, CotisationService $cotisations): RedirectResponse
+    public function declarer(Request $request, CotisationService $cotisations, ?Membre $proche = null): RedirectResponse
     {
-        $membre = $this->membre($request);
+        $membre = $this->membre($request, $proche);
 
         $request->validate([
             'nombre_mois' => ['required', 'integer', Rule::in(CotisationService::CHOIX_MOIS)],
@@ -56,19 +58,25 @@ class CotisationController extends Controller
         [$reference, $numeroWave] = PaiementMembreController::valider($request);
 
         try {
-            $cotisations->declarer($membre, $reference, (int) $request->input('nombre_mois'), $numeroWave);
+            $declarant = $request->user();
+            $cotisations->declarer($membre, $reference, (int) $request->input('nombre_mois'), $numeroWave, $declarant instanceof User ? $declarant : null);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }
 
-        return redirect()->route('cotisations')
+        return redirect()->to($proche !== null ? route('famille.cotisations', $proche) : route('cotisations'))
             ->with('succes', 'Merci ! Votre paiement est en cours de vérification par le Jewrine finance.');
     }
 
-    private function membre(Request $request): Membre
+    private function membre(Request $request, ?Membre $proche): Membre
     {
         $user = $request->user();
-        $membre = $user instanceof User ? $user->membre : null;
+
+        if ($proche !== null && $user instanceof User) {
+            FamilleController::verifier($user, $proche);
+        }
+
+        $membre = $proche ?? ($user instanceof User ? $user->membre : null);
 
         abort_unless($membre !== null && $membre->statut === StatutMembre::Valide, 404);
 

@@ -1,17 +1,19 @@
 @extends('layouts.public')
 
-@section('titre', 'Ma carte de membre')
+@section('titre', $proche ? 'Carte de '.$proche->prenom : 'Ma carte de membre')
 
 @section('contenu')
     @php
-        $telephone = preg_match('/^\+221(\d{2})(\d{3})(\d{2})(\d{2})$/', $membre->telephone, $morceaux)
+        // Un proche sans téléphone (un enfant) : on joint le membre qui gère sa fiche.
+        $numero = $membre->telephone ?? $membre->responsable?->telephone;
+        $telephone = $numero !== null && preg_match('/^\+221(\d{2})(\d{3})(\d{2})(\d{2})$/', $numero, $morceaux)
             ? "+221 {$morceaux[1]} {$morceaux[2]} {$morceaux[3]} {$morceaux[4]}"
-            : $membre->telephone;
+            : ($numero ?? '—');
         // Sur le téléphone, le poste principal en cours ; jamais sur la carte imprimée (elle dure un an).
         $postePrincipal = $membre->postePrincipal();
     @endphp
 
-    <h1 class="text-2xl font-semibold text-emerald-900">Ma carte de membre</h1>
+    <h1 class="text-2xl font-semibold text-emerald-900">{{ $proche ? 'Carte de '.$proche->prenom : 'Ma carte de membre' }}</h1>
 
     <div class="mx-auto mt-6 w-full max-w-md">
         <div id="carte-membre" data-nom-fichier="carte-{{ $membre->matricule }}" class="relative flex aspect-[85.6/54] flex-col overflow-hidden rounded-2xl bg-white text-stone-900 shadow-xl ring-1 ring-stone-300">
@@ -63,7 +65,7 @@
                             <dd class="truncate font-bold">{{ $membre->cellule->nom }}</dd>
                         </div>
                         <div class="col-span-2">
-                            <dt class="font-semibold text-emerald-700 uppercase">Téléphone</dt>
+                            <dt class="font-semibold text-emerald-700 uppercase">{{ $membre->telephone === null && $membre->responsable ? 'Contact (famille)' : 'Téléphone' }}</dt>
                             <dd class="font-bold">{{ $telephone }}</dd>
                         </div>
                     </dl>
@@ -83,7 +85,7 @@
     </div>
 
     <div class="mx-auto mt-5 grid w-full max-w-md grid-cols-2 gap-3">
-        <a href="{{ route('carte.pdf') }}" class="flex items-center justify-center gap-2 rounded-lg bg-emerald-800 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-900">
+        <a href="{{ $proche ? route('famille.carte.pdf', $proche) : route('carte.pdf') }}" class="flex items-center justify-center gap-2 rounded-lg bg-emerald-800 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-900">
             📄 Télécharger en PDF
         </a>
         <button type="button" data-telecharger-carte class="flex items-center justify-center gap-2 rounded-lg bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200 hover:bg-emerald-100">
@@ -99,7 +101,11 @@
         Carte perdue ? Contactez le bureau : l'ancienne carte sera désactivée et une nouvelle vous sera remise.
     </p>
 
-    <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    @if ($proche)
+        <a href="{{ route('famille.show', $proche) }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à la fiche de {{ $proche->prenom }}</a>
+    @else
+        <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    @endif
     <p class="mt-4 text-center text-xs text-stone-500">
         Carte mise à jour le {{ now()->format('d/m/Y à H:i') }}. Elle reste consultable sans connexion sur ce téléphone.
     </p>

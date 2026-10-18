@@ -31,7 +31,8 @@ class MembresTable
                 TextColumn::make('matricule')->label('Matricule')->searchable()->sortable()->placeholder('—'),
                 TextColumn::make('prenom')->label('Prénom')->searchable()->sortable(),
                 TextColumn::make('nom')->label('Nom')->searchable()->sortable(),
-                TextColumn::make('telephone')->label('Téléphone')->searchable(),
+                TextColumn::make('telephone')->label('Téléphone')->searchable()->placeholder('—'),
+                TextColumn::make('responsable.nom_complet')->label('Fiche gérée par')->placeholder('—')->toggleable(),
                 TextColumn::make('cellule.nom')->label('Cellule')->sortable(),
                 TextColumn::make('poste')->label('Poste')->placeholder('—')->toggleable()
                     ->state(fn (Membre $record): ?string => $record->postePrincipal()?->nom),

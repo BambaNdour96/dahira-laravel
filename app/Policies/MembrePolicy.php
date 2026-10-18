@@ -46,10 +46,16 @@ class MembrePolicy
         return false;
     }
 
-    /** Un membre voit sa propre photo ; le bureau voit celles qu'il a le droit de consulter. */
+    /** Un membre voit sa propre photo et celles des proches dont il gère la fiche ; le bureau, celles qu'il peut consulter. */
     public function voirPhoto(User $user, Membre $membre): bool
     {
-        return $membre->user_id === $user->id || $this->view($user, $membre);
+        return $membre->user_id === $user->id || self::gereLaFiche($user, $membre) || $this->view($user, $membre);
+    }
+
+    /** Il gère la fiche de ce proche (enfant, ou adulte sans téléphone). */
+    public static function gereLaFiche(User $user, Membre $membre): bool
+    {
+        return $membre->responsable !== null && $membre->responsable->user_id === $user->id;
     }
 
     /** Révoquer une carte (perte, vol). */
@@ -64,8 +70,8 @@ class MembrePolicy
      */
     public function changerStatut(User $user, Membre $membre, StatutMembre $cible): bool
     {
-        // Personne ne modifie son propre statut, même un administrateur.
-        if ($membre->user_id !== null && $membre->user_id === $user->id) {
+        // Personne ne modifie son propre statut, même un administrateur, ni celui d'un proche dont il gère la fiche.
+        if (($membre->user_id !== null && $membre->user_id === $user->id) || self::gereLaFiche($user, $membre)) {
             return false;
         }
 

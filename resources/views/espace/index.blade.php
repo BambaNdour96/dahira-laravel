@@ -139,8 +139,8 @@
                 <a href="{{ route('recus.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
                     <span class="block text-2xl" aria-hidden="true">🧾</span> Mes reçus
                 </a>
-                <a href="{{ route('evenements.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
-                    <span class="block text-2xl" aria-hidden="true">📅</span> Participations
+                <a href="{{ route('famille.index') }}" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">
+                    <span class="block text-2xl" aria-hidden="true">👨‍👩‍👧</span> Ma famille
                 </a>
                 @if ($groupeCellule || $whatsappNational)
                     <a href="#groupes" class="rounded-xl bg-white p-4 text-sm font-medium text-emerald-950 ring-1 ring-stone-200 hover:bg-stone-100">

@@ -31,3 +31,6 @@ Schedule::command('programmes:rappeler')->dailyAt('09:00');
 
 // Chaque matin à 8 h : alerte sur les tâches en attente depuis plus de 3 jours.
 Schedule::command('taches:surveiller')->dailyAt('08:00');
+
+// Chaque matin à 9 h 15 : un proche qui atteint 18 ans peut recevoir son propre compte (proposé, jamais imposé).
+Schedule::command('familles:routine')->dailyAt('09:15');

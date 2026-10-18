@@ -16,11 +16,18 @@ final class AntiFraude
     /** Format d'une référence Wave, après mise en majuscules et suppression des espaces. */
     public const FORMAT_REFERENCE = '/^T_[A-Z0-9]{12,20}$/';
 
-    /** Personne ne confirme son propre paiement : un autre membre du bureau doit le faire. */
+    /**
+     * Personne ne confirme son propre paiement : un autre membre du bureau doit le faire.
+     * Le paiement d'un proche dont on gère la fiche compte comme le sien.
+     */
     public static function verifierPasSoiMeme(Membre $membre, ?User $tresorier): void
     {
         if ($tresorier !== null && $membre->user_id === $tresorier->id) {
             throw new DomainException('Vous ne pouvez pas valider votre propre paiement : demandez à un autre membre du bureau.');
+        }
+
+        if ($tresorier !== null && $membre->responsable !== null && $membre->responsable->user_id === $tresorier->id) {
+            throw new DomainException('Vous gérez la fiche de ce proche : son paiement est validé par un autre membre du bureau.');
         }
     }
 

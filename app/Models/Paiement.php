@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property StatutPaiement $statut
  * @property string|null $motif_refus
  * @property Carbon $declare_le
+ * @property int|null $declare_par
  * @property Carbon|null $traite_le
  * @property int|null $traite_par
  * @property string|null $numero_recu
@@ -37,7 +38,7 @@ class Paiement extends Model
 
     protected $fillable = [
         'membre_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
-        'motif_refus', 'declare_le', 'traite_le', 'traite_par',
+        'motif_refus', 'declare_le', 'declare_par', 'traite_le', 'traite_par',
     ];
 
     protected static function booted(): void
@@ -139,6 +140,16 @@ class Paiement extends Model
     public function membre(): BelongsTo
     {
         return $this->belongsTo(Membre::class);
+    }
+
+    /**
+     * Qui l'a déclaré : le membre lui-même, ou le proche qui paie pour lui.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function declarant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'declare_par');
     }
 
     /** @return BelongsTo<User, $this> */

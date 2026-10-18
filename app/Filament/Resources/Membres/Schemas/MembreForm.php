@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Membres\Schemas;
 
+use App\Enums\LienFamille;
 use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
+use App\Enums\StatutMembre;
 use App\Filament\Resources\Membres\MembreResource;
+use App\Models\Cellule;
 use App\Models\Membre;
 use App\Services\TelephoneNormalizer;
 use App\Support\Langues;
@@ -17,6 +20,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class MembreForm
@@ -62,10 +66,14 @@ class MembreForm
                     TextInput::make('telephone')
                         ->label('Téléphone')
                         ->tel()
-                        ->required()
                         ->placeholder('77 123 45 67')
+                        ->helperText('Facultatif : un membre sans téléphone (ou un enfant) reste joignable par sa famille ou son Jewrine.')
                         ->rules([
                             fn (?Membre $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+                                if (blank($value)) {
+                                    return;
+                                }
+
                                 $telephone = TelephoneNormalizer::normaliser(is_string($value) ? $value : null);
 
                                 if ($telephone === null) {
@@ -112,12 +120,30 @@ class MembreForm
                     TextInput::make('secteur_activite')->label('Secteur d\'activité')->maxLength(150),
                 ]),
 
+            Section::make('Famille')
+                ->description('Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara, qui gère sa fiche depuis son téléphone. Le proche prend sa cellule.')
+                ->columns(2)
+                ->columnSpanFull()
+                ->collapsible()
+                ->schema([
+                    Select::make('responsable_id')
+                        ->label('Fiche gérée par (parent, tuteur ou proche)')
+                        ->options(fn (?Membre $record): array => self::responsablesPossibles($record))
+                        ->searchable()
+                        ->live(),
+                    Select::make('lien_famille')
+                        ->label('Ce membre est, pour lui')
+                        ->options(LienFamille::class)
+                        ->visible(fn (Get $get): bool => filled($get('responsable_id'))),
+                ]),
+
             Section::make('Affectations dans la Daara')
                 ->columns(2)
                 ->columnSpanFull()
                 ->schema([
                     Select::make('cellule_id')
                         ->label('Cellule')
+                        ->helperText(fn (Get $get): ?string => filled($get('responsable_id')) ? 'Le proche prend la cellule du membre qui gère sa fiche.' : null)
                         ->relationship('cellule', 'nom', modifyQueryUsing: fn ($query) => MembreResource::limiterCellules($query))
                         ->searchable()
                         ->preload()
@@ -127,5 +153,25 @@ class MembreForm
                         ->helperText('Remplie automatiquement à la validation si elle est vide.'),
                 ]),
         ]);
+    }
+
+    /**
+     * Les membres validés qui peuvent gérer la fiche d'un proche, dans les cellules que l'on voit ;
+     * jamais un membre dont la fiche est elle-même gérée par un proche.
+     *
+     * @return array<int, string>
+     */
+    public static function responsablesPossibles(?Membre $record): array
+    {
+        return Membre::query()
+            ->where('statut', StatutMembre::Valide->value)
+            ->whereNull('responsable_id')
+            ->whereNotNull('user_id')
+            ->whereIn('cellule_id', MembreResource::limiterCellules(Cellule::query())->select('cellules.id'))
+            ->when($record !== null, fn ($query) => $query->whereKeyNot($record?->id))
+            ->orderBy('nom')
+            ->get()
+            ->mapWithKeys(fn (Membre $membre): array => [$membre->id => $membre->prenom.' '.$membre->nom.' — '.($membre->matricule ?? $membre->telephone)])
+            ->all();
     }
 }

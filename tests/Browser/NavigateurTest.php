@@ -58,7 +58,7 @@ it('ouvre toutes les pages du membre sans erreur dans la console', function () {
     $this->actingAs($this->compte);
 
     visit([
-        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications',
+        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications', '/ma-famille', '/ma-famille/ajouter',
         '/evenements', '/mon-compte/mot-de-passe', '/mon-compte/suppression',
     ])->assertNoJavascriptErrors();
 });
@@ -140,6 +140,8 @@ it('n\'oblige jamais à faire défiler la page de côté sur un téléphone', fu
     'mon compte' => ['/mon-espace', true],
     'ma carte' => ['/ma-carte', true],
     'mes cotisations' => ['/mes-cotisations', true],
+    'ma famille' => ['/ma-famille', true],
+    'ajouter un proche' => ['/ma-famille/ajouter', true],
 ]);
 
 it('ouvre les écrans du panneau sans erreur dans la console', function () {
@@ -257,5 +259,30 @@ it('ouvre « Modifier la convocation » d\'une réunion convoquée, sans erreur'
         ->click('Modifier la convocation')
         ->assertSee('Envoyer la convocation modifiée')
         ->assertValue('[id="mountedActionSchema0.lieu"]', 'Siège')
+        ->assertNoJavascriptErrors();
+});
+
+it('ouvre « Ma famille », le formulaire d\'un proche, puis la fiche et la carte d\'un enfant, sur le téléphone', function () {
+    $awa = Membre::factory()->valide()->create([
+        'prenom' => 'Awa', 'telephone' => null, 'date_naissance' => now()->subYears(9), 'cellule_id' => $this->membre->cellule_id,
+        'responsable_id' => $this->membre->id, 'lien_famille' => 'enfant', 'valide_le' => now(),
+    ]);
+    app(CarteService::class)->emettre($awa);
+    $this->actingAs($this->compte);
+
+    // Le formulaire se remplit au doigt ; son envoi (avec la photo) est vérifié par les tests Feature.
+    visit('/ma-famille/ajouter')->on()->mobile()
+        ->fill('prenom', 'Ibrahima')
+        ->click('Goor Yalla')
+        ->select('date_naissance_annee', (string) (now()->year - 5))
+        ->select('lien_famille', 'enfant')
+        ->assertSee('À laisser vide pour un enfant de moins de 18 ans.')
+        ->assertNoJavascriptErrors();
+
+    visit('/ma-famille')->on()->mobile()->assertSee('Awa')->assertSee('Son enfant')->assertNoJavascriptErrors();
+    visit('/ma-famille/'.$awa->id)->on()->mobile()->assertSee('Sa carte')->assertSee('Ses cotisations')->assertNoJavascriptErrors();
+    visit('/ma-famille/'.$awa->id.'/carte')->on()->mobile()
+        ->assertSee('Carte de Awa')
+        ->assertSee('Contact (famille)')
         ->assertNoJavascriptErrors();
 });

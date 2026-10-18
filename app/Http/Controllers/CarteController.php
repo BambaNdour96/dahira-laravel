@@ -16,20 +16,22 @@ use Illuminate\View\View;
 
 class CarteController extends Controller
 {
-    public function show(Request $request, CarteService $cartes): View
+    /** Sa carte, ou celle d'un proche dont il gère la fiche (« Ma famille »). */
+    public function show(Request $request, CarteService $cartes, ?Membre $proche = null): View
     {
-        $membre = $this->membreAvecCarte($request);
+        $membre = $this->membreAvecCarte($request, $proche);
 
         return view('espace.carte', [
             'membre' => $membre,
+            'proche' => $proche,
             'qr' => $cartes->qrSvg($membre->carteActive ?? abort(404)),
         ]);
     }
 
     /** La carte en PDF, à sa taille réelle, pour l'imprimer ou la garder. */
-    public function pdf(Request $request): Response
+    public function pdf(Request $request, ?Membre $proche = null): Response
     {
-        $membre = $this->membreAvecCarte($request);
+        $membre = $this->membreAvecCarte($request, $proche);
         $carte = $membre->carteActive;
         abort_if($carte === null, 404);
 
@@ -53,12 +55,17 @@ class CarteController extends Controller
         ]);
     }
 
-    private function membreAvecCarte(Request $request): Membre
+    private function membreAvecCarte(Request $request, ?Membre $proche): Membre
     {
         $user = $request->user();
-        $membre = $user instanceof User
+
+        if ($proche !== null && $user instanceof User) {
+            FamilleController::verifier($user, $proche);
+        }
+
+        $membre = $proche?->load(['cellule', 'carteActive', 'responsable']) ?? ($user instanceof User
             ? $user->membre()->with(['cellule', 'carteActive'])->first()
-            : null;
+            : null);
 
         abort_unless(
             $membre !== null && $membre->statut === StatutMembre::Valide && $membre->carteActive !== null,
