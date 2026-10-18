@@ -23,6 +23,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -152,6 +153,13 @@ class ReunionResource extends Resource
             ? ComiteService::choixMembres($instance)
             : [];
 
+        // Dès la convocation, la date, le lieu, l'ordre du jour et le secrétaire ne changent plus ici : l'organisateur
+        // les modifie par « Modifier la convocation », qui prévient les membres. Le secrétaire garde le compte rendu.
+        $convoquee = fn ($livewire): bool => $livewire instanceof EditRecord
+            && ($reunion = $livewire->getRecord()) instanceof Reunion
+            && $reunion->convoquee_le !== null;
+        $modifiable = fn ($livewire): bool => ! $convoquee($livewire);
+
         return $schema->components([
             Section::make('La réunion')
                 ->columns(2)
@@ -164,9 +172,9 @@ class ReunionResource extends Resource
                         ->live()
                         ->disabledOn('edit'),
                     TextInput::make('titre')->label('Titre')->required()->maxLength(150)->placeholder('Réunion de préparation n° 3'),
-                    DateTimePicker::make('debut')->label('Date et heure')->required()->native(false)->seconds(false),
-                    TextInput::make('lieu')->label('Lieu')->required()->maxLength(150),
-                    TextInput::make('lien')->label('Lien de visioconférence (facultatif)')->url()->maxLength(255),
+                    DateTimePicker::make('debut')->label('Date et heure')->required()->native(false)->seconds(false)->disabled($convoquee),
+                    TextInput::make('lieu')->label('Lieu')->required()->maxLength(150)->disabled($convoquee),
+                    TextInput::make('lien')->label('Lien de visioconférence (facultatif)')->url()->maxLength(255)->disabled($convoquee),
                     Select::make('secretaire_id')
                         ->label('Secrétaire de séance')
                         ->helperText('Un membre du Comité directeur ; pour une commission permanente, un membre de la commission. Dès la convocation, lui seul rédige et publie le PV.')
@@ -174,7 +182,8 @@ class ReunionResource extends Resource
                             ? ComiteService::secretairesPossibles($instance)
                             : ComiteService::choixMembres(Instance::comiteDirecteur()))
                         ->searchable()
-                        ->required(),
+                        ->required()
+                        ->disabled($convoquee),
                 ]),
             Section::make('Ordre du jour et compte rendu')
                 ->description('Fixez les points avant la réunion ; complétez le résumé de chaque point pendant ou après.')
@@ -184,8 +193,11 @@ class ReunionResource extends Resource
                         ->label('')
                         ->orderColumn('ordre')
                         ->addActionLabel('Ajouter un point')
+                        ->addable($modifiable)
+                        ->deletable($modifiable)
+                        ->reorderable($modifiable)
                         ->schema([
-                            TextInput::make('titre')->label('Point')->required()->maxLength(200),
+                            TextInput::make('titre')->label('Point')->required()->maxLength(200)->disabled($convoquee),
                             Textarea::make('resume')->label('Résumé des échanges')->rows(3),
                         ]),
                 ]),

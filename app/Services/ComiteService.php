@@ -9,6 +9,7 @@ use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\JournalActivite;
 use App\Models\Membre;
+use App\Models\PointOrdreDuJour;
 use App\Models\PresenceReunion;
 use App\Models\Reunion;
 use App\Models\User;
@@ -74,6 +75,19 @@ final class ComiteService
         }
 
         return $estSecretaire || $utilisateur->can('plateforme.administrer');
+    }
+
+    /**
+     * Modifier une réunion déjà convoquée (date, lieu, lien, ordre du jour) : l'organisateur, jusqu'au début
+     * de la réunion. Les présences, la rédaction et le PV restent au seul secrétaire de séance.
+     */
+    public static function peutModifierConvocation(User $utilisateur, Reunion $reunion): bool
+    {
+        return $reunion->convoquee_le !== null
+            && ! $reunion->estPubliee()
+            && ! $reunion->estAnnule()
+            && $reunion->debut->isFuture()
+            && self::peutOrganiser($utilisateur, $reunion->instance);
     }
 
     /**
@@ -248,11 +262,114 @@ final class ComiteService
         return $message;
     }
 
-    public function messageConvocation(Reunion $reunion): string
+    /**
+     * L'organisateur modifie la date, le lieu ou l'ordre du jour d'une réunion convoquée, jusqu'à son début.
+     * Chaque modification envoie une « convocation modifiée » aux membres ; renvoie le message pour le groupe WhatsApp.
+     *
+     * @param  array{debut: string, lieu: string, lien?: string|null, points: list<array{id?: int|null, titre: string}>}  $donnees
+     */
+    public function modifierConvocation(Reunion $reunion, array $donnees, User $auteur): string
+    {
+        if (! self::peutModifierConvocation($auteur, $reunion)) {
+            throw new DomainException('Seul l\'organisateur modifie une réunion convoquée, et seulement avant son début.');
+        }
+
+        $debut = Carbon::parse($donnees['debut']);
+
+        if (! $debut->isFuture()) {
+            throw new DomainException('La nouvelle date doit être à venir.');
+        }
+
+        $titres = array_values(array_filter(array_map(fn (array $point): string => trim($point['titre']), $donnees['points']), fn (string $titre): bool => $titre !== ''));
+
+        if ($titres === []) {
+            throw new DomainException('L\'ordre du jour compte au moins un point.');
+        }
+
+        $lien = trim((string) ($donnees['lien'] ?? '')) ?: null;
+        $ordreAvant = $reunion->points->pluck('titre')->all();
+        $changements = [];
+
+        if (! $debut->equalTo($reunion->debut)) {
+            $changements[] = 'nouvelle date : '.$debut->translatedFormat('l j F à H\hi');
+        }
+
+        if (trim($donnees['lieu']) !== $reunion->lieu || $lien !== $reunion->lien) {
+            $changements[] = 'nouveau lieu : '.trim($donnees['lieu']).($lien !== null ? ' — '.$lien : '');
+        }
+
+        if ($titres !== $ordreAvant) {
+            $changements[] = 'ordre du jour modifié';
+        }
+
+        if ($changements === []) {
+            throw new DomainException('Rien n\'a changé : la convocation n\'est pas renvoyée.');
+        }
+
+        DB::transaction(function () use ($reunion, $donnees, $debut, $lien, $titres, $ordreAvant): void {
+            $reunion->update(['debut' => $debut, 'lieu' => trim($donnees['lieu']), 'lien' => $lien]);
+            $this->remplacerOrdreDuJour($reunion, $donnees['points']);
+
+            if ($titres !== $ordreAvant) {
+                JournalActivite::enregistrer($reunion, 'modifie', [
+                    'avant' => ['ordre_du_jour' => implode(' ; ', $ordreAvant)],
+                    'apres' => ['ordre_du_jour' => implode(' ; ', $titres)],
+                ]);
+            }
+        });
+
+        $reunion->refresh();
+
+        foreach ($this->comptesDesMembres($reunion->instance) as $compte) {
+            $compte->notify(new NotificationMembre(
+                'Convocation modifiée : '.$reunion->instance->nom,
+                $reunion->titre.' — '.ucfirst(implode(', ', $changements)).'.',
+                route('comites.index'),
+                'Voir l\'ordre du jour',
+            ));
+        }
+
+        return $this->messageConvocation($reunion, modifiee: true);
+    }
+
+    /**
+     * Met l'ordre du jour à jour : les points gardés le restent (avec leur résumé), les nouveaux s'ajoutent.
+     * Un point retiré disparaît, sauf s'il a déjà un résumé : on ne perd jamais un compte rendu.
+     *
+     * @param  list<array{id?: int|null, titre: string}>  $points
+     */
+    private function remplacerOrdreDuJour(Reunion $reunion, array $points): void
+    {
+        $gardes = [];
+        $ordre = 0;
+
+        foreach ($points as $point) {
+            $titre = trim($point['titre']);
+
+            if ($titre === '') {
+                continue;
+            }
+
+            $existant = isset($point['id']) ? $reunion->points()->whereKey($point['id'])->first() : null;
+            $existant ??= new PointOrdreDuJour(['reunion_id' => $reunion->id]);
+            $existant->fill(['titre' => $titre, 'ordre' => ++$ordre])->save();
+            $gardes[] = $existant->id;
+        }
+
+        $retires = $reunion->points()->whereNotIn('id', $gardes);
+
+        if ((clone $retires)->whereNotNull('resume')->where('resume', '!=', '')->exists()) {
+            throw new DomainException('Un point retiré a déjà un résumé : gardez-le à l\'ordre du jour.');
+        }
+
+        $retires->delete();
+    }
+
+    public function messageConvocation(Reunion $reunion, bool $modifiee = false): string
     {
         $lignes = [
             '*'.$reunion->instance->nom.'*',
-            'Convocation : '.$reunion->titre,
+            ($modifiee ? '⚠️ Convocation modifiée : ' : 'Convocation : ').$reunion->titre,
             '📅 '.$reunion->debut->translatedFormat('l j F Y à H\hi'),
             '📍 '.$reunion->lieu.($reunion->lien ? ' — '.$reunion->lien : ''),
             '',

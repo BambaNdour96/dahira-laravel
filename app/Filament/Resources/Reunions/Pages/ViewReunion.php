@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Reunions\Pages;
 
 use App\Filament\Resources\Reunions\ReunionResource;
+use App\Models\PointOrdreDuJour;
 use App\Models\Reunion;
 use App\Models\User;
 use App\Services\ComiteService;
@@ -10,7 +11,11 @@ use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Auth;
@@ -56,6 +61,61 @@ class ViewReunion extends ViewRecord
                 ->action(function (Reunion $record): void {
                     app(ComiteService::class)->convoquer($record);
                     Notification::make()->title('Convocation envoyée aux membres du comité.')->success()->send();
+                }),
+            Action::make('modifierConvocation')
+                ->label('Modifier la convocation')
+                ->icon('heroicon-o-pencil-square')
+                ->color('gray')
+                ->visible(fn (Reunion $record): bool => ($utilisateur = self::utilisateur()) !== null && ComiteService::peutModifierConvocation($utilisateur, $record))
+                ->modalHeading('Modifier la convocation')
+                ->modalDescription('Jusqu\'au début de la réunion. Chaque membre du comité reçoit une « convocation modifiée ». Les présences, le compte rendu et le PV restent au secrétaire de séance.')
+                ->fillForm(fn (Reunion $record): array => [
+                    'debut' => $record->debut,
+                    'lieu' => $record->lieu,
+                    'lien' => $record->lien,
+                    'points' => $record->points->map(fn (PointOrdreDuJour $point): array => ['id' => $point->id, 'titre' => $point->titre])->all(),
+                ])
+                ->schema([
+                    DateTimePicker::make('debut')->label('Date et heure')->required()->native(false)->seconds(false)->after('now'),
+                    TextInput::make('lieu')->label('Lieu')->required()->maxLength(150),
+                    TextInput::make('lien')->label('Lien de visioconférence (facultatif)')->url()->maxLength(255),
+                    Repeater::make('points')
+                        ->label('Ordre du jour')
+                        ->addActionLabel('Ajouter un point')
+                        ->minItems(1)
+                        ->schema([
+                            Hidden::make('id'),
+                            TextInput::make('titre')->label('Point')->required()->maxLength(200),
+                        ]),
+                ])
+                ->modalSubmitActionLabel('Envoyer la convocation modifiée')
+                ->action(function (Reunion $record, array $data): void {
+                    $auteur = self::utilisateur();
+                    abort_unless($auteur !== null, 403);
+
+                    try {
+                        $message = app(ComiteService::class)->modifierConvocation($record, [
+                            'debut' => (string) $data['debut'],
+                            'lieu' => (string) $data['lieu'],
+                            'lien' => isset($data['lien']) ? (string) $data['lien'] : null,
+                            'points' => array_values(array_map(
+                                fn (array $point): array => ['id' => isset($point['id']) && $point['id'] !== '' ? (int) $point['id'] : null, 'titre' => (string) $point['titre']],
+                                (array) $data['points'],
+                            )),
+                        ], $auteur);
+                    } catch (DomainException $e) {
+                        Notification::make()->title($e->getMessage())->danger()->send();
+
+                        return;
+                    }
+
+                    Notification::make()
+                        ->title('Convocation modifiée envoyée aux membres du comité.')
+                        ->body('Prévenez aussi le groupe WhatsApp du comité.')
+                        ->actions([Action::make('whatsapp')->label('Partager sur WhatsApp')->url('https://wa.me/?text='.rawurlencode($message), true)])
+                        ->persistent()
+                        ->success()
+                        ->send();
                 }),
             Action::make('presences')
                 ->label('Présences')

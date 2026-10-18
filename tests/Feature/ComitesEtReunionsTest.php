@@ -5,6 +5,7 @@ use App\Filament\Resources\Instances\Pages\CreateInstance;
 use App\Filament\Resources\Instances\Pages\ViewInstance;
 use App\Filament\Resources\Instances\Widgets\MembresInstance;
 use App\Filament\Resources\Reunions\Pages\CreateReunion;
+use App\Filament\Resources\Reunions\Pages\EditReunion;
 use App\Filament\Resources\Reunions\Pages\ViewReunion;
 use App\Models\ActionComite;
 use App\Models\CommissionComite;
@@ -187,4 +188,91 @@ it('note dans le PV si une décision est prise à l\'unanimité ou tranchée par
         ->and(Decision::query()->create(['reunion_id' => $reunion->id, 'texte' => 'Date du Magal'])->libelleIssue())->toBe('Unanimité');
 
     $this->actingAs($this->super)->get(route('reunions.pv', $reunion))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+});
+
+describe('la convocation modifiée', function () {
+    beforeEach(function () {
+        $this->cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->ousmane->id]);
+        $this->cdgmt->membres()->sync([$this->ousmane->id, $this->modou->id, $this->fatou->id]);
+        $this->reunion = Reunion::query()->create([
+            'instance_id' => $this->cdgmt->id, 'titre' => 'Réunion n° 2', 'debut' => now()->addDays(3)->setTime(20, 0),
+            'lieu' => 'Kaolack', 'secretaire_id' => $this->modou->id,
+        ]);
+        $this->reunion->points()->createMany([['titre' => 'Budget', 'ordre' => 1], ['titre' => 'Transport', 'ordre' => 2]]);
+        $this->service->convoquer($this->reunion);
+        $this->president = User::query()->findOrFail($this->ousmane->user_id);
+        $this->secretaire = User::query()->findOrFail($this->modou->user_id);
+    });
+
+    it('laisse l\'organisateur changer la date, le lieu et l\'ordre du jour, et prévient chaque membre', function () {
+        Notification::fake();
+        $budget = $this->reunion->points()->where('titre', 'Budget')->firstOrFail();
+
+        $this->actingAs($this->president);
+        Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])
+            ->assertActionVisible('modifierConvocation')
+            ->callAction('modifierConvocation', [
+                'debut' => now()->addDays(4)->format('Y-m-d 21:00:00'),
+                'lieu' => 'Siège de la Daara',
+                'lien' => '',
+                'points' => [['id' => $budget->id, 'titre' => 'Budget du Magal'], ['id' => null, 'titre' => 'Cuisine']],
+            ])
+            ->assertHasNoActionErrors();
+
+        $reunion = $this->reunion->fresh();
+        expect($reunion->lieu)->toBe('Siège de la Daara')
+            ->and($reunion->debut->format('H:i'))->toBe('21:00')
+            ->and($reunion->points()->pluck('titre')->all())->toBe(['Budget du Magal', 'Cuisine'])
+            ->and($reunion->points()->where('titre', 'Budget du Magal')->value('id'))->toBe($budget->id);
+
+        foreach ([$this->fatou, $this->modou] as $membre) {
+            Notification::assertSentTo(
+                User::query()->findOrFail($membre->user_id),
+                NotificationMembre::class,
+                fn (NotificationMembre $notification): bool => str_starts_with($notification->toArray($membre->user)['titre'] ?? '', 'Convocation modifiée')
+                    && str_contains($notification->toArray($membre->user)['message'] ?? '', 'Siège de la Daara'),
+            );
+        }
+
+        expect($this->service->messageConvocation($reunion, modifiee: true))->toContain('Convocation modifiée')->toContain('Cuisine');
+    });
+
+    it('réserve au secrétaire de séance les présences et le PV, et fige la convocation dans son formulaire', function () {
+        $this->actingAs($this->secretaire);
+        Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])
+            ->assertActionHidden('modifierConvocation')
+            ->assertActionVisible('presences')
+            ->assertActionVisible('publier');
+        Livewire::test(EditReunion::class, ['record' => $this->reunion->getRouteKey()])
+            ->assertFormFieldDisabled('debut')
+            ->assertFormFieldDisabled('lieu')
+            ->assertFormFieldDisabled('secretaire_id');
+
+        $this->actingAs($this->president);
+        Livewire::test(ViewReunion::class, ['record' => $this->reunion->getRouteKey()])
+            ->assertActionHidden('presences')
+            ->assertActionHidden('publier');
+
+        expect(fn () => $this->service->modifierConvocation($this->reunion, ['debut' => now()->addDays(5)->toDateTimeString(), 'lieu' => 'Ailleurs', 'points' => [['titre' => 'Budget']]], $this->secretaire))
+            ->toThrow(DomainException::class, 'Seul l\'organisateur');
+    });
+
+    it('n\'envoie rien si rien ne change, ne perd pas un résumé, et s\'arrête au début de la réunion', function () {
+        Notification::fake();
+        $donnees = fn (array $points): array => ['debut' => $this->reunion->debut->toDateTimeString(), 'lieu' => 'Kaolack', 'points' => $points];
+        $points = $this->reunion->points->map(fn ($point): array => ['id' => $point->id, 'titre' => $point->titre])->all();
+
+        expect(fn () => $this->service->modifierConvocation($this->reunion, $donnees($points), $this->president))->toThrow(DomainException::class, 'Rien n\'a changé');
+
+        $this->reunion->points()->where('titre', 'Transport')->update(['resume' => 'Deux cars retenus.']);
+        expect(fn () => $this->service->modifierConvocation($this->reunion->fresh(), $donnees([$points[0]]), $this->president))->toThrow(DomainException::class, 'déjà un résumé')
+            ->and($this->reunion->points()->count())->toBe(2);
+
+        expect(fn () => $this->service->modifierConvocation($this->reunion, [...$donnees($points), 'debut' => now()->subHour()->toDateTimeString()], $this->president))
+            ->toThrow(DomainException::class, 'à venir');
+
+        $this->travelTo($this->reunion->debut->copy()->addMinute());
+        expect(ComiteService::peutModifierConvocation($this->president, $this->reunion->fresh()))->toBeFalse();
+        Notification::assertNothingSent();
+    });
 });

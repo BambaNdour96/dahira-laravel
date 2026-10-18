@@ -2,11 +2,14 @@
 
 use App\Models\Cellule;
 use App\Models\Commission;
+use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\Parametre;
+use App\Models\Reunion;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
+use App\Services\ComiteService;
 use App\Services\CommissionService;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
@@ -239,4 +242,20 @@ it('grise « Continuer » et affiche les règles du mot de passe à l\'inscripti
         ->and($page->script('document.querySelector("[data-regles-mdp]") !== null'))->toBeTrue();
 
     $page->assertNoJavascriptErrors();
+});
+
+it('ouvre « Modifier la convocation » d\'une réunion convoquée, sans erreur', function () {
+    $reunion = Reunion::query()->create([
+        'instance_id' => Instance::comiteDirecteur()->id, 'titre' => 'Réunion du bureau', 'debut' => now()->addDays(2),
+        'lieu' => 'Siège', 'secretaire_id' => $this->membre->id,
+    ]);
+    $reunion->points()->create(['titre' => 'Préparation du Magal', 'ordre' => 1]);
+    app(ComiteService::class)->convoquer($reunion);
+    $this->actingAs($this->super);
+
+    visit('/admin/reunions/'.$reunion->id)
+        ->click('Modifier la convocation')
+        ->assertSee('Envoyer la convocation modifiée')
+        ->assertValue('[id="mountedActionSchema0.lieu"]', 'Siège')
+        ->assertNoJavascriptErrors();
 });

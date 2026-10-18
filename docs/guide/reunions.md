@@ -19,7 +19,14 @@ Une seule personne : elle anime la réunion, enregistre les présences, rédige,
 - Pour une **commission permanente**, c'est un **membre de la commission**.
 
 **Avant la convocation**, l'organisateur prépare la réunion : titre, date, lieu, ordre du jour, secrétaire de séance.
-**Dès la convocation**, seul le secrétaire de séance rédige et publie ; le super administrateur reste le secours.
+**Dès la convocation**, seul le secrétaire de séance enregistre les présences, rédige et publie ; le super
+administrateur reste le secours.
+
+**Jusqu'au début de la réunion**, l'organisateur peut encore changer la **date**, le **lieu** (ou le lien de
+visioconférence) et l'**ordre du jour** : bouton « Modifier la convocation » sur la page de la réunion. Chaque
+modification envoie une **convocation modifiée** à tous les membres du comité, qui indique ce qui a changé, et propose
+de la partager sur le groupe WhatsApp. Un point qui a déjà un résumé ne peut plus être retiré. Dans le formulaire du
+secrétaire, ces champs sont alors figés : il ne complète que les résumés, les décisions, les actions et les divers.
 Une fois publié, le PV est figé et les membres du comité en sont prévenus.
 
 ## Les décisions
