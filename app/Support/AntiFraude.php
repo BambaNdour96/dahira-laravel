@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Membre;
+use App\Models\Paiement;
 use App\Models\RegleValidation;
 use App\Models\RepresentantFinance;
 use App\Models\User;
@@ -29,6 +30,21 @@ final class AntiFraude
         if ($tresorier !== null && $membre->responsable !== null && $membre->responsable->user_id === $tresorier->id) {
             throw new DomainException('Vous gérez la fiche de ce proche : son paiement est validé par un autre membre du bureau.');
         }
+    }
+
+    /**
+     * La règle complète, pour une déclaration : en plus, personne ne valide un paiement qu'il a lui-même déclaré pour
+     * un autre membre (un proche, son épouse…).
+     */
+    public static function verifierPaiement(Paiement $paiement, ?User $validateur): void
+    {
+        self::verifierPasSoiMeme($paiement->membre, $validateur);
+
+        if ($validateur !== null && $paiement->declare_par === $validateur->id) {
+            throw new DomainException('Vous avez déclaré ce paiement pour un autre membre : il est validé par un autre membre du bureau.');
+        }
+
+        self::verifierValidateur($paiement->membre, $validateur);
     }
 
     /**

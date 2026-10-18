@@ -42,7 +42,7 @@ class PaiementPolicy
         }
 
         try {
-            AntiFraude::verifierValidateur($paiement->membre, $user);
+            AntiFraude::verifierPaiement($paiement, $user);
         } catch (DomainException) {
             return false;
         }

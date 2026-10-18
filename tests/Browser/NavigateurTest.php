@@ -58,7 +58,7 @@ it('ouvre toutes les pages du membre sans erreur dans la console', function () {
     $this->actingAs($this->compte);
 
     visit([
-        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications', '/ma-famille', '/ma-famille/ajouter',
+        '/mon-espace', '/ma-carte', '/mes-cotisations', '/mes-recus', '/mes-notifications', '/ma-famille', '/ma-famille/ajouter', '/payer-pour-un-membre',
         '/evenements', '/mon-compte/mot-de-passe', '/mon-compte/suppression',
     ])->assertNoJavascriptErrors();
 });
@@ -142,6 +142,7 @@ it('n\'oblige jamais à faire défiler la page de côté sur un téléphone', fu
     'mes cotisations' => ['/mes-cotisations', true],
     'ma famille' => ['/ma-famille', true],
     'ajouter un proche' => ['/ma-famille/ajouter', true],
+    'payer pour un membre' => ['/payer-pour-un-membre', true],
 ]);
 
 it('ouvre les écrans du panneau sans erreur dans la console', function () {
@@ -280,9 +281,24 @@ it('ouvre « Ma famille », le formulaire d\'un proche, puis la fiche et la cart
         ->assertNoJavascriptErrors();
 
     visit('/ma-famille')->on()->mobile()->assertSee('Awa')->assertSee('Son enfant')->assertNoJavascriptErrors();
-    visit('/ma-famille/'.$awa->id)->on()->mobile()->assertSee('Sa carte')->assertSee('Ses cotisations')->assertNoJavascriptErrors();
+    visit('/ma-famille/'.$awa->id)->on()->mobile()->assertSee('Sa carte')->assertSee('Ses cotisations')->assertSee('Ses Sass et Jàyante')->assertNoJavascriptErrors();
+    visit('/ma-famille/'.$awa->id.'/engagements')->on()->mobile()->assertSee('Sass et Jàyante de Awa')->assertNoJavascriptErrors();
     visit('/ma-famille/'.$awa->id.'/carte')->on()->mobile()
         ->assertSee('Carte de Awa')
         ->assertSee('Contact (famille)')
+        ->assertNoJavascriptErrors();
+});
+
+it('retrouve un membre à payer par son téléphone, sur le téléphone', function () {
+    $compte = User::factory()->create();
+    $compte->assignRole('membre');
+    $epouse = Membre::factory()->for($compte)->valide()->create(['prenom' => 'Aïssatou', 'telephone' => '+221775550000', 'valide_le' => now()]);
+    $this->actingAs($this->compte);
+
+    visit('/payer-pour-un-membre')->on()->mobile()
+        ->fill('recherche', '77 555 00 00')
+        ->press('Chercher')
+        ->assertSee('Aïssatou')
+        ->assertSee('J\'ai payé sa cotisation')
         ->assertNoJavascriptErrors();
 });

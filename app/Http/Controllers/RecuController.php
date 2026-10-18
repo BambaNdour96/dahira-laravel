@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\Gate;
 
 class RecuController extends Controller
 {
-    /** Le membre télécharge ses reçus et ceux des proches dont il gère la fiche ; le bureau peut télécharger tous les reçus. */
+    /** Le membre télécharge ses reçus, ceux des proches dont il gère la fiche et ceux des paiements qu'il a faits pour d'autres ; le bureau peut télécharger tous les reçus. */
     public function show(Request $request, Paiement $paiement): Response
     {
         $utilisateur = $request->user();
         $proprietaire = $utilisateur instanceof User
-            && ($paiement->membre->user_id === $utilisateur->id || MembrePolicy::gereLaFiche($utilisateur, $paiement->membre));
+            && ($paiement->membre->user_id === $utilisateur->id || $paiement->declare_par === $utilisateur->id || MembrePolicy::gereLaFiche($utilisateur, $paiement->membre));
 
         abort_unless($proprietaire || Gate::allows('view', $paiement), 403);
         abort_if($paiement->statut !== StatutPaiement::Confirme || $paiement->numero_recu === null, 404);

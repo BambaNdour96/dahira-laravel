@@ -18,9 +18,10 @@ use Illuminate\View\View;
  */
 class EngagementController extends Controller
 {
-    public function index(Request $request, CollecteService $service): View
+    /** Ses engagements, ou ceux d'un proche dont il gère la fiche (« Ma famille »). */
+    public function index(Request $request, CollecteService $service, ?Membre $proche = null): View
     {
-        $membre = $this->membre($request);
+        $membre = $this->membre($request, $proche);
 
         $fiches = $service->ouvertesPour($membre)->map(function (Collecte $collecte) use ($service, $membre): array {
             $engagement = $service->engagementDe($collecte, $membre);
@@ -46,12 +47,12 @@ class EngagementController extends Controller
             ];
         });
 
-        return view('espace.engagements', ['membre' => $membre, 'fiches' => $fiches]);
+        return view('espace.engagements', ['membre' => $membre, 'proche' => $proche, 'fiches' => $fiches]);
     }
 
-    public function fixer(Request $request, Collecte $collecte, CollecteService $service): RedirectResponse
+    public function fixer(Request $request, Collecte $collecte, CollecteService $service, ?Membre $proche = null): RedirectResponse
     {
-        $membre = $this->membre($request);
+        $membre = $this->membre($request, $proche);
 
         $request->validate([
             'montant' => ['required', 'integer', 'min:1', 'max:100000000'],
@@ -66,13 +67,13 @@ class EngagementController extends Controller
             return back()->withInput()->withErrors(['montant' => $e->getMessage()]);
         }
 
-        return redirect()->route('engagements.index')
-            ->with('succes', 'Votre Jàyante pour « '.$collecte->titre.' » est enregistré. Qu\'Allah l\'accepte.');
+        return redirect()->to($this->retour($proche))
+            ->with('succes', ($proche !== null ? 'Le Jàyante de '.$proche->prenom : 'Votre Jàyante').' pour « '.$collecte->titre.' » est enregistré. Qu\'Allah l\'accepte.');
     }
 
-    public function declarer(Request $request, Collecte $collecte, CollecteService $service): RedirectResponse
+    public function declarer(Request $request, Collecte $collecte, CollecteService $service, ?Membre $proche = null): RedirectResponse
     {
-        $membre = $this->membre($request);
+        $membre = $this->membre($request, $proche);
 
         $request->validate([
             'montant' => ['required', 'integer', 'min:1', 'max:100000000'],
@@ -83,19 +84,42 @@ class EngagementController extends Controller
         [$reference, $numeroWave] = PaiementMembreController::valider($request);
 
         try {
-            $service->declarer($collecte, $membre, (int) $request->input('montant'), $reference, $numeroWave);
+            $declarant = $request->user();
+            $service->declarer($collecte, $membre, (int) $request->input('montant'), $reference, $numeroWave, $declarant instanceof User ? $declarant : null);
         } catch (DomainException $e) {
             return back()->withInput()->withErrors(['montant' => $e->getMessage()]);
         }
 
-        return redirect()->route('engagements.index')
+        return redirect()->to($this->retour($proche))
             ->with('succes', 'Merci ! Votre versement de '.CollecteService::fcfa((int) $request->input('montant')).' est en cours de vérification par le Jewrine finance. Votre jauge avancera dès sa confirmation.');
     }
 
-    private function membre(Request $request): Membre
+    /** Le parent fixe le Jàyante d'un proche dont il gère la fiche (« Ma famille »). */
+    public function fixerPourProche(Request $request, Membre $proche, Collecte $collecte, CollecteService $service): RedirectResponse
+    {
+        return $this->fixer($request, $collecte, $service, $proche);
+    }
+
+    /** Le parent déclare un versement pour un proche dont il gère la fiche. */
+    public function declarerPourProche(Request $request, Membre $proche, Collecte $collecte, CollecteService $service): RedirectResponse
+    {
+        return $this->declarer($request, $collecte, $service, $proche);
+    }
+
+    private function retour(?Membre $proche): string
+    {
+        return $proche !== null ? route('famille.engagements', $proche) : route('engagements.index');
+    }
+
+    private function membre(Request $request, ?Membre $proche): Membre
     {
         $user = $request->user();
-        $membre = $user instanceof User ? $user->membre : null;
+
+        if ($proche !== null && $user instanceof User) {
+            FamilleController::verifier($user, $proche);
+        }
+
+        $membre = $proche ?? ($user instanceof User ? $user->membre : null);
 
         abort_unless($membre !== null && $membre->statut === StatutMembre::Valide, 404);
 

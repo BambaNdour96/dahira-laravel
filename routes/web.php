@@ -26,6 +26,7 @@ use App\Http\Controllers\MesRecusController;
 use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
 use App\Http\Controllers\PaiementMembreController;
+use App\Http\Controllers\PaiementPourAutruiController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PointageController;
 use App\Http\Controllers\PresenceController;
@@ -106,6 +107,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/compte', [FamilleController::class, 'compte'])->name('famille.compte');
     Route::get('/ma-famille/{proche}/carte', [CarteController::class, 'show'])->name('famille.carte');
     Route::get('/ma-famille/{proche}/carte/pdf', [CarteController::class, 'pdf'])->name('famille.carte.pdf');
+    Route::get('/ma-famille/{proche}/engagements', [EngagementController::class, 'index'])->name('famille.engagements');
+    Route::post('/ma-famille/{proche}/engagements/{collecte}', [EngagementController::class, 'fixerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.fixer');
+    Route::post('/ma-famille/{proche}/engagements/{collecte}/versement', [EngagementController::class, 'declarerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.versement');
+    Route::get('/payer-pour-un-membre', [PaiementPourAutruiController::class, 'show'])->name('autrui.show');
+    Route::post('/payer-pour-un-membre/{beneficiaire}/cotisation', [PaiementPourAutruiController::class, 'cotisation'])->middleware('throttle:inscription')->name('autrui.cotisation');
+    Route::post('/payer-pour-un-membre/{beneficiaire}/collectes/{collecte}', [PaiementPourAutruiController::class, 'versement'])->middleware('throttle:inscription')->name('autrui.versement');
     Route::get('/ma-famille/{proche}/cotisations', [CotisationController::class, 'show'])->name('famille.cotisations');
     Route::post('/ma-famille/{proche}/cotisations', [CotisationController::class, 'declarer'])->middleware('throttle:inscription')->name('famille.cotisations.declarer');
 

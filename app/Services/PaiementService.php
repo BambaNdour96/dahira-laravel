@@ -80,7 +80,7 @@ final class PaiementService
             throw new DomainException('Ce paiement a déjà été traité.');
         }
 
-        AntiFraude::verifierValidateur($paiement->membre, $tresorier);
+        AntiFraude::verifierPaiement($paiement, $tresorier);
 
         DB::transaction(function () use ($paiement, $tresorier): void {
             $paiement->update([
@@ -118,7 +118,7 @@ final class PaiementService
             throw new DomainException('Ce paiement a déjà été traité.');
         }
 
-        AntiFraude::verifierValidateur($paiement->membre, $tresorier);
+        AntiFraude::verifierPaiement($paiement, $tresorier);
 
         $paiement->update([
             'statut' => StatutPaiement::Refuse,

@@ -150,13 +150,17 @@ final class CollecteService
         return $engagement;
     }
 
-    /** Versement Wave déclaré par le membre, à confirmer par le Jewrine finance. */
-    public function declarer(Collecte $collecte, Membre $membre, int $montant, string $reference, ?string $numeroWave = null): Paiement
+    /**
+     * Versement Wave déclaré par le membre, à confirmer par le Jewrine finance. Le déclarant peut être le membre qui
+     * gère sa fiche, ou un autre membre qui paie pour lui : celui-ci ne voit jamais les montants du bénéficiaire.
+     */
+    public function declarer(Collecte $collecte, Membre $membre, int $montant, string $reference, ?string $numeroWave = null, ?User $declarant = null): Paiement
     {
         $engagement = $this->engagementDe($collecte, $membre);
+        $pourUnAutre = PaiementPourAutrui::estUnTiers($declarant, $membre);
 
         if ($engagement === null) {
-            throw new DomainException('Fixez d\'abord votre Jàyante.');
+            throw new DomainException($pourUnAutre ? 'Ce membre n\'a pas encore fixé son Jàyante pour cette collecte.' : 'Fixez d\'abord votre Jàyante.');
         }
 
         if (! $collecte->estOuverte()) {
@@ -170,12 +174,12 @@ final class CollecteService
         // On peut verser petit à petit, mais jamais plus que ce qui reste (versements en vérification compris).
         $disponible = $engagement->reste() - $this->enVerification($collecte, $membre);
 
-        if ($disponible <= 0) {
-            throw new DomainException('Vos versements en vérification couvrent déjà tout votre '.$engagement->nature().'.');
-        }
-
-        if ($montant > $disponible) {
-            throw new DomainException('Ce montant dépasse ce qu\'il vous reste à verser : '.self::fcfa($disponible).'.');
+        if ($disponible <= 0 || $montant > $disponible) {
+            throw new DomainException(match (true) {
+                $pourUnAutre => 'Ce montant dépasse ce qu\'il reste à verser à ce membre. Demandez-lui le montant exact.',
+                $disponible <= 0 => 'Vos versements en vérification couvrent déjà tout votre '.$engagement->nature().'.',
+                default => 'Ce montant dépasse ce qu\'il vous reste à verser : '.self::fcfa($disponible).'.',
+            });
         }
 
         $paiement = $membre->paiements()->create([
@@ -188,6 +192,7 @@ final class CollecteService
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,
             'declare_le' => now(),
+            'declare_par' => $declarant->id ?? $membre->user_id,
         ]);
 
         RepresentantFinanceService::prevenir($paiement);

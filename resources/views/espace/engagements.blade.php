@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
-@section('titre', 'Mes Sass et Jàyante')
+@section('titre', $proche ? 'Sass et Jàyante de '.$proche->prenom : 'Mes Sass et Jàyante')
 
 @section('contenu')
     @php $fcfa = fn (int $montant): string => number_format($montant, 0, ',', ' ').' FCFA'; @endphp
 
-    <h1 class="text-2xl font-semibold text-emerald-900">Mes Sass et Jàyante</h1>
-    <p class="mt-1 text-sm text-stone-600">Vos participations aux programmes et collectes de la Daara.</p>
+    <h1 class="text-2xl font-semibold text-emerald-900">{{ $proche ? 'Sass et Jàyante de '.$proche->prenom : 'Mes Sass et Jàyante' }}</h1>
+    <p class="mt-1 text-sm text-stone-600">{{ $proche ? 'Ses participations' : 'Vos participations' }} aux programmes et collectes de la Daara.</p>
 
     @forelse ($fiches as $fiche)
         @php
@@ -59,10 +59,10 @@
 
             @if ($engagement === null)
                 @if ($fiche['peutFixer'])
-                    <form method="POST" action="{{ route('engagements.fixer', $collecte) }}" class="mt-4 space-y-2">
+                    <form method="POST" action="{{ $proche ? route('famille.engagements.fixer', [$proche, $collecte]) : route('engagements.fixer', $collecte) }}" class="mt-4 space-y-2">
                         @csrf
                         <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
-                        <label for="montant-{{ $collecte->id }}" class="block text-sm font-semibold text-emerald-900">Fixez votre Jàyante</label>
+                        <label for="montant-{{ $collecte->id }}" class="block text-sm font-semibold text-emerald-900">{{ $proche ? 'Fixez son Jàyante' : 'Fixez votre Jàyante' }}</label>
                         <p class="text-xs text-stone-500">
                             {{ $collecte->mode->getDescription() }}
                             @if ($fiche['minimum'] > 1) Minimum : {{ $fcfa($fiche['minimum']) }}. @endif
@@ -115,7 +115,7 @@
                         $montantPropose = $actif && old('montant') ? (int) old('montant') : $fiche['disponible'];
                         $rapides = array_values(array_filter([2000, 5000, 10000], fn (int $montant): bool => $montant < $fiche['disponible']));
                     @endphp
-                    <form method="POST" action="{{ route('engagements.versement', $collecte) }}" class="mt-4 space-y-4 text-sm"
+                    <form method="POST" action="{{ $proche ? route('famille.engagements.versement', [$proche, $collecte]) : route('engagements.versement', $collecte) }}" class="mt-4 space-y-4 text-sm"
                           data-versement data-lien="{{ $fiche['lienWave'] }}" data-max="{{ $fiche['disponible'] }}">
                         @csrf
                         <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
@@ -158,7 +158,7 @@
                             <input type="text" name="reference" value="{{ $actif ? old('reference') : '' }}" required autocomplete="off"
                                    placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R"
                                    class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
-                            <input type="tel" name="numero_wave" value="{{ $actif ? old('numero_wave') : $membre->telephone }}" inputmode="tel"
+                            <input type="tel" name="numero_wave" value="{{ $actif ? old('numero_wave') : ($proche ? auth()->user()?->telephone : $membre->telephone) }}" inputmode="tel"
                                    placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé"
                                    class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                             <button type="submit" class="w-full rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white hover:bg-emerald-900">
@@ -201,5 +201,9 @@
         </div>
     @endforelse
 
-    <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    @if ($proche)
+        <a href="{{ route('famille.show', $proche) }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à la fiche de {{ $proche->prenom }}</a>
+    @else
+        <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
+    @endif
 @endsection

@@ -10,6 +10,7 @@
             ['🤲', 'Mes Sass et Jàyante', 'engagements.index', $valide],
             ['📅', 'Mes participations', 'evenements.index', $valide],
             ['👨‍👩‍👧', 'Ma famille', 'famille.index', $valide && $membreDuMenu->responsable_id === null],
+            ['🤝', 'Payer pour un membre', 'autrui.show', $valide],
             ['🏛️', 'Mes comités', 'comites.index', $membreDuMenu !== null && \App\Models\Instance::query()->where('statut', 'active')->whereHas('membres', fn ($query) => $query->whereKey($membreDuMenu->id))->exists()],
             ['💰', 'Ma caisse', 'caisse.index', auth()->check() && auth()->user()->can('caisse.tenir')],
             ['📋', 'Pointage', 'pointage.index', auth()->check() && app(\App\Services\PointageService::class)->rendezVousDuMoment(auth()->user())->isNotEmpty()],

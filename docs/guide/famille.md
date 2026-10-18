@@ -1,4 +1,4 @@
-# Ma famille, comptes enfants et membres sans téléphone
+# Ma famille, comptes enfants, payer pour un autre membre
 
 ## Ma famille (sur le téléphone)
 
@@ -13,11 +13,26 @@ Un membre validé gère depuis son téléphone les fiches de ses proches : ses *
 3. Une fois la fiche acceptée, vous **payez ses frais de carte** (Wave, ou espèces auprès du représentant finance).
 4. Validé, il a son **matricule** et sa **carte** : vous l'affichez, la téléchargez en PDF, et vous **payez ses
    cotisations** (1 000 FCFA par mois, comme tout membre).
+5. **Ses Sass et Jàyante** : pour chaque collecte ouverte, vous fixez son Jàyante et vous versez pour lui, petit à
+   petit, comme pour vous-même.
 
 Vous recevez les notifications qui le concernent (fiche acceptée, paiement confirmé, carte), avec un lien vers sa fiche.
 
 **Personne ne valide pour sa famille** : un Jewrine ne valide pas la fiche d'un proche qu'il gère, et un responsable
 finance ne confirme pas son paiement ; un autre responsable le fait.
+
+## Payer pour un autre membre
+
+« Gérer la fiche d'un proche » et « payer pour un autre membre » sont deux choses distinctes. Tout membre peut payer la
+**cotisation** ou le **Jàyante** d'un autre membre qui a **son propre compte** (son épouse, par exemple) : Menu →
+**Payer pour un membre**, puis chercher le membre par son **matricule** ou son **téléphone**.
+
+- On ne voit que son nom, son matricule, sa cellule et les collectes où il est engagé : jamais ses retards ni ses
+  montants. Pour un Jàyante, demandez-lui le montant à verser ; il faut qu'il ait déjà fixé son Jàyante.
+- Le bénéficiaire est **prévenu** dès la déclaration, puis reçoit son **reçu** à la confirmation, avec la mention
+  « versé par ». Celui qui a payé est prévenu aussi, et peut télécharger le reçu.
+- Un membre sans compte (un enfant) se paie seulement depuis « Ma famille », par le membre qui gère sa fiche.
+- **Personne ne valide un paiement qu'il a déclaré** pour un autre membre : un autre responsable le fait.
 
 ## Le compte enfant
 

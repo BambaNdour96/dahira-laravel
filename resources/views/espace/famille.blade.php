@@ -37,6 +37,10 @@
     <a href="{{ route('famille.create') }}" class="mt-6 block rounded-lg bg-emerald-800 px-5 py-3 text-center font-semibold text-white hover:bg-emerald-900">
         Ajouter un proche
     </a>
+    <p class="mt-3 text-center text-sm text-stone-600">
+        Votre épouse ou un autre membre a son propre compte ?
+        <a href="{{ route('autrui.show') }}" class="font-medium text-emerald-800 underline">Payer pour un membre</a>
+    </p>
 
     <a href="{{ route('espace') }}" class="mt-6 inline-block text-sm text-emerald-800 underline">Retour à mon compte</a>
 @endsection

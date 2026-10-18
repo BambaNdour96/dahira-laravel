@@ -50,6 +50,9 @@
             @if ($paiement->reference)
                 <tr><td class="libelle">Référence Wave</td><td>{{ $paiement->reference }}</td></tr>
             @endif
+            @if ($paiement->declarant !== null && $paiement->declarant->id !== $paiement->membre->user_id)
+                <tr><td class="libelle">Versé par</td><td>{{ $paiement->declarant->name }}</td></tr>
+            @endif
             <tr><td class="libelle">Confirmé par</td><td>{{ $paiement->traitePar?->name ?? 'Le bureau' }}</td></tr>
         </table>
 

@@ -78,6 +78,9 @@
                 <span class="block text-2xl" aria-hidden="true">💳</span> Ses cotisations
                 <span class="block text-xs font-normal">{{ $retard > 0 ? $retard.' mois de retard' : 'À jour' }}</span>
             </a>
+            <a href="{{ route('famille.engagements', $proche) }}" class="col-span-2 rounded-xl bg-white p-4 text-sm font-semibold text-emerald-950 ring-1 ring-or-400 hover:bg-stone-100">
+                <span class="mr-1" aria-hidden="true">🤲</span> Ses Sass et Jàyante
+            </a>
         </div>
     @endif
 

@@ -9,6 +9,7 @@ use App\Models\Carte;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Notifications\NotificationMembre;
+use App\Services\PaiementPourAutrui;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -20,6 +21,17 @@ class AvisMembreObserver
     {
         if ($modele instanceof Paiement && $modele->statut === StatutPaiement::Confirme) {
             self::paiementConfirme($modele);
+        }
+
+        // Un autre membre a déclaré un paiement pour lui : le bénéficiaire le sait aussitôt.
+        if ($modele instanceof Paiement && $modele->statut === StatutPaiement::Declare && PaiementPourAutrui::parUnTiers($modele)) {
+            self::avertir(
+                $modele->membre,
+                'Un paiement pour vous',
+                ($modele->declarant->name ?? 'Un membre').' a déclaré pour vous '.$modele->libelleObjet().' : '.self::fcfa($modele->montant).'. Vous recevrez votre reçu dès sa confirmation.',
+                route('espace'),
+                'Ouvrir mon compte',
+            );
         }
     }
 
@@ -47,6 +59,7 @@ class AvisMembreObserver
                     route('espace'),
                     'Ouvrir mon compte',
                 );
+                self::avertirLePayeur($modele, 'Paiement refusé', 'Votre déclaration de '.self::fcfa($modele->montant).' pour '.$modele->membre->nom_complet.' a été refusée. Motif : '.($modele->motif_refus ?? 'non précisé').'.');
             }
         }
 
@@ -89,13 +102,26 @@ class AvisMembreObserver
 
     private static function paiementConfirme(Paiement $paiement): void
     {
+        $parUnTiers = PaiementPourAutrui::parUnTiers($paiement);
+
         self::avertir(
             $paiement->membre,
             'Paiement confirmé',
-            $paiement->libelleObjet().' : '.self::fcfa($paiement->montant).'. Votre reçu '.$paiement->numero_recu.' est disponible.',
+            $paiement->libelleObjet().' : '.self::fcfa($paiement->montant).($parUnTiers ? ', versé pour vous par '.$paiement->declarant?->name : '')
+                .'. Votre reçu '.$paiement->numero_recu.' est disponible.',
             route('recus.show', $paiement),
             'Télécharger mon reçu',
         );
+
+        self::avertirLePayeur($paiement, 'Paiement confirmé', 'Votre paiement pour '.$paiement->membre->nom_complet.' ('.$paiement->libelleObjet().' : '.self::fcfa($paiement->montant).') est confirmé.');
+    }
+
+    /** Celui qui a payé pour un autre membre est prévenu aussi, s'il n'est pas déjà celui qui reçoit les avis du membre. */
+    private static function avertirLePayeur(Paiement $paiement, string $titre, string $message): void
+    {
+        if (PaiementPourAutrui::parUnTiers($paiement)) {
+            $paiement->declarant?->notify(new NotificationMembre($titre, $message, $paiement->numero_recu !== null ? route('recus.show', $paiement) : route('espace'), $paiement->numero_recu !== null ? 'Voir le reçu' : 'Ouvrir mon compte'));
+        }
     }
 
     /**
