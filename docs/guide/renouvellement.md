@@ -18,7 +18,11 @@ Un bandeau « Renouveler mon adhésion » apparaît sur l'accueil.
 1. **Vérifier la fiche** : prénom, nom, sexe, date de naissance, photo, cellule. « Tout est exact », ou « Une information
    est fausse ? » : la photo se change dans « Mon profil » ; pour le reste, le Jewrine de cellule est prévenu et corrige.
 2. **Régler les frais de renouvellement** (le montant des frais de carte) : Wave, ou espèces auprès du représentant
-   finance (dans le panneau : liste des membres → « Renouvellement en espèces »).
+   finance (sur son téléphone : Ma caisse → le membre → « Encaisser » ; dans le panneau : liste des membres →
+   « Renouvellement en espèces »). Les membres « non renouvelés » restent dans la caisse du représentant.
+
+Un autre membre peut aussi payer le renouvellement : Menu → **Payer pour un membre** (le bénéficiaire, qui a son compte,
+est prévenu ; la vérification de sa fiche reste à sa main).
 
 Pour un proche, le membre qui gère sa fiche renouvelle depuis « Ma famille ».
 

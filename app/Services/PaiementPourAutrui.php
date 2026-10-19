@@ -42,7 +42,7 @@ final class PaiementPourAutrui
                 ->when($telephone !== null, fn ($parTelephone) => $parTelephone->orWhere('telephone', $telephone)))
             ->first();
 
-        if ($membre === null || $membre->statut !== StatutMembre::Valide) {
+        if ($membre === null || ! in_array($membre->statut, [StatutMembre::Valide, StatutMembre::NonRenouvele], true)) {
             throw new DomainException('Aucun membre validé ne correspond à ce matricule ou à ce téléphone.');
         }
 
@@ -58,7 +58,7 @@ final class PaiementPourAutrui
             throw new DomainException('C\'est votre propre fiche : payez depuis « Mes cotisations » ou « Mes Sass et Jàyante ».');
         }
 
-        if ($membre->statut !== StatutMembre::Valide) {
+        if (! in_array($membre->statut, [StatutMembre::Valide, StatutMembre::NonRenouvele], true)) {
             throw new DomainException('Seuls les membres validés cotisent.');
         }
 

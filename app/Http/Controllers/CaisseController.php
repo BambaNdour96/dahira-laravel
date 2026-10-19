@@ -6,10 +6,14 @@ use App\Enums\StatutCollecte;
 use App\Models\Engagement;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\Renouvellement;
 use App\Models\RepresentantFinance;
 use App\Models\User;
+use App\Services\CartePhysiqueService;
 use App\Services\CollecteService;
 use App\Services\CotisationService;
+use App\Services\PaiementService;
+use App\Services\RenouvellementService;
 use App\Services\RepresentantFinanceService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -35,7 +39,7 @@ class CaisseController extends Controller
         ]);
     }
 
-    public function membre(Request $request, Membre $membre, CotisationService $cotisations, CollecteService $collectes): View
+    public function membre(Request $request, Membre $membre, CotisationService $cotisations, CollecteService $collectes, RenouvellementService $renouvellements, CartePhysiqueService $plastique, PaiementService $paiements): View
     {
         $utilisateur = $this->representant($request);
         abort_unless(RepresentantFinance::represente($utilisateur, $membre), 403);
@@ -53,6 +57,10 @@ class CaisseController extends Controller
             'mensuel' => $cotisations->montantMensuel(),
             'engagements' => $engagements,
             'service' => $collectes,
+            'renouvellement' => in_array(($renouvellement = $renouvellements->pour($membre))?->statut, Renouvellement::A_PAYER, true) ? $renouvellement : null,
+            'fraisRenouvellement' => $paiements->montantFraisCarte(),
+            'tarifPlastique' => $plastique->tarif(),
+            'plastiqueCommandee' => $plastique->commandeEnCours($membre) !== null || $plastique->paiementEnCours($membre) !== null,
         ]);
     }
 
@@ -70,6 +78,38 @@ class CaisseController extends Controller
 
         return redirect()->route('caisse.index')
             ->with('caisse_succes', 'Cotisation de '.$membre->prenom.' '.$membre->nom.' encaissée : '.CollecteService::fcfa($paiement->montant).'. Le reçu est parti.');
+    }
+
+    /** Les frais de renouvellement, reçus en espèces. */
+    public function renouvellement(Request $request, Membre $membre, RenouvellementService $renouvellements, PaiementService $paiements): RedirectResponse
+    {
+        $utilisateur = $this->representant($request);
+        abort_unless(RepresentantFinance::represente($utilisateur, $membre), 403);
+
+        try {
+            $renouvellements->enregistrerEspeces($membre, $utilisateur);
+        } catch (DomainException $e) {
+            return back()->with('caisse_erreur', $e->getMessage());
+        }
+
+        return redirect()->route('caisse.index')
+            ->with('caisse_succes', 'Renouvellement de '.$membre->prenom.' '.$membre->nom.' encaissé : '.CollecteService::fcfa($paiements->montantFraisCarte()).'. Le reçu est parti.');
+    }
+
+    /** La carte en plastique, payée en espèces : elle attend le prochain lot. */
+    public function plastique(Request $request, Membre $membre, CartePhysiqueService $plastique): RedirectResponse
+    {
+        $utilisateur = $this->representant($request);
+        abort_unless(RepresentantFinance::represente($utilisateur, $membre), 403);
+
+        try {
+            $paiement = $plastique->enregistrerEspeces($membre, $utilisateur);
+        } catch (DomainException $e) {
+            return back()->with('caisse_erreur', $e->getMessage());
+        }
+
+        return redirect()->route('caisse.index')
+            ->with('caisse_succes', 'Carte en plastique de '.$membre->prenom.' '.$membre->nom.' encaissée : '.CollecteService::fcfa($paiement->montant).'. Elle entrera dans le prochain lot.');
     }
 
     public function versement(Request $request, Membre $membre, Engagement $engagement, CollecteService $collectes): RedirectResponse

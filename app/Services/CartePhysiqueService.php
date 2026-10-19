@@ -63,6 +63,19 @@ final class CartePhysiqueService
             throw new DomainException('Seuls le membre et celui qui gère sa fiche commandent sa carte en plastique.');
         }
 
+        return $this->creerCommande($membre, $reference, $numeroWave, $declarant);
+    }
+
+    /** Un autre membre paie la carte en plastique d'un membre qui a son compte (« Payer pour un membre »). */
+    public function commanderPourAutrui(Membre $membre, string $reference, ?string $numeroWave, User $payeur): Paiement
+    {
+        app(PaiementPourAutrui::class)->verifier($membre, $payeur);
+
+        return $this->creerCommande($membre, $reference, $numeroWave, $payeur);
+    }
+
+    private function creerCommande(Membre $membre, string $reference, ?string $numeroWave, User $declarant): Paiement
+    {
         $montant = $this->verifierCommandable($membre);
 
         $paiement = $membre->paiements()->create([

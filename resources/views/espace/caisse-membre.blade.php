@@ -26,6 +26,28 @@
         </form>
     </section>
 
+    @if ($renouvellement)
+        <section class="mt-4 rounded-xl bg-or-100 p-4 ring-1 ring-or-400">
+            <h2 class="font-semibold text-emerald-950">Renouvellement {{ $renouvellement->campagne->exercice->libelle }}</h2>
+            <p class="text-sm text-emerald-900">{{ \App\Models\Renouvellement::LIBELLES[$renouvellement->statut] }} · {{ number_format($fraisRenouvellement, 0, ',', ' ') }} FCFA</p>
+            <form method="POST" action="{{ route('caisse.renouvellement', $membre) }}" class="mt-3">
+                @csrf
+                <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-3 text-sm font-semibold text-white">Encaisser {{ number_format($fraisRenouvellement, 0, ',', ' ') }} FCFA</button>
+            </form>
+        </section>
+    @endif
+
+    @if ($tarifPlastique !== null && ! $plastiqueCommandee && $membre->statut === \App\Enums\StatutMembre::Valide)
+        <section class="mt-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
+            <h2 class="font-semibold text-emerald-900">Carte en plastique</h2>
+            <p class="text-sm text-stone-700">{{ number_format($tarifPlastique, 0, ',', ' ') }} FCFA · elle entrera dans le prochain lot d'impression</p>
+            <form method="POST" action="{{ route('caisse.plastique', $membre) }}" class="mt-3">
+                @csrf
+                <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-3 text-sm font-semibold text-white">Encaisser {{ number_format($tarifPlastique, 0, ',', ' ') }} FCFA</button>
+            </form>
+        </section>
+    @endif
+
     @foreach ($engagements as $engagement)
         <section class="mt-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
             <h2 class="font-semibold text-emerald-900">{{ $engagement->collecte->titre }}</h2>

@@ -65,6 +65,39 @@
             @enderror
         </form>
 
+        {{-- Son renouvellement --}}
+        @if ($renouvellement)
+            <form method="POST" action="{{ route('autrui.renouvellement', $beneficiaire) }}" class="mt-5 space-y-3 rounded-xl bg-or-100 p-5 text-sm ring-1 ring-or-400">
+                @csrf
+                <h2 class="font-semibold text-emerald-950">🔄 Son renouvellement {{ $renouvellement->campagne->exercice->libelle }} ({{ number_format($fraisRenouvellement, 0, ',', ' ') }} FCFA)</h2>
+                <p class="text-xs text-emerald-900">La vérification de sa fiche reste à sa main ; il est prévenu de votre paiement.</p>
+                <input type="text" name="reference" required autocomplete="off"
+                       placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
+                <input type="tel" name="numero_wave" value="{{ auth()->user()?->telephone }}" inputmode="tel"
+                       placeholder="Numéro Wave utilisé" class="block w-full {{ $champ }}">
+                <button type="submit" class="w-full rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white hover:bg-emerald-900">J'ai payé son renouvellement</button>
+                @error('renouvellement')
+                    <p class="text-sm text-red-700">{{ $message }}</p>
+                @enderror
+            </form>
+        @endif
+
+        {{-- Sa carte en plastique --}}
+        @if ($tarifPlastique !== null && $plastiqueCommandable)
+            <form method="POST" action="{{ route('autrui.plastique', $beneficiaire) }}" class="mt-5 space-y-3 rounded-xl bg-white p-5 text-sm shadow-sm ring-1 ring-stone-200">
+                @csrf
+                <h2 class="font-semibold text-emerald-900">🪪 Sa carte en plastique ({{ number_format($tarifPlastique, 0, ',', ' ') }} FCFA)</h2>
+                <input type="text" name="reference" required autocomplete="off"
+                       placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
+                <input type="tel" name="numero_wave" value="{{ auth()->user()?->telephone }}" inputmode="tel"
+                       placeholder="Numéro Wave utilisé" class="block w-full {{ $champ }}">
+                <button type="submit" class="w-full rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white hover:bg-emerald-900">J'ai payé sa carte</button>
+                @error('plastique')
+                    <p class="text-sm text-red-700">{{ $message }}</p>
+                @enderror
+            </form>
+        @endif
+
         {{-- Ses Sass et Jàyante --}}
         @foreach ($collectes as $collecte)
             <form method="POST" action="{{ route('autrui.versement', [$beneficiaire, $collecte]) }}" class="mt-5 space-y-3 rounded-xl bg-white p-5 text-sm shadow-sm ring-1 ring-or-400">

@@ -8,8 +8,9 @@ La carte du téléphone suffit et reste toujours valable. La carte en plastique 
 Ma carte → **Carte en plastique** :
 
 - tant que le tarif n'est pas fixé : « **Bientôt disponible** » ;
-- ensuite : **Commander et payer** (Wave, avec la référence du paiement), ou en espèces auprès de la Finance (panneau :
-  liste des membres → « Carte en plastique en espèces ») ;
+- ensuite : **Commander et payer** (Wave, avec la référence du paiement), ou en espèces auprès du représentant finance
+  (Ma caisse → le membre) ou de la Finance (panneau : liste des membres → « Carte en plastique en espèces ») ;
+- un autre membre peut aussi la payer : Menu → **Payer pour un membre** ;
 - le membre suit l'état de sa carte : en vérification, payée en attente d'impression, en cours d'impression (lot n°…),
   prête à retirer, remise.
 

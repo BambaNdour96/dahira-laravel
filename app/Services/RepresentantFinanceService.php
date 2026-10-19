@@ -88,8 +88,9 @@ final class RepresentantFinanceService
     {
         $representations = $this->representationsDe($utilisateur);
 
+        // Les membres « non renouvelés » restent couverts : leur renouvellement s'encaisse aussi en espèces.
         return Membre::query()
-            ->where('statut', StatutMembre::Valide->value)
+            ->whereIn('statut', [StatutMembre::Valide->value, StatutMembre::NonRenouvele->value])
             ->where(function ($query) use ($representations): void {
                 foreach ($representations as $representation) {
                     $query->orWhere(fn ($couvert) => $couvert

@@ -163,6 +163,26 @@ final class RenouvellementService
             throw new DomainException('Vérifiez d\'abord la fiche.');
         }
 
+        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $declarant);
+    }
+
+    /**
+     * Un autre membre paie le renouvellement (« Payer pour un membre ») : le bénéficiaire, qui a son compte, est prévenu ;
+     * la vérification de la fiche reste à sa main, et l'empreinte protège la carte s'il a changé.
+     */
+    public function declarerPourAutrui(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $payeur): Paiement
+    {
+        app(PaiementPourAutrui::class)->verifier($renouvellement->membre, $payeur);
+
+        if (! in_array($renouvellement->statut, Renouvellement::A_PAYER, true)) {
+            throw new DomainException('Ce renouvellement est déjà réglé.');
+        }
+
+        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $payeur);
+    }
+
+    private function creerDeclaration(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $declarant): Paiement
+    {
         if ($this->paiementEnCours($renouvellement->membre) !== null) {
             throw new DomainException('Un paiement de renouvellement est déjà en cours de vérification.');
         }

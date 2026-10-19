@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatutMembre;
 use App\Models\Collecte;
 use App\Models\Membre;
 use App\Models\Parametre;
+use App\Models\Renouvellement;
 use App\Models\User;
+use App\Services\CartePhysiqueService;
 use App\Services\CollecteService;
 use App\Services\CotisationService;
 use App\Services\PaiementPourAutrui;
+use App\Services\PaiementService;
+use App\Services\RenouvellementService;
 use App\Support\LienWave;
 use App\Support\MessagesValidation;
 use DomainException;
@@ -23,7 +28,7 @@ use Illuminate\View\View;
  */
 class PaiementPourAutruiController extends Controller
 {
-    public function show(Request $request, PaiementPourAutrui $autrui, CotisationService $cotisations, CollecteService $collectes): View
+    public function show(Request $request, PaiementPourAutrui $autrui, CotisationService $cotisations, CollecteService $collectes, RenouvellementService $renouvellements, CartePhysiqueService $plastique, PaiementService $paiements): View
     {
         $payeur = self::payeur($request);
         $recherche = trim((string) $request->query('recherche', ''));
@@ -48,6 +53,11 @@ class PaiementPourAutruiController extends Controller
             'choix' => CotisationService::CHOIX_MOIS,
             'liensWave' => collect(CotisationService::CHOIX_MOIS)->mapWithKeys(fn (int $nombre): array => [$nombre => LienWave::cotisation($nombre, $mensuel)])->filter()->all(),
             'lienGeneral' => Parametre::valeur('wave_lien_paiement'),
+            'renouvellement' => $beneficiaire !== null && in_array(($renouvellement = $renouvellements->pour($beneficiaire))?->statut, Renouvellement::A_PAYER, true) ? $renouvellement : null,
+            'fraisRenouvellement' => $paiements->montantFraisCarte(),
+            'tarifPlastique' => $plastique->tarif(),
+            'plastiqueCommandable' => $beneficiaire !== null && $beneficiaire->statut === StatutMembre::Valide
+                && $plastique->commandeEnCours($beneficiaire) === null && $plastique->paiementEnCours($beneficiaire) === null,
             'collectes' => $beneficiaire !== null
                 ? $collectes->ouvertesPour($beneficiaire)->filter(fn (Collecte $collecte): bool => $collectes->engagementDe($collecte, $beneficiaire) !== null)->values()
                 : collect(),
@@ -86,6 +96,38 @@ class PaiementPourAutruiController extends Controller
 
         return redirect()->route('autrui.show')
             ->with('succes', 'Merci ! Votre versement pour '.$beneficiaire->prenom.' est en cours de vérification. '.$beneficiaire->prenom.' est prévenu et recevra son reçu.');
+    }
+
+    public function renouvellement(Request $request, Membre $beneficiaire, RenouvellementService $renouvellements): RedirectResponse
+    {
+        $payeur = self::payeur($request);
+        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        $renouvellement = $renouvellements->pour($beneficiaire);
+
+        try {
+            abort_unless($renouvellement !== null, 404);
+            $renouvellements->declarerPourAutrui($renouvellement, $reference, $numeroWave, $payeur);
+        } catch (DomainException $e) {
+            return back()->withErrors(['renouvellement' => $e->getMessage()]);
+        }
+
+        return redirect()->route('autrui.show')
+            ->with('succes', 'Merci ! Votre paiement du renouvellement de '.$beneficiaire->prenom.' est en cours de vérification. '.$beneficiaire->prenom.' est prévenu et recevra son reçu.');
+    }
+
+    public function plastique(Request $request, Membre $beneficiaire, CartePhysiqueService $plastique): RedirectResponse
+    {
+        $payeur = self::payeur($request);
+        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+
+        try {
+            $plastique->commanderPourAutrui($beneficiaire, $reference, $numeroWave, $payeur);
+        } catch (DomainException $e) {
+            return back()->withErrors(['plastique' => $e->getMessage()]);
+        }
+
+        return redirect()->route('autrui.show')
+            ->with('succes', 'Merci ! La carte en plastique de '.$beneficiaire->prenom.' est commandée : le paiement est en cours de vérification.');
     }
 
     private static function payeur(Request $request): User

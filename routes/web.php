@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/engagements/{collecte}/versement', [EngagementController::class, 'declarerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.versement');
     Route::get('/payer-pour-un-membre', [PaiementPourAutruiController::class, 'show'])->name('autrui.show');
     Route::post('/payer-pour-un-membre/{beneficiaire}/cotisation', [PaiementPourAutruiController::class, 'cotisation'])->middleware('throttle:inscription')->name('autrui.cotisation');
+    Route::post('/payer-pour-un-membre/{beneficiaire}/renouvellement', [PaiementPourAutruiController::class, 'renouvellement'])->middleware('throttle:inscription')->name('autrui.renouvellement');
+    Route::post('/payer-pour-un-membre/{beneficiaire}/plastique', [PaiementPourAutruiController::class, 'plastique'])->middleware('throttle:inscription')->name('autrui.plastique');
     Route::post('/payer-pour-un-membre/{beneficiaire}/collectes/{collecte}', [PaiementPourAutruiController::class, 'versement'])->middleware('throttle:inscription')->name('autrui.versement');
     Route::get('/ma-famille/{proche}/cotisations', [CotisationController::class, 'show'])->name('famille.cotisations');
     Route::post('/ma-famille/{proche}/cotisations', [CotisationController::class, 'declarer'])->middleware('throttle:inscription')->name('famille.cotisations.declarer');
@@ -174,6 +176,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/caisse', [CaisseController::class, 'index'])->name('caisse.index');
         Route::get('/caisse/membres/{membre}', [CaisseController::class, 'membre'])->name('caisse.membre');
         Route::post('/caisse/membres/{membre}/cotisation', [CaisseController::class, 'cotisation'])->name('caisse.cotisation');
+        Route::post('/caisse/membres/{membre}/renouvellement', [CaisseController::class, 'renouvellement'])->name('caisse.renouvellement');
+        Route::post('/caisse/membres/{membre}/plastique', [CaisseController::class, 'plastique'])->name('caisse.plastique');
         Route::post('/caisse/membres/{membre}/engagements/{engagement}', [CaisseController::class, 'versement'])->name('caisse.versement');
         Route::post('/caisse/paiements/{paiement}/valider', [CaisseController::class, 'valider'])->name('caisse.valider');
         Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');

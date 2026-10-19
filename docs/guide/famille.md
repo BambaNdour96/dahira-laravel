@@ -24,7 +24,7 @@ finance ne confirme pas son paiement ; un autre responsable le fait.
 ## Payer pour un autre membre
 
 « Gérer la fiche d'un proche » et « payer pour un autre membre » sont deux choses distinctes. Tout membre peut payer la
-**cotisation** ou le **Jàyante** d'un autre membre qui a **son propre compte** (son épouse, par exemple) : Menu →
+**cotisation**, le **Jàyante**, le **renouvellement** ou la **carte en plastique** d'un autre membre qui a **son propre compte** (son épouse, par exemple) : Menu →
 **Payer pour un membre**, puis chercher le membre par son **matricule** ou son **téléphone**.
 
 - On ne voit que son nom, son matricule, sa cellule et les collectes où il est engagé : jamais ses retards ni ses
