@@ -1,6 +1,6 @@
 # Conception de la plateforme NDK
 
-**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1.1 · octobre 2026
+**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1.2 · octobre 2026
 
 Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque partie se relie aux autres. Il a été établi domaine par domaine, en séances de travail, et sert de plan pour reconstruire et compléter la plateforme.
 
@@ -67,6 +67,7 @@ Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque pa
 | **Renouvellement annuel** | Campagne ouverte par le super administrateur ; le membre vérifie sa fiche et paie les frais de renouvellement (même montant que la carte) ; renouvellement automatique, revalidé par le Jewrine seulement si la fiche a changé ; nouvelle carte de l'année ; à la date limite, anciennes cartes révoquées et statut « non renouvelé », sans perte de données ; relances automatiques |
 | **Compétences** | Chaque membre indique son métier et ses savoir-faire, pour être mobilisé |
 | **Volontariat** | Un membre se propose pour une commission d'événement ; le chef accepte ou non |
+| **Arabe et Coran** | Une rubrique du complément d'inscription et de « Mon profil » (elle remplace le « niveau d'arabe ») : lecture et écriture (ne sait pas lire, lit avec difficulté, lit couramment, excellent), compréhension (ne comprend pas, quelques mots, comprend l'essentiel, maîtrise), Coran mémorisé (aucun, quelques sourates, nombre de hizb, hafiz), khassaides (ne récite pas, récite quelques khassaides, récite bien et peut animer un kourel), souhaite apprendre (oui ou non) ; le parent la remplit pour un proche ; la commission Culturelle a un écran « Recensement Arabe et Coran » (chiffres par cellule, liste filtrable) ; visible seulement par le membre, la commission Culturelle et le super administrateur |
 | **Sympathisants** | Recensement avec accord, visites, invitation à adhérer après 3 visites en 3 mois, participations avec reçu, effacement après 2 ans sans visite |
 | **Reprise des données** | Possibilité d'importer les listes existantes au lancement |
 
@@ -184,6 +185,7 @@ Un espace dédié, avec ses onglets : Tableau de bord, Commissions, Réunions et
 | **Calendrier** | Agenda unique : dahiras, réunions, programmes, avec les dates hégiriennes |
 | **Matériel** | Inventaire des biens de la Daara et de leurs prêts aux événements |
 | **Documents** | Statuts, règlement intérieur, PV d'assemblée, consultables selon les droits |
+| **Questions à la commission Culturelle** | Le membre pose une question, à découvert ou anonyme ; pour une question anonyme, aucun membre de la commission ne voit l'auteur, sur aucun écran, le lien n'étant gardé que pour lui remettre la réponse ; n'importe quel membre de la commission répond ; l'auteur est prévenu et retrouve la réponse dans « Mes questions » ; la commission peut publier des questions-réponses, sans aucun nom, dans une foire aux questions lisible par tous les membres |
 
 ## 12. L'administration
 
@@ -210,6 +212,19 @@ Prises après l'inventaire de l'existant, en octobre 2026.
 | **Quorum** | Simple information (présents sur membres), sans seuil |
 | **Commissions permanentes** | Administration, Suivi et Évaluation, Communication, Sociale, Culturelle (anciennement « Culturelle et religieuse »), Finance, Organisation |
 | **Suivi et Évaluation** | Devient une commission permanente avec son Jewrine, et non plus seulement un rôle |
+
+## 13 bis. Décisions complémentaires (version 1.2)
+
+Prises pendant la reconstruction (lots R1 et R2), en octobre 2026.
+
+| Sujet | Décision |
+| --- | --- |
+| **Réunions** | Jusqu'au début de la réunion, l'organisateur peut changer la date, le lieu, l'ordre du jour et le secrétaire de séance ; chaque changement envoie une « convocation modifiée » (l'ancien et le nouveau secrétaire sont prévenus) ; le secrétaire de séance garde seul les présences, la rédaction et le PV |
+| **Familles** | Un enfant est un membre de moins de 18 ans, sans compte ; il paie les frais de carte et la cotisation ; à 18 ans, la plateforme propose au parent et au Jewrine de lui donner son propre compte, sans l'imposer ; le parent verse aussi ses Sass et Jàyante |
+| **Payer pour un autre membre** | Distinct de la gestion d'une fiche : tout membre paie la cotisation ou le Jàyante d'un membre qui a son compte, trouvé par matricule ou téléphone ; le bénéficiaire est prévenu et reçoit son reçu ; personne ne valide un paiement qu'il a déclaré pour un autre |
+| **Changement de cellule** | Demandé par le membre ou son Jewrine, validé par le super administrateur ; les proches suivent ; les postes de l'ancienne cellule prennent fin (le Jewrine national est prévenu s'il faut nommer un Jewrine) ; chaque versement garde la cellule du moment où il a été fait |
+| **Renouvellement** | Revalidation par le Jewrine seulement si changent le prénom, le nom, la date de naissance, la photo ou le sexe ; renouvellement d'office des membres validés dans les 3 mois avant l'ouverture ou pendant la campagne ; relances à l'ouverture, puis 30, 7 et 1 jour avant la date limite ; un « non renouvelé » qui paie est réactivé et doit les cotisations des mois écoulés ; un nouveau membre cotise à partir du mois qui suit sa validation |
+| **Carte en plastique** | Payante, au tarif « Carte physique » ; tant que le tarif n'est pas fixé, « Bientôt disponible » ; seules les cartes payées entrent dans un lot ; les lots sont préparés par le super administrateur et le Secrétaire général |
 
 ## 14. Ce qui reste à décider hors conception
 

@@ -100,13 +100,14 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 | --- | --- |
 | R0 | Rien ne se perd : plus aucune suppression ni effacement en cascade ; annulation (programmes, événements, dahiras, réunions), archivage (cellules, étapes, indicateurs, commissions d'un comité), fin de désignation (pointeurs, représentants finance), anonymisation des sympathisants |
 | R1 | Acteurs et droits : deux super administrateurs, nominations par le super administrateur ou le Jewrine national, suppression de la Jewrine des Sokhnas, « Dahira » partout, commissions permanentes (Jewrine qui ajoute ses membres), Comité directeur, secrétaire de séance, décisions sans vote |
-| R2 | Membres : comptes famille et enfant, inscription par le Jewrine, compétences, volontariat, changement de cellule, renouvellement annuel, cartes par lots, import des listes existantes |
+| R2 | Membres : comptes famille et enfant, inscription par le Jewrine, compétences, volontariat, changement de cellule, renouvellement annuel, cartes par lots (R2c), import des listes existantes (R2d) |
+| R2e | Arabe et Coran : rubrique du profil (lecture, écriture, compréhension, Coran mémorisé, khassaides, souhait d'apprendre) qui remplace le « niveau d'arabe » (données reprises), remplie par le parent pour un proche ; écran « Recensement Arabe et Coran » de la commission Culturelle ; visible seulement par le membre, la commission Culturelle et le super administrateur |
 | R3 | Finance : caisses paramétrables (Wave, Orange Money, espèces, banque plus tard), ordres de dépense, corrections (réaffectation, avoir, contre-passation, remboursement), réaffectations, exercices et bilan annuel, libellés de dépenses |
 | R4 | Programmes : Jàyante et Sass (minimum) seulement, objectifs et budgets, organisation par comité dédié ou par commissions choisies |
 | R5 | Espace des grands événements (CDGMT, Grand Ziar) : onglets, comité de suivi des dépenses, avances et remboursements, clôture et bilans, itinéraire et transport |
 | R6 | Pointage sans réseau (dahira et jour J) |
 | R7 | Projets, Suivi et Évaluation (questionnaires), tableau de bord du Comité directeur, assemblée générale |
-| R8 | Vie de la Daara : annonces, solidarité, calendrier hégirien, matériel, documents |
+| R8 | Vie de la Daara : annonces, solidarité, calendrier hégirien, matériel, documents ; questions à la commission Culturelle (à découvert ou anonymes, réponses dans « Mes questions », foire aux questions sans nom) |
 | R9 | Mise en ligne : sécurité, sauvegardes, surveillance, déclaration CDP |
 
 ### Corrections de droits prévues (relecture de la matrice, lot R1b)
