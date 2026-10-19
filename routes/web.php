@@ -21,6 +21,7 @@ use App\Http\Controllers\ExportPresencesController;
 use App\Http\Controllers\FamilleController;
 use App\Http\Controllers\FicheCollecteController;
 use App\Http\Controllers\InscriptionController;
+use App\Http\Controllers\LotCartesController;
 use App\Http\Controllers\MesDonneesController;
 use App\Http\Controllers\MesNotificationsController;
 use App\Http\Controllers\MesRecusController;
@@ -96,6 +97,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/mon-espace/relancer', [PaiementMembreController::class, 'relancer'])->name('espace.relancer');
     Route::get('/ma-carte', [CarteController::class, 'show'])->name('carte');
     Route::get('/ma-carte/pdf', [CarteController::class, 'pdf'])->name('carte.pdf');
+    Route::post('/ma-carte/plastique', [CarteController::class, 'commander'])->middleware('throttle:inscription')->name('carte.plastique');
 
     Route::get('/mon-compte/mot-de-passe', [MotDePasseController::class, 'edit'])->name('mot-de-passe.edit');
     Route::put('/mon-compte/mot-de-passe', [MotDePasseController::class, 'update'])
@@ -111,6 +113,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/savoir-faire', [FamilleController::class, 'competences'])->name('famille.competences');
     Route::get('/ma-famille/{proche}/carte', [CarteController::class, 'show'])->name('famille.carte');
     Route::get('/ma-famille/{proche}/carte/pdf', [CarteController::class, 'pdf'])->name('famille.carte.pdf');
+    Route::post('/ma-famille/{proche}/carte/plastique', [CarteController::class, 'commander'])->middleware('throttle:inscription')->name('famille.carte.plastique');
     Route::get('/ma-famille/{proche}/engagements', [EngagementController::class, 'index'])->name('famille.engagements');
     Route::post('/ma-famille/{proche}/engagements/{collecte}', [EngagementController::class, 'fixerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.fixer');
     Route::post('/ma-famille/{proche}/engagements/{collecte}/versement', [EngagementController::class, 'declarerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.versement');
@@ -176,6 +179,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');
     });
     Route::get('/remises/{remise}/bordereau', BordereauRemiseController::class)->name('remises.bordereau');
+    Route::get('/lots-cartes/{lot}/{format}', LotCartesController::class)->whereIn('format', ['pdf', 'csv'])->name('lots-cartes.fichier');
     Route::post('/pointage/{evenement}/sympathisants', [PointageController::class, 'accueillirSympathisant'])->name('pointage.sympathisant.nouveau');
     Route::post('/pointage/{evenement}/sympathisants/{sympathisant}', [PointageController::class, 'sympathisantPresent'])->name('pointage.sympathisant');
     Route::post('/pointage/{evenement}/visiteurs', [PointageController::class, 'visiteur'])->name('pointage.visiteur');

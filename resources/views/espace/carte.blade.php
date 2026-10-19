@@ -78,7 +78,7 @@
 
             {{-- Bandeau du bas --}}
             <div class="relative flex items-center justify-between bg-emerald-800 px-[4%] py-[1.8%] text-[clamp(8px,2.3vw,11px)] font-semibold text-white">
-                <span>Membre depuis {{ $membre->date_adhesion?->format('Y') ?? now()->format('Y') }}</span>
+                <span>{{ $membre->carteActive?->exercice ? 'Carte '.$membre->carteActive->exercice->libelle : 'Membre depuis '.($membre->date_adhesion?->format('Y') ?? now()->format('Y')) }}</span>
                 <span class="text-or-200">Vérifiable par QR code</span>
             </div>
         </div>
@@ -93,6 +93,35 @@
         </button>
     </div>
     <p id="message-carte-image" class="mt-2 text-center text-sm"></p>
+
+    {{-- La carte en plastique, payante --}}
+    <div class="mx-auto mt-6 w-full max-w-md rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200" data-test="carte-plastique">
+        <h2 class="font-semibold text-emerald-900">Carte en plastique</h2>
+        @if ($commandePlastique)
+            <p class="mt-2 text-sm text-stone-700">
+                {{ \App\Models\CartePhysique::LIBELLES[$commandePlastique->statut] }}{{ $commandePlastique->lot ? ' · lot '.$commandePlastique->lot->numero : '' }}.
+            </p>
+        @elseif ($paiementPlastique)
+            <p class="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Commandée : le paiement (référence <span class="font-mono">{{ $paiementPlastique->reference }}</span>) est en cours de vérification.</p>
+        @elseif ($tarifPlastique === null)
+            <p class="mt-2 text-sm text-stone-600">Bientôt disponible.</p>
+        @else
+            <p class="mt-1 text-sm text-stone-600">
+                {{ number_format($tarifPlastique, 0, ',', ' ') }} FCFA. Elle s'ajoute à la carte du téléphone, qui reste valable.
+            </p>
+            <form method="POST" action="{{ $proche ? route('famille.carte.plastique', $proche) : route('carte.plastique') }}" class="mt-3 flex flex-col gap-2 text-sm">
+                @csrf
+                <input type="tel" name="numero_wave" value="{{ old('numero_wave', auth()->user()?->telephone) }}" inputmode="tel"
+                       placeholder="Numéro Wave utilisé" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
+                       placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
+                <button type="submit" class="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">Commander et payer</button>
+            </form>
+            @error('reference')
+                <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+        @endif
+    </div>
 
     <p class="mt-6 text-center text-sm text-stone-600">
         Présentez cette carte lors des événements. Le QR code permet de vérifier votre adhésion.

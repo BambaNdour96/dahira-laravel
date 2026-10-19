@@ -65,6 +65,7 @@ final class Capacites
             'membres.suspendre' => 'Suspendre un membre, ou le réactiver',
             'membres.statut_responsables' => 'Changer le statut d\'un responsable',
             'cartes.revoquer' => 'Révoquer une carte',
+            'cartes.imprimer' => 'Préparer les lots de cartes en plastique pour l\'imprimeur',
             'membres.importer' => 'Importer des membres',
             'membres.exporter' => 'Exporter les membres',
             'membres.changer_cellule' => 'Valider ou refuser un changement de cellule (seul le super administrateur)',
@@ -142,7 +143,7 @@ final class Capacites
         'secretaire_general' => [
             'panneau.acceder', 'panneau.accueil', 'espace.responsable',
             'membres.voir', 'membres.inscrire', 'membres.modifier', 'membres.valider',
-            'cartes.revoquer', 'membres.importer', 'membres.exporter',
+            'cartes.revoquer', 'cartes.imprimer', 'membres.importer', 'membres.exporter',
             'paiements.voir', 'paiements.valider_bureau', 'cotisations.suivre', 'finances.voir',
             'programmes.voir', 'programmes.attribuer', 'programmes.piloter', 'programmes.exporter',
             'evenements.voir', 'evenements.gerer', 'dahiras.voir', 'sympathisants.voir', 'statistiques.voir',

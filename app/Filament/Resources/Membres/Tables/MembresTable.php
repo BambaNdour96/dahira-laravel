@@ -74,6 +74,8 @@ class MembresTable
                 PaiementActions::especes(),
                 PaiementActions::cotisationEspeces(),
                 PaiementActions::renouvellementEspeces(),
+                PaiementActions::cartePhysiqueEspeces(),
+                PaiementActions::remettreCartePhysique(),
                 PaiementActions::exoneration(),
                 ActionGroup::make(ChangerStatutAction::toutes())
                     ->label('Statut')

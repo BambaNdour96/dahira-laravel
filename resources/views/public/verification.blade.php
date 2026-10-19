@@ -45,6 +45,9 @@
                     @endif
                     <p class="mt-2 text-sm text-stone-600">Cellule {{ $membre->cellule->nom }}</p>
                     <p class="font-mono text-sm">{{ $membre->matricule }}</p>
+                    @if ($annee)
+                        <p class="text-sm font-semibold text-emerald-800">Carte {{ $annee }}</p>
+                    @endif
                 </div>
             </div>
         @else

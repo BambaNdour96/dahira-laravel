@@ -21,6 +21,7 @@ class VerificationController extends Controller
 
         return view('public.verification', [
             'membre' => $membre,
+            'annee' => $carte?->exercice?->libelle,
             'retard' => $membre !== null ? count($cotisations->moisEnRetard($membre)) : 0,
             'photo' => $membre?->photo_path
                 ? URL::temporarySignedRoute('verification.photo', now()->addMinutes(5), ['jeton' => $jeton])

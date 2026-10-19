@@ -104,6 +104,12 @@ final class PaiementService
                 return;
             }
 
+            if ($paiement->objet === 'carte_physique') {
+                app(CartePhysiqueService::class)->apresPaiement($paiement);
+
+                return;
+            }
+
             if ($paiement->objet === 'renouvellement') {
                 app(RenouvellementService::class)->apresPaiement($paiement, $tresorier);
 

@@ -115,6 +115,7 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Suspendre un membre, ou le réactiver <br>`membres.suspendre` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
 | Changer le statut d'un responsable <br>`membres.statut_responsables` | ✔ |  |  |  |  |  |  |  |  |  |  |
 | Révoquer une carte <br>`cartes.revoquer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
+| Préparer les lots de cartes en plastique pour l'imprimeur <br>`cartes.imprimer` | ✔ |  | ✔ |  |  |  |  |  |  |  |  |
 | Importer des membres <br>`membres.importer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
 | Exporter les membres <br>`membres.exporter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
 | Valider ou refuser un changement de cellule (seul le super administrateur) <br>`membres.changer_cellule` | ✔ |  |  |  |  |  |  |  |  |  |  |

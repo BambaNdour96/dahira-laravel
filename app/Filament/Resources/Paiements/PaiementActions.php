@@ -4,10 +4,12 @@ namespace App\Filament\Resources\Paiements;
 
 use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
+use App\Models\CartePhysique;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\Renouvellement;
 use App\Models\User;
+use App\Services\CartePhysiqueService;
 use App\Services\CotisationService;
 use App\Services\PaiementService;
 use App\Services\RenouvellementService;
@@ -146,6 +148,58 @@ final class PaiementActions
                 }
 
                 Notification::make()->title('Renouvellement encaissé.')->success()->send();
+            });
+    }
+
+    /** Carte en plastique réglée en espèces : elle attend le prochain lot. */
+    public static function cartePhysiqueEspeces(): Action
+    {
+        return Action::make('cartePhysiqueEspeces')
+            ->label('Carte en plastique en espèces')
+            ->icon('heroicon-o-identification')
+            ->color('success')
+            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide
+                && app(CartePhysiqueService::class)->tarif() !== null
+                && app(CartePhysiqueService::class)->commandeEnCours($record) === null
+                && Gate::allows('create', Paiement::class))
+            ->requiresConfirmation()
+            ->modalDescription(fn (): string => 'Confirmez avoir reçu '.self::fcfa((int) app(CartePhysiqueService::class)->tarif()).' en espèces. La carte entrera dans le prochain lot d\'impression.')
+            ->action(function (Membre $record): void {
+                try {
+                    app(CartePhysiqueService::class)->enregistrerEspeces($record, self::auteur());
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Carte en plastique payée : elle attend le prochain lot.')->success()->send();
+            });
+    }
+
+    /** La carte en plastique est remise au membre. */
+    public static function remettreCartePhysique(): Action
+    {
+        return Action::make('remettreCartePhysique')
+            ->label('Remettre la carte en plastique')
+            ->icon('heroicon-o-hand-raised')
+            ->color('gray')
+            ->visible(fn (Membre $record): bool => app(CartePhysiqueService::class)->commandeEnCours($record)?->statut === CartePhysique::PRETE)
+            ->requiresConfirmation()
+            ->action(function (Membre $record): void {
+                $commande = app(CartePhysiqueService::class)->commandeEnCours($record);
+                $auteur = self::auteur();
+
+                try {
+                    abort_unless($commande !== null && $auteur !== null, 404);
+                    app(CartePhysiqueService::class)->remettre($commande, $auteur);
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Carte en plastique remise.')->success()->send();
             });
     }
 

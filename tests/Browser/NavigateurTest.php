@@ -155,7 +155,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes',
     ])->assertNoJavascriptErrors();
 });
 
