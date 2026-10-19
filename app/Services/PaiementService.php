@@ -104,6 +104,12 @@ final class PaiementService
                 return;
             }
 
+            if ($paiement->objet === 'renouvellement') {
+                app(RenouvellementService::class)->apresPaiement($paiement, $tresorier);
+
+                return;
+            }
+
             $membre = $paiement->membre;
 
             if ($membre->statut !== StatutMembre::Valide) {

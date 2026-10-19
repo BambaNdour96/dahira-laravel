@@ -55,6 +55,9 @@ final class StatutMembreService
             if ($nouveau === StatutMembre::Valide) {
                 $this->matricules->attribuer($membre);
                 $this->cartes->emettre($membre);
+
+                // Validé pendant une campagne de renouvellement : renouvelé d'office pour cet exercice.
+                app(RenouvellementService::class)->apresValidation($membre);
             }
 
             // Un membre radié quitte aussi tous ses postes : ses nominations prennent fin, l'historique reste.

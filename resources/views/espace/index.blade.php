@@ -56,6 +56,15 @@
             </div>
         @endif
 
+        @if ($renouvellement)
+            <a href="{{ route('renouvellement.show') }}" class="mt-5 block rounded-xl bg-or-100 p-4 ring-1 ring-or-400 hover:bg-or-200" data-test="bandeau-renouvellement">
+                <p class="font-semibold text-emerald-950">🔄 Renouveler mon adhésion {{ $renouvellement->campagne->exercice->libelle }}</p>
+                <p class="mt-1 text-sm text-emerald-900">
+                    {{ $renouvellement->statut === \App\Models\Renouvellement::NON_RENOUVELE ? 'La date limite est passée : renouvelez pour retrouver votre carte.' : 'Avant le '.$renouvellement->campagne->date_limite->translatedFormat('j F Y').' : vérifiez votre fiche, puis réglez les frais.' }}
+                </p>
+            </a>
+        @endif
+
         @if ($estValide)
             {{-- Carte de membre en miniature --}}
             <a href="{{ route('carte') }}" class="mt-5 flex items-center gap-4 rounded-2xl bg-emerald-900 p-4 text-white shadow-sm hover:bg-emerald-950">

@@ -80,6 +80,11 @@ class MembrePolicy
             return false;
         }
 
+        // Le renouvellement ne se décide pas à la main : « non renouvelé » à la date limite, réactivé par son paiement.
+        if ($cible === StatutMembre::NonRenouvele || $membre->statut === StatutMembre::NonRenouvele && $cible === StatutMembre::Valide) {
+            return false;
+        }
+
         // Suspendre un membre, ou réactiver un membre suspendu : décision de direction.
         if ($cible === StatutMembre::Suspendu || $membre->statut === StatutMembre::Suspendu) {
             return $user->can('membres.suspendre');

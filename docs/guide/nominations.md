@@ -118,6 +118,7 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Importer des membres <br>`membres.importer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
 | Exporter les membres <br>`membres.exporter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
 | Valider ou refuser un changement de cellule (seul le super administrateur) <br>`membres.changer_cellule` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Ouvrir la campagne de renouvellement annuel (seul le super administrateur) <br>`renouvellement.ouvrir` | ✔ |  |  |  |  |  |  |  |  |  |  |
 
 ### Paiements et cotisations
 

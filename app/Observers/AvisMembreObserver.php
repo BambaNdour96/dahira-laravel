@@ -10,6 +10,7 @@ use App\Models\Membre;
 use App\Models\Paiement;
 use App\Notifications\NotificationMembre;
 use App\Services\PaiementPourAutrui;
+use App\Services\RenouvellementService;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -17,6 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AvisMembreObserver
 {
+    /** Motif de révocation des cartes non renouvelées à la date limite. */
+    public const NON_RENOUVELEE = 'Adhésion non renouvelée';
+
     public function created(Model $modele): void
     {
         if ($modele instanceof Paiement && $modele->statut === StatutPaiement::Confirme) {
@@ -63,7 +67,8 @@ class AvisMembreObserver
             }
         }
 
-        if ($modele instanceof Carte && $modele->wasChanged('statut') && $modele->statut === StatutCarte::Revoquee) {
+        // Une carte remplacée (perte, renouvellement) ; une carte non renouvelée a son propre avis.
+        if ($modele instanceof Carte && $modele->wasChanged('statut') && $modele->statut === StatutCarte::Revoquee && $modele->motif_revocation !== self::NON_RENOUVELEE && ! str_starts_with((string) $modele->motif_revocation, RenouvellementService::MOTIF_CARTE)) {
             self::avertir(
                 $modele->membre,
                 'Votre carte a été remplacée',
@@ -89,6 +94,8 @@ class AvisMembreObserver
                 'Le délai de 10 jours pour régler les frais de carte est dépassé. Vous pouvez renvoyer votre demande depuis votre compte.', route('espace'), 'Ouvrir mon compte'],
             StatutMembre::Suspendu => ['Votre adhésion est suspendue',
                 'Votre carte n\'est plus valide pour le moment. Contactez votre Jewrine de cellule pour plus d\'informations.', route('espace'), 'Ouvrir mon compte'],
+            StatutMembre::NonRenouvele => ['Adhésion non renouvelée',
+                'La date limite du renouvellement est passée : votre carte n\'est plus valide. Renouvelez depuis votre compte pour la retrouver ; vos données sont conservées.', route('renouvellement.show'), 'Renouveler'],
             StatutMembre::Valide => $avant === StatutMembre::Suspendu
                 ? ['Votre adhésion est réactivée', 'Votre carte de membre est de nouveau valide.', route('carte'), 'Voir ma carte']
                 : null,
@@ -128,7 +135,7 @@ class AvisMembreObserver
      * Le membre est prévenu sur son compte. Un proche sans compte (enfant, adulte sans téléphone) l'est par le membre
      * qui gère sa fiche, avec un lien vers sa fiche dans « Ma famille ».
      */
-    private static function avertir(Membre $membre, string $titre, string $message, ?string $lien, ?string $libelle): void
+    public static function avertir(Membre $membre, string $titre, string $message, ?string $lien, ?string $libelle): void
     {
         if ($membre->user !== null) {
             $membre->user->notify(new NotificationMembre($titre, $message, $lien, $libelle));

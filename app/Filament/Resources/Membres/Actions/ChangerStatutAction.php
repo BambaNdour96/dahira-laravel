@@ -39,6 +39,7 @@ final class ChangerStatutAction
             StatutMembre::Radie => 'Radier',
             StatutMembre::EnAttente => 'Remettre en attente',
             StatutMembre::Expire => 'Faire expirer',
+            StatutMembre::NonRenouvele => 'Marquer non renouvelé',
         };
 
         return Action::make('statut_'.$cible->value)

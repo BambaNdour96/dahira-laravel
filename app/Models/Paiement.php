@@ -88,6 +88,7 @@ class Paiement extends Model
     {
         return match (true) {
             $this->estCotisation() => 'COT',
+            $this->objet === 'renouvellement' => 'REN',
             $this->estParticipation() => 'EVT',
             default => 'INS',
         };
@@ -98,6 +99,7 @@ class Paiement extends Model
     {
         return match (true) {
             $this->estCotisation() => 'Reçu de cotisation',
+            $this->objet === 'renouvellement' => 'Reçu de renouvellement',
             $this->estParticipation() => 'Reçu de participation',
             default => 'Reçu d\'inscription',
         };
@@ -108,6 +110,7 @@ class Paiement extends Model
     {
         return match (true) {
             $this->estCotisation() => 'Cotisation ('.$this->nombre_mois.' mois)',
+            $this->objet === 'renouvellement' => 'Renouvellement de l\'adhésion',
             $this->estParticipation() => 'Participation : '.($this->collecte !== null ? $this->collecte->titre : 'collecte'),
             default => 'Inscription (frais de carte)',
         };
@@ -118,6 +121,7 @@ class Paiement extends Model
     {
         $nature = match (true) {
             $this->estCotisation() => 'Recu-cotisation-',
+            $this->objet === 'renouvellement' => 'Recu-renouvellement-',
             $this->estParticipation() => 'Recu-participation-',
             default => 'Recu-inscription-',
         };

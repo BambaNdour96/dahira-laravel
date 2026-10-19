@@ -15,6 +15,7 @@ enum StatutMembre: string implements HasColor, HasLabel
     case Valide = 'valide';
     case Suspendu = 'suspendu';
     case Radie = 'radie';
+    case NonRenouvele = 'non_renouvele';
 
     public function getLabel(): string
     {
@@ -27,6 +28,7 @@ enum StatutMembre: string implements HasColor, HasLabel
             self::Valide => 'Validé',
             self::Suspendu => 'Suspendu',
             self::Radie => 'Radié',
+            self::NonRenouvele => 'Non renouvelé',
         };
     }
 
@@ -38,7 +40,7 @@ enum StatutMembre: string implements HasColor, HasLabel
             self::Rejete, self::Radie => 'danger',
             self::Accepte => 'primary',
             self::Valide => 'success',
-            self::Expire, self::Suspendu => 'gray',
+            self::Expire, self::Suspendu, self::NonRenouvele => 'gray',
         };
     }
 
@@ -54,7 +56,8 @@ enum StatutMembre: string implements HasColor, HasLabel
             self::ACorriger => [self::EnAttente],
             self::Accepte => [self::Valide, self::Expire, self::Rejete],
             self::Expire => [self::EnAttente, self::Valide],
-            self::Valide => [self::Suspendu, self::Radie],
+            self::Valide => [self::Suspendu, self::Radie, self::NonRenouvele],
+            self::NonRenouvele => [self::Valide, self::Radie],
             self::Suspendu => [self::Valide, self::Radie],
             self::Rejete, self::Radie => [],
         };

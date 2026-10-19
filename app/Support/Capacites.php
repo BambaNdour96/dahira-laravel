@@ -68,6 +68,7 @@ final class Capacites
             'membres.importer' => 'Importer des membres',
             'membres.exporter' => 'Exporter les membres',
             'membres.changer_cellule' => 'Valider ou refuser un changement de cellule (seul le super administrateur)',
+            'renouvellement.ouvrir' => 'Ouvrir la campagne de renouvellement annuel (seul le super administrateur)',
         ],
         'Paiements et cotisations' => [
             'paiements.voir' => 'Voir les paiements',

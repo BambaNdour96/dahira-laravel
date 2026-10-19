@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\StatutCarte;
 use App\Enums\StatutMembre;
 use App\Models\Carte;
+use App\Models\Exercice;
 use App\Models\Membre;
 use App\Models\User;
 use Endroid\QrCode\QrCode;
@@ -17,8 +18,8 @@ use Illuminate\Support\Str;
  */
 final class CarteService
 {
-    /** Émet une carte active, ou renvoie celle qui existe déjà. */
-    public function emettre(Membre $membre): Carte
+    /** Émet une carte active, de l'exercice indiqué (par défaut l'exercice en cours), ou renvoie celle qui existe déjà. */
+    public function emettre(Membre $membre, ?Exercice $exercice = null): Carte
     {
         $active = $membre->carteActive()->first();
 
@@ -27,25 +28,32 @@ final class CarteService
         }
 
         return $membre->cartes()->create([
+            'exercice_id' => ($exercice ?? Exercice::enCours())?->id,
             'jeton' => $this->nouveauJeton(),
             'statut' => StatutCarte::Active,
             'emise_le' => now(),
         ]);
     }
 
-    /** Révoque une carte et en émet aussitôt une nouvelle, avec un nouveau jeton. */
-    public function revoquer(Carte $carte, ?User $auteur, string $motif): Carte
+    /** Révoque une carte et en émet aussitôt une nouvelle, avec un nouveau jeton (de l'exercice indiqué, ou du même). */
+    public function revoquer(Carte $carte, ?User $auteur, string $motif, ?Exercice $exercice = null): Carte
     {
-        return DB::transaction(function () use ($carte, $auteur, $motif): Carte {
-            $carte->update([
-                'statut' => StatutCarte::Revoquee,
-                'revoquee_le' => now(),
-                'revoquee_par' => $auteur?->id,
-                'motif_revocation' => $motif,
-            ]);
+        return DB::transaction(function () use ($carte, $auteur, $motif, $exercice): Carte {
+            $this->desactiver($carte, $auteur, $motif);
 
-            return $this->emettre($carte->membre);
+            return $this->emettre($carte->membre, $exercice ?? $carte->exercice);
         });
+    }
+
+    /** Révoque une carte sans la remplacer (adhésion non renouvelée à la date limite). */
+    public function desactiver(Carte $carte, ?User $auteur, string $motif): void
+    {
+        $carte->update([
+            'statut' => StatutCarte::Revoquee,
+            'revoquee_le' => now(),
+            'revoquee_par' => $auteur?->id,
+            'motif_revocation' => $motif,
+        ]);
     }
 
     /** Renvoie la carte si elle est valide au moment du scan, sinon null. */

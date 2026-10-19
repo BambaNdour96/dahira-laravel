@@ -6,9 +6,11 @@ use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Models\Membre;
 use App\Models\Paiement;
+use App\Models\Renouvellement;
 use App\Models\User;
 use App\Services\CotisationService;
 use App\Services\PaiementService;
+use App\Services\RenouvellementService;
 use DomainException;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -118,6 +120,32 @@ final class PaiementActions
                 }
 
                 Notification::make()->title('Paiement enregistré : le membre a reçu sa carte.')->success()->send();
+            });
+    }
+
+    /** Frais de renouvellement réglés en espèces. */
+    public static function renouvellementEspeces(): Action
+    {
+        return Action::make('renouvellementEspeces')
+            ->label('Renouvellement en espèces')
+            ->icon('heroicon-o-arrow-path')
+            ->color('success')
+            ->visible(fn (Membre $record): bool => in_array(app(RenouvellementService::class)->pour($record)?->statut, Renouvellement::A_PAYER, true)
+                && Gate::allows('create', Paiement::class))
+            ->requiresConfirmation()
+            ->modalDescription(fn (): string => 'Confirmez avoir reçu '
+                .self::fcfa(app(PaiementService::class)->montantFraisCarte())
+                .' en espèces. Si sa carte n\'a pas changé, le membre est renouvelé et reçoit sa nouvelle carte ; sinon, son Jewrine revalide.')
+            ->action(function (Membre $record): void {
+                try {
+                    app(RenouvellementService::class)->enregistrerEspeces($record, self::auteur());
+                } catch (DomainException $e) {
+                    Notification::make()->title($e->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Renouvellement encaissé.')->success()->send();
             });
     }
 

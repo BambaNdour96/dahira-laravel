@@ -14,6 +14,7 @@ use App\Services\CompetencesService;
 use App\Services\CotisationService;
 use App\Services\FamilleService;
 use App\Services\PaiementService;
+use App\Services\RenouvellementService;
 use App\Support\MessagesValidation;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -92,6 +93,7 @@ class FamilleController extends Controller
             'retard' => $proche->statut === StatutMembre::Valide ? count($cotisations->moisEnRetard($proche)) : 0,
             'recus' => $proche->paiements()->where('statut', StatutPaiement::Confirme->value)->whereNotNull('numero_recu')->latest('traite_le')->limit(12)->get(),
             'peutDonnerSonCompte' => $familles->peutDonnerSonCompte($utilisateur, $proche) && ! $proche->estEnfant(),
+            'renouvellement' => app(RenouvellementService::class)->pour($proche),
             'competences' => $proche->estEnfant() ? [] : CompetencesService::liste(),
             'sesCompetences' => $proche->competences()->pluck('competences.id')->map(fn (mixed $id): int => (int) $id)->all(),
         ]);

@@ -34,3 +34,6 @@ Schedule::command('taches:surveiller')->dailyAt('08:00');
 
 // Chaque matin à 9 h 15 : un proche qui atteint 18 ans peut recevoir son propre compte (proposé, jamais imposé).
 Schedule::command('familles:routine')->dailyAt('09:15');
+
+// Chaque matin à 9 h 30 : relances du renouvellement annuel, puis clôture à la date limite.
+Schedule::command('renouvellement:routine')->dailyAt('09:30');

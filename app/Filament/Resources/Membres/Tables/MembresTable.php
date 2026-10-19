@@ -10,9 +10,11 @@ use App\Filament\Actions\EnTantQueAction;
 use App\Filament\Actions\MotDePasseAction;
 use App\Filament\Resources\Membres\Actions\ChangerStatutAction;
 use App\Filament\Resources\Paiements\PaiementActions;
+use App\Models\CampagneRenouvellement;
 use App\Models\Membre;
 use App\Models\Nomination;
 use App\Models\Poste;
+use App\Models\Renouvellement;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
@@ -54,6 +56,15 @@ class MembresTable
                 SelectFilter::make('situation_professionnelle')->label('Situation professionnelle')->options(SituationProfessionnelle::class),
                 SelectFilter::make('niveau_etudes')->label('Niveau d\'études')->options(NiveauEtudes::class),
                 SelectFilter::make('sexe')->label('Sexe')->options(Sexe::class),
+                SelectFilter::make('renouvellement')
+                    ->label('Renouvellement (dernière campagne)')
+                    ->options(Renouvellement::LIBELLES)
+                    ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
+                        ? $query
+                        : $query->whereIn('id', Renouvellement::query()
+                            ->where('campagne_id', CampagneRenouvellement::query()->latest('ouverte_le')->value('id') ?? 0)
+                            ->where('statut', $data['value'])
+                            ->select('membre_id'))),
                 SelectFilter::make('competences')->label('Savoir-faire')->relationship('competences', 'nom')->multiple(),
             ])
             ->recordActions([
@@ -62,6 +73,7 @@ class MembresTable
                 MotDePasseAction::pourMembre(),
                 PaiementActions::especes(),
                 PaiementActions::cotisationEspeces(),
+                PaiementActions::renouvellementEspeces(),
                 PaiementActions::exoneration(),
                 ActionGroup::make(ChangerStatutAction::toutes())
                     ->label('Statut')

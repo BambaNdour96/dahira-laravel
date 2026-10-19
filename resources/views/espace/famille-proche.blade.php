@@ -21,6 +21,13 @@
         </div>
     </div>
 
+    @if ($renouvellement !== null && ! $renouvellement->estFait())
+        <a href="{{ route('famille.renouvellement', $proche) }}" class="mt-5 block rounded-xl bg-or-100 p-4 ring-1 ring-or-400 hover:bg-or-200">
+            <p class="font-semibold text-emerald-950">🔄 Renouvellement {{ $renouvellement->campagne->exercice->libelle }} : {{ \App\Models\Renouvellement::LIBELLES[$renouvellement->statut] }}</p>
+            <p class="mt-1 text-sm text-emerald-900">Vérifier sa fiche et régler les frais.</p>
+        </a>
+    @endif
+
     @if (in_array($proche->statut, [\App\Enums\StatutMembre::EnAttente, \App\Enums\StatutMembre::ACorriger], true))
         <div class="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
             Sa fiche attend la validation de votre Jewrine de cellule.

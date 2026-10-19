@@ -3,6 +3,7 @@
 use App\Models\Cellule;
 use App\Models\Commission;
 use App\Models\CommissionComite;
+use App\Models\Exercice;
 use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\Parametre;
@@ -12,6 +13,7 @@ use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
 use App\Services\ComiteService;
 use App\Services\CommissionService;
+use App\Services\RenouvellementService;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
 use Database\Seeders\ReglesValidationSeeder;
@@ -153,7 +155,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement',
     ])->assertNoJavascriptErrors();
 });
 
@@ -326,5 +328,20 @@ it('laisse un membre demander à changer de cellule, puis se porter volontaire, 
         ->press('Je me propose')
         ->assertSee('Votre proposition est envoyée au chef de la commission Cuisine')
         ->assertSee('Proposition en attente')
+        ->assertNoJavascriptErrors();
+});
+
+it('fait vérifier sa fiche pour le renouvellement, sur le téléphone', function () {
+    $exercice = Exercice::query()->create(['libelle' => '2027', 'date_debut' => '2027-01-01', 'date_fin' => '2027-12-31']);
+    $this->membre->forceFill(['valide_le' => now()->subYear()])->save();
+    app(RenouvellementService::class)->ouvrir($exercice, now()->addMonths(2), $this->super);
+    $this->actingAs($this->compte);
+
+    visit('/mon-espace')->on()->mobile()->assertSee('Renouveler mon adhésion 2027')->assertNoJavascriptErrors();
+    visit('/renouvellement')->on()->mobile()
+        ->assertSee('Vérifier la fiche')
+        ->press('Tout est exact')
+        ->assertSee('Il reste à régler les frais de renouvellement')
+        ->assertSee('J\'ai payé')
         ->assertNoJavascriptErrors();
 });
