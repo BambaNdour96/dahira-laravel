@@ -5,7 +5,6 @@ use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Filament\Exports\MembreExporter;
 use App\Filament\Exports\PaiementExporter;
-use App\Filament\Imports\MembreImporter;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Resources\Cellules\Pages\ManageCellules;
 use App\Filament\Resources\Commissions\Pages\ManageCommissions;
@@ -30,7 +29,6 @@ use Database\Seeders\ParametresSeeder;
 use Database\Seeders\RolesSeeder;
 use Database\Seeders\TarifsSeeder;
 use Filament\Actions\Exports\Models\Export;
-use Filament\Actions\Imports\Models\Import;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -286,19 +284,14 @@ it('connecte un administrateur au panneau avec son numéro de téléphone', func
     $this->assertAuthenticatedAs($compte);
 });
 
-it('décrit les colonnes et les messages des exports et de l\'import', function () {
+it('décrit les colonnes et les messages des exports', function () {
     $export = new Export;
     $export->forceFill(['successful_rows' => 3, 'total_rows' => 3]);
 
-    $import = new Import;
-    $import->forceFill(['successful_rows' => 2, 'total_rows' => 2]);
-
     expect(PaiementExporter::getColumns())->not->toBeEmpty()
         ->and(MembreExporter::getColumns())->not->toBeEmpty()
-        ->and(MembreImporter::getColumns())->not->toBeEmpty()
         ->and(PaiementExporter::getCompletedNotificationBody($export))->toContain('3')
-        ->and(MembreExporter::getCompletedNotificationBody($export))->toContain('3')
-        ->and(MembreImporter::getCompletedNotificationBody($import))->toContain('2');
+        ->and(MembreExporter::getCompletedNotificationBody($export))->toContain('3');
 });
 
 it('donne un libellé en français à chaque statut de carte et de paiement', function () {

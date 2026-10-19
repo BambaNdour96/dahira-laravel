@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AbonnementTelephoneController;
+use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\BordereauRemiseController;
 use App\Http\Controllers\BudgetComiteController;
 use App\Http\Controllers\CaisseController;
@@ -42,6 +43,7 @@ use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RecuSympathisantController;
 use App\Http\Controllers\RelanceController;
 use App\Http\Controllers\RenouvellementController;
+use App\Http\Controllers\RepriseController;
 use App\Http\Controllers\SuppressionCompteController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\VolontariatController;
@@ -72,6 +74,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/connexion', [ConnexionController::class, 'store'])
         ->middleware('throttle:connexion')
         ->name('login.store');
+
+    // Activer le compte d'une fiche reprise des listes existantes
+    Route::get('/activer-mon-compte', [ActivationController::class, 'create'])->name('activation');
+    Route::post('/activer-mon-compte', [ActivationController::class, 'store'])->middleware('throttle:connexion')->name('activation.store');
 
     // Mot de passe oublié
     Route::get('/mot-de-passe-oublie', [MotDePasseOublieController::class, 'create'])->name('password.request');
@@ -183,6 +189,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');
     });
     Route::get('/remises/{remise}/bordereau', BordereauRemiseController::class)->name('remises.bordereau');
+    Route::get('/reprise/modele', [RepriseController::class, 'modele'])->name('reprise.modele');
+    Route::get('/reprise/{import}/rapport', [RepriseController::class, 'rapport'])->name('reprise.rapport');
     Route::get('/lots-cartes/{lot}/{format}', LotCartesController::class)->whereIn('format', ['pdf', 'csv'])->name('lots-cartes.fichier');
     Route::post('/pointage/{evenement}/sympathisants', [PointageController::class, 'accueillirSympathisant'])->name('pointage.sympathisant.nouveau');
     Route::post('/pointage/{evenement}/sympathisants/{sympathisant}', [PointageController::class, 'sympathisantPresent'])->name('pointage.sympathisant');

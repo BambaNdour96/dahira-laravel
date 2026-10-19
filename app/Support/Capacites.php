@@ -66,7 +66,7 @@ final class Capacites
             'membres.statut_responsables' => 'Changer le statut d\'un responsable',
             'cartes.revoquer' => 'Révoquer une carte',
             'cartes.imprimer' => 'Préparer les lots de cartes en plastique pour l\'imprimeur',
-            'membres.importer' => 'Importer des membres',
+            'membres.importer' => 'Reprendre les listes existantes (import de membres ; le Jewrine pour sa cellule)',
             'membres.exporter' => 'Exporter les membres',
             'membres.changer_cellule' => 'Valider ou refuser un changement de cellule (seul le super administrateur)',
             'renouvellement.ouvrir' => 'Ouvrir la campagne de renouvellement annuel (seul le super administrateur)',
@@ -162,7 +162,7 @@ final class Capacites
         ],
         'jewrine_cellule' => [
             'panneau.acceder', 'panneau.accueil', 'espace.responsable',
-            'membres.voir.cellule', 'membres.inscrire.cellule', 'membres.modifier.cellule', 'membres.valider.cellule',
+            'membres.voir.cellule', 'membres.inscrire.cellule', 'membres.modifier.cellule', 'membres.valider.cellule', 'membres.importer.cellule',
             'cotisations.suivre.cellule', 'relances.envoyer.cellule', 'programmes.voir.cellule',
             'dahiras.voir.cellule', 'dahiras.gerer.cellule', 'pointeurs.designer.cellule',
             'sympathisants.voir.cellule', 'sympathisants.gerer.cellule',

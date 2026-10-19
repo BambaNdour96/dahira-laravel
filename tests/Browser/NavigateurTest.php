@@ -140,6 +140,7 @@ it('n\'oblige jamais à faire défiler la page de côté sur un téléphone', fu
     'accueil' => ['/', false],
     'inscription' => ['/inscription', false],
     'connexion' => ['/connexion', false],
+    'activer mon compte' => ['/activer-mon-compte', false],
     'mon compte' => ['/mon-espace', true],
     'ma carte' => ['/ma-carte', true],
     'mes cotisations' => ['/mes-cotisations', true],
@@ -155,7 +156,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte',
     ])->assertNoJavascriptErrors();
 });
 
@@ -344,4 +345,23 @@ it('fait vérifier sa fiche pour le renouvellement, sur le téléphone', functio
         ->assertSee('Il reste à régler les frais de renouvellement')
         ->assertSee('J\'ai payé')
         ->assertNoJavascriptErrors();
+});
+
+it('laisse un membre importé activer son compte avec son matricule, sur le téléphone', function () {
+    $importe = Membre::factory()->valide()->create(['telephone' => '+221775550101', 'date_naissance' => '1985-06-12', 'cellule_id' => $this->membre->cellule_id]);
+    $importe->forceFill(['matricule' => 'NDK-2019-0042'])->save();
+
+    visit('/activer-mon-compte')->on()->mobile()
+        ->fill('telephone', '77 555 01 01')
+        ->select('date_naissance_jour', '12')
+        ->select('date_naissance_mois', '6')
+        ->select('date_naissance_annee', '1985')
+        ->fill('matricule', 'NDK-2019-0042')
+        ->fill('password', 'Baraka2026')
+        ->fill('password_confirmation', 'Baraka2026')
+        ->click('form button[type="submit"]')
+        ->assertSee('Votre compte est activé')
+        ->assertNoJavascriptErrors();
+
+    expect($importe->fresh()->user_id)->not->toBeNull();
 });

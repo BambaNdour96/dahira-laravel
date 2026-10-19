@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $montant
  * @property int|null $paiement_id
  * @property bool $exoneree
+ * @property bool $reprise
  * @property string|null $motif
  * @property-read Membre $membre
  * @property-read Paiement|null $paiement
@@ -25,7 +26,7 @@ class Cotisation extends Model
 {
     use Indelebile, Journalise;
 
-    protected $fillable = ['membre_id', 'mois', 'montant', 'paiement_id', 'exoneree', 'motif'];
+    protected $fillable = ['membre_id', 'mois', 'montant', 'paiement_id', 'exoneree', 'reprise', 'motif'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -33,6 +34,7 @@ class Cotisation extends Model
         return [
             'mois' => 'date',
             'montant' => 'integer',
+            'reprise' => 'boolean',
             'exoneree' => 'boolean',
         ];
     }

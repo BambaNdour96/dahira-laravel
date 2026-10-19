@@ -31,6 +31,8 @@ use Illuminate\Support\Str;
  * @property LienFamille|null $lien_famille
  * @property int|null $inscrit_par
  * @property Carbon|null $compte_propose_le
+ * @property string|null $origine
+ * @property int|null $import_id
  * @property string|null $matricule
  * @property string $prenom
  * @property string $nom
@@ -96,11 +98,14 @@ class Membre extends Model
         'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
         'situation_professionnelle', 'profession', 'secteur_activite',
         'date_adhesion', 'consentement_le', 'consentement_version',
-        'responsable_id', 'lien_famille', 'inscrit_par', 'compte_propose_le',
+        'responsable_id', 'lien_famille', 'inscrit_par', 'compte_propose_le', 'origine', 'import_id',
     ];
 
     /** Le changement de cellule validé en cours d'application, noté dans l'historique (non enregistré en base). */
     public ?int $changementEnCours = null;
+
+    /** Origine d'une fiche reprise des listes existantes. */
+    public const ORIGINE_REPRISE = 'reprise';
 
     /** Âge de la majorité : en dessous, le membre est un enfant, sans compte de connexion. */
     public const AGE_MAJORITE = 18;

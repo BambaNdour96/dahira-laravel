@@ -47,6 +47,10 @@
         <a href="{{ route('password.request') }}" class="text-emerald-800 underline">Mot de passe oublié ?</a>
         <a href="{{ route('inscription') }}" class="text-emerald-800 underline">S'inscrire</a>
     </div>
+    <p class="mt-3 text-center text-sm text-stone-600">
+        Déjà membre, mais jamais connecté ?
+        <a href="{{ route('activation') }}" class="font-medium text-emerald-800 underline">Activer mon compte</a>
+    </p>
     <div data-empreinte class="mt-6 hidden">
         <div class="flex items-center gap-3 text-xs text-stone-500">
             <span class="h-px flex-1 bg-stone-200"></span> ou <span class="h-px flex-1 bg-stone-200"></span>

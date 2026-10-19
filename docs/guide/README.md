@@ -9,6 +9,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Savoir-faire, volontariat, changement de cellule](savoir-faire-volontariat-cellule.md) | Membres, chefs de commission, Jewrine, super administrateur |
 | [Renouvellement annuel](renouvellement.md) | Super administrateur, Jewrine, Finance, membres |
 | [Cartes en plastique](cartes-plastique.md) | Membres, super administrateur, Secrétaire général, Jewrine |
+| [Reprise des listes existantes](reprise-des-donnees.md) | Super administrateur, Secrétaire général, Jewrine, membres importés |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |
