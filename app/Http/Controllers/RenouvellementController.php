@@ -44,9 +44,9 @@ class RenouvellementController extends Controller
 
     public function declarer(Request $request, RenouvellementService $renouvellements, ?Membre $proche = null): RedirectResponse
     {
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
-        return $this->executer($request, $proche, fn (Renouvellement $renouvellement, User $auteur) => $renouvellements->declarer($renouvellement, $reference, $numeroWave, $auteur), 'Merci ! Le paiement est en cours de vérification par le Jewrine finance.');
+        return $this->executer($request, $proche, fn (Renouvellement $renouvellement, User $auteur) => $renouvellements->declarer($renouvellement, $reference, $numeroWave, $auteur, $moyen), 'Merci ! Le paiement est en cours de vérification par le Jewrine finance.');
     }
 
     /** @param  callable(Renouvellement, User): mixed  $operation */

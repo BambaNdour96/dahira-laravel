@@ -59,6 +59,7 @@ final class RepresentantFinanceService
         );
 
         app(CasquettesService::class)->synchroniser($designe);
+        app(TresorerieService::class)->caisseDuRepresentant($designe);
 
         return $representant;
     }
@@ -197,6 +198,7 @@ final class RepresentantFinanceService
             );
 
             Paiement::query()->whereIn('id', $operations->modelKeys())->update(['remise_id' => $remise->id]);
+            app(TresorerieService::class)->transfererRemise($remise);
 
             return $remise;
         });
@@ -213,7 +215,7 @@ final class RepresentantFinanceService
 
         $representant->user->notify(new NotificationMembre(
             'Paiement à valider',
-            $paiement->membre->prenom.' '.$paiement->membre->nom.' a déclaré '.CollecteService::fcfa($paiement->montant).' par Wave.',
+            $paiement->membre->prenom.' '.$paiement->membre->nom.' a déclaré '.CollecteService::fcfa($paiement->montant).' par '.$paiement->moyen->getLabel().'.',
             route('caisse.index'),
             'Ouvrir ma caisse',
         ));

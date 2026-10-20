@@ -7,6 +7,7 @@ use App\Enums\StatutPaiement;
 use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
 use App\Services\RecuService;
+use App\Services\TresorerieService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property StatutPaiement $statut
  * @property string|null $motif_refus
  * @property int|null $cellule_id
+ * @property int|null $caisse_id
  * @property Carbon $declare_le
  * @property int|null $declare_par
  * @property Carbon|null $traite_le
@@ -38,7 +40,7 @@ class Paiement extends Model
     use Indelebile, Journalise;
 
     protected $fillable = [
-        'membre_id', 'cellule_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
+        'membre_id', 'cellule_id', 'caisse_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
         'motif_refus', 'declare_le', 'declare_par', 'traite_le', 'traite_par',
     ];
 
@@ -48,6 +50,13 @@ class Paiement extends Model
         static::creating(function (Paiement $paiement): void {
             if ($paiement->cellule_id === null) {
                 $paiement->cellule_id = Membre::query()->whereKey($paiement->membre_id)->value('cellule_id');
+            }
+        });
+
+        // Un paiement validé entre dans sa caisse : la trésorerie le voit aussitôt.
+        static::saved(function (Paiement $paiement): void {
+            if ($paiement->statut === StatutPaiement::Confirme && $paiement->caisse_id === null) {
+                app(TresorerieService::class)->encaisser($paiement);
             }
         });
 

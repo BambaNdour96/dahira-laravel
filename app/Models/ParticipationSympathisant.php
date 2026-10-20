@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MoyenPaiement;
 use App\Models\Concerns\Indelebile;
+use App\Services\TresorerieService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -32,6 +33,12 @@ class ParticipationSympathisant extends Model
     protected $table = 'participations_sympathisants';
 
     protected $fillable = ['collecte_id', 'sympathisant_id', 'montant', 'moyen', 'numero_recu', 'enregistre_par'];
+
+    protected static function booted(): void
+    {
+        // La participation entre dans la caisse de son moyen.
+        static::created(fn (ParticipationSympathisant $participation) => app(TresorerieService::class)->encaisserParticipation($participation));
+    }
 
     /** @return array<string, string> */
     protected function casts(): array

@@ -16,6 +16,7 @@ class ParametresSeeder extends Seeder
             'wave_lien_2_mois' => 'Lien Wave : cotisation 2 mois (2 000 FCFA)',
             'wave_lien_3_mois' => 'Lien Wave : cotisation 3 mois (3 000 FCFA)',
             'wave_lien_paiement' => 'Lien Wave général (secours, sans montant fixe)',
+            'orange_money_numero' => 'Numéro Orange Money de la Daara (pour recevoir les paiements)',
         ];
 
         foreach ($parametres as $cle => $libelle) {

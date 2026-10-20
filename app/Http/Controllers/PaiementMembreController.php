@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MoyenPaiement;
 use App\Enums\StatutMembre;
 use App\Models\Membre;
 use App\Models\User;
@@ -20,10 +21,10 @@ class PaiementMembreController extends Controller
     public function declarer(Request $request, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
-        [$reference, $numeroWave] = self::valider($request);
+        [$reference, $numeroWave, $moyen] = self::valider($request);
 
         try {
-            $paiements->declarer($membre, $reference, $numeroWave);
+            $paiements->declarer($membre, $reference, $numeroWave, null, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }
@@ -47,20 +48,23 @@ class PaiementMembreController extends Controller
     }
 
     /**
-     * Contrôle commun des déclarations : référence unique et bien formée, numéro Wave valide.
+     * Contrôle commun des déclarations : moyen (Wave ou Orange Money), référence unique et bien formée, numéro valide.
      *
-     * @return array{0: string, 1: string|null}
+     * @return array{0: string, 1: string|null, 2: MoyenPaiement}
      */
     public static function valider(Request $request): array
     {
+        $moyen = $request->input('moyen') === MoyenPaiement::OrangeMoney->value ? MoyenPaiement::OrangeMoney : MoyenPaiement::Wave;
         $request->merge(['reference' => AntiFraude::normaliserReference($request->input('reference'))]);
 
         $request->validate([
-            'reference' => ['required', 'string', 'regex:'.AntiFraude::FORMAT_REFERENCE, 'unique:paiements,reference'],
+            'reference' => ['required', 'string', 'regex:'.($moyen === MoyenPaiement::OrangeMoney ? AntiFraude::FORMAT_ORANGE_MONEY : AntiFraude::FORMAT_REFERENCE), 'unique:paiements,reference'],
             'numero_wave' => ['nullable', 'string', 'max:30'],
         ], [
-            'reference.required' => 'Indiquez la référence de votre transaction Wave.',
-            'reference.regex' => 'Référence Wave invalide : elle commence par T_, suivi de 12 à 20 lettres et chiffres. Exemple : T_CN535JQDN4VAPI5R.',
+            'reference.required' => 'Indiquez la référence de votre transaction '.$moyen->getLabel().'.',
+            'reference.regex' => $moyen === MoyenPaiement::OrangeMoney
+                ? 'Référence Orange Money invalide : des lettres, des chiffres et des points, comme dans le SMS de confirmation.'
+                : 'Référence Wave invalide : elle commence par T_, suivi de 12 à 20 lettres et chiffres. Exemple : T_CN535JQDN4VAPI5R.',
             'reference.unique' => 'Cette référence a déjà été utilisée. Une référence ne peut servir qu\'une seule fois.',
         ]);
 
@@ -76,7 +80,7 @@ class PaiementMembreController extends Controller
             }
         }
 
-        return [(string) $request->input('reference'), $numeroWave];
+        return [(string) $request->input('reference'), $numeroWave, $moyen];
     }
 
     private function membre(Request $request): Membre

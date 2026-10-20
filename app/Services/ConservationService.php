@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
+use App\Models\Caisse;
 use App\Models\Cellule;
 use App\Models\CellulePointeur;
 use App\Models\Collecte;
@@ -111,7 +112,7 @@ final class ConservationService
     }
 
     /** Archive une cellule, une commission de comité, une étape ou un indicateur de projet. */
-    public function archiver(Cellule|CommissionComite|Jalon|Indicateur|Competence $objet, User $auteur): void
+    public function archiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence $objet, User $auteur): void
     {
         if ($objet->estArchive()) {
             throw new DomainException('Déjà archivé.');
@@ -128,7 +129,7 @@ final class ConservationService
         $objet->forceFill(['archive_le' => now(), 'archive_par' => $auteur->id])->save();
     }
 
-    public function desarchiver(Cellule|CommissionComite|Jalon|Indicateur|Competence $objet): void
+    public function desarchiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence $objet): void
     {
         $objet->forceFill(['archive_le' => null, 'archive_par' => null])->save();
     }

@@ -57,24 +57,24 @@ final class CartePhysiqueService
     }
 
     /** Le membre (ou celui qui gère la fiche de son proche) commande la carte et déclare son paiement Wave. */
-    public function commander(Membre $membre, string $reference, ?string $numeroWave, User $declarant): Paiement
+    public function commander(Membre $membre, string $reference, ?string $numeroWave, User $declarant, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         if ($membre->user_id !== $declarant->id && ! MembrePolicy::gereLaFiche($declarant, $membre)) {
             throw new DomainException('Seuls le membre et celui qui gère sa fiche commandent sa carte en plastique.');
         }
 
-        return $this->creerCommande($membre, $reference, $numeroWave, $declarant);
+        return $this->creerCommande($membre, $reference, $numeroWave, $declarant, $moyen);
     }
 
     /** Un autre membre paie la carte en plastique d'un membre qui a son compte (« Payer pour un membre »). */
-    public function commanderPourAutrui(Membre $membre, string $reference, ?string $numeroWave, User $payeur): Paiement
+    public function commanderPourAutrui(Membre $membre, string $reference, ?string $numeroWave, User $payeur, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         app(PaiementPourAutrui::class)->verifier($membre, $payeur);
 
-        return $this->creerCommande($membre, $reference, $numeroWave, $payeur);
+        return $this->creerCommande($membre, $reference, $numeroWave, $payeur, $moyen);
     }
 
-    private function creerCommande(Membre $membre, string $reference, ?string $numeroWave, User $declarant): Paiement
+    private function creerCommande(Membre $membre, string $reference, ?string $numeroWave, User $declarant, MoyenPaiement $moyen): Paiement
     {
         $montant = $this->verifierCommandable($membre);
 
@@ -82,7 +82,7 @@ final class CartePhysiqueService
             'objet' => 'carte_physique',
             'montant' => $montant,
             'nombre_mois' => 0,
-            'moyen' => MoyenPaiement::Wave,
+            'moyen' => $moyen,
             'reference' => $reference,
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,

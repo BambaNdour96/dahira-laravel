@@ -66,12 +66,12 @@ class CarteController extends Controller
     public function commander(Request $request, CartePhysiqueService $plastique, ?Membre $proche = null): RedirectResponse
     {
         $membre = $this->membreAvecCarte($request, $proche);
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
         $declarant = $request->user();
         abort_unless($declarant instanceof User, 403);
 
         try {
-            $plastique->commander($membre, $reference, $numeroWave, $declarant);
+            $plastique->commander($membre, $reference, $numeroWave, $declarant, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }

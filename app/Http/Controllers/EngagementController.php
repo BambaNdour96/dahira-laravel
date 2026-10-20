@@ -81,11 +81,11 @@ class EngagementController extends Controller
             'montant.required' => 'Indiquez le montant versé.',
         ]);
 
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
             $declarant = $request->user();
-            $service->declarer($collecte, $membre, (int) $request->input('montant'), $reference, $numeroWave, $declarant instanceof User ? $declarant : null);
+            $service->declarer($collecte, $membre, (int) $request->input('montant'), $reference, $numeroWave, $declarant instanceof User ? $declarant : null, $moyen);
         } catch (DomainException $e) {
             return back()->withInput()->withErrors(['montant' => $e->getMessage()]);
         }

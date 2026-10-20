@@ -197,7 +197,7 @@ final class CotisationService
     }
 
     /** Le membre (ou le proche qui gère sa fiche, le déclarant) déclare un paiement Wave pour plusieurs mois. */
-    public function declarer(Membre $membre, string $reference, int $nombreMois, ?string $numeroWave = null, ?User $declarant = null): Paiement
+    public function declarer(Membre $membre, string $reference, int $nombreMois, ?string $numeroWave = null, ?User $declarant = null, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         $this->verifierPeutCotiser($membre, $nombreMois);
 
@@ -216,7 +216,7 @@ final class CotisationService
             'objet' => 'cotisation',
             'montant' => $nombreMois * $this->montantMensuel(),
             'nombre_mois' => $nombreMois,
-            'moyen' => MoyenPaiement::Wave,
+            'moyen' => $moyen,
             'reference' => $reference,
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,

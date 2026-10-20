@@ -13,6 +13,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Arabe et Coran](arabe-coran.md) | Membres, commission Culturelle, Jewrine, super administrateur |
 | [Comptes de recette](comptes-de-recette.md) | Recette uniquement (jamais en production) |
 | [Dispense de cotisation](dispenses.md) | Jewrine de cellule, Jewrine national |
+| [Caisses et trésorerie](caisses.md) | Super administrateur, Finance, représentants, membres |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |

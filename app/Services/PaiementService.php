@@ -52,7 +52,7 @@ final class PaiementService
     }
 
     /** Le membre (ou le proche qui gère sa fiche, le déclarant) déclare le paiement Wave de ses frais de carte. */
-    public function declarer(Membre $membre, string $reference, ?string $numeroWave = null, ?User $declarant = null): Paiement
+    public function declarer(Membre $membre, string $reference, ?string $numeroWave = null, ?User $declarant = null, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         if ($membre->statut !== StatutMembre::Accepte) {
             throw new DomainException('Votre demande doit d\'abord être acceptée par votre Jewrine de cellule.');
@@ -65,7 +65,7 @@ final class PaiementService
         return $membre->paiements()->create([
             'objet' => 'frais_carte',
             'montant' => $this->montantFraisCarte(),
-            'moyen' => MoyenPaiement::Wave,
+            'moyen' => $moyen,
             'reference' => $reference,
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,

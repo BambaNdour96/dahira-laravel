@@ -155,6 +155,7 @@
 
                         <div class="space-y-2">
                             <p class="font-semibold text-emerald-900">3. Indiquez votre paiement</p>
+                            @include('partials.moyen-paiement')
                             <input type="text" name="reference" value="{{ $actif ? old('reference') : '' }}" required autocomplete="off"
                                    placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R"
                                    class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">

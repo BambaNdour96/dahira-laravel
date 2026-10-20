@@ -127,10 +127,10 @@ class FamilleController extends Controller
     {
         $utilisateur = self::utilisateur($request);
         self::verifier($utilisateur, $proche);
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
-            $paiements->declarer($proche, $reference, $numeroWave, $utilisateur);
+            $paiements->declarer($proche, $reference, $numeroWave, $utilisateur, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }

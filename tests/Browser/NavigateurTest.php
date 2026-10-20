@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\MoyenPaiement;
 use App\Models\Cellule;
 use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Exercice;
 use App\Models\Instance;
 use App\Models\Membre;
+use App\Models\Paiement;
 use App\Models\Parametre;
 use App\Models\Reunion;
 use App\Models\User;
@@ -157,7 +159,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte', '/admin/recensement-arabe-coran',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte', '/admin/recensement-arabe-coran', '/admin/caisses', '/admin/dispenses',
     ])->assertNoJavascriptErrors();
 });
 
@@ -379,4 +381,18 @@ it('montre la rubrique Arabe et Coran dans le profil, et le recensement à la co
         ->press('Filtrer')
         ->assertSee('Aucun membre pour ce filtre')
         ->assertNoJavascriptErrors();
+});
+
+it('laisse déclarer un paiement Orange Money, avec le contrôle de la référence, sur le téléphone', function () {
+    $this->actingAs($this->compte);
+
+    visit('/mes-cotisations')->on()->mobile()
+        ->click('Payé avec Orange Money')
+        ->fill('reference', 'mp261020.1530.c12345')
+        ->assertSee('✓ Format de la référence correct')
+        ->press('J\'ai payé')
+        ->assertSee('Merci ! Votre paiement est en cours de vérification')
+        ->assertNoJavascriptErrors();
+
+    expect(Paiement::query()->where('reference', 'MP261020.1530.C12345')->value('moyen'))->toBe(MoyenPaiement::OrangeMoney);
 });

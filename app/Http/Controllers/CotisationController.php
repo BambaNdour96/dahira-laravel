@@ -55,11 +55,11 @@ class CotisationController extends Controller
             'nombre_mois.in' => 'Choisissez 1, 2 ou 3 mois.',
         ]);
 
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
             $declarant = $request->user();
-            $cotisations->declarer($membre, $reference, (int) $request->input('nombre_mois'), $numeroWave, $declarant instanceof User ? $declarant : null);
+            $cotisations->declarer($membre, $reference, (int) $request->input('nombre_mois'), $numeroWave, $declarant instanceof User ? $declarant : null, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['reference' => $e->getMessage()]);
         }

@@ -17,6 +17,9 @@ final class AntiFraude
     /** Format d'une référence Wave, après mise en majuscules et suppression des espaces. */
     public const FORMAT_REFERENCE = '/^T_[A-Z0-9]{12,20}$/';
 
+    /** Référence Orange Money : contrôle souple (lettres, chiffres et points), en attendant le format exact d'un vrai SMS. */
+    public const FORMAT_ORANGE_MONEY = '/^[A-Z0-9.]{4,40}$/';
+
     /**
      * Personne ne confirme son propre paiement : un autre membre du bureau doit le faire.
      * Le paiement d'un proche dont on gère la fiche compte comme le sien.

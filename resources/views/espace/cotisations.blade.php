@@ -119,6 +119,7 @@
                         <input type="tel" name="numero_wave" value="{{ old('numero_wave', $numeroParDefaut) }}" inputmode="tel" autocomplete="tel"
                                placeholder="Numéro Wave utilisé" title="Numéro Wave utilisé pour payer"
                                class="rounded-lg border border-stone-300 px-3 py-2.5 text-base sm:w-44">
+                        @include('partials.moyen-paiement')
                         <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
                                placeholder="Exemple : T_CN535JQDN4VAPI5R"
                                class="flex-1 rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">

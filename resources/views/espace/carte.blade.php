@@ -113,6 +113,7 @@
                 @csrf
                 <input type="tel" name="numero_wave" value="{{ old('numero_wave', auth()->user()?->telephone) }}" inputmode="tel"
                        placeholder="Numéro Wave utilisé" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                @include('partials.moyen-paiement')
                 <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
                        placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-base">
                 <button type="submit" class="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white hover:bg-emerald-900">Commander et payer</button>

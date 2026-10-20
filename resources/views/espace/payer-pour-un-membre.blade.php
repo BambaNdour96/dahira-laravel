@@ -55,6 +55,7 @@
                     @endforeach
                 </div>
             @endif
+            @include('partials.moyen-paiement')
             <input type="text" name="reference" value="{{ old('reference') }}" required autocomplete="off"
                    placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
             <input type="tel" name="numero_wave" value="{{ old('numero_wave', auth()->user()?->telephone) }}" inputmode="tel"
@@ -71,6 +72,7 @@
                 @csrf
                 <h2 class="font-semibold text-emerald-950">🔄 Son renouvellement {{ $renouvellement->campagne->exercice->libelle }} ({{ number_format($fraisRenouvellement, 0, ',', ' ') }} FCFA)</h2>
                 <p class="text-xs text-emerald-900">La vérification de sa fiche reste à sa main ; il est prévenu de votre paiement.</p>
+                @include('partials.moyen-paiement')
                 <input type="text" name="reference" required autocomplete="off"
                        placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
                 <input type="tel" name="numero_wave" value="{{ auth()->user()?->telephone }}" inputmode="tel"
@@ -87,6 +89,7 @@
             <form method="POST" action="{{ route('autrui.plastique', $beneficiaire) }}" class="mt-5 space-y-3 rounded-xl bg-white p-5 text-sm shadow-sm ring-1 ring-stone-200">
                 @csrf
                 <h2 class="font-semibold text-emerald-900">🪪 Sa carte en plastique ({{ number_format($tarifPlastique, 0, ',', ' ') }} FCFA)</h2>
+                @include('partials.moyen-paiement')
                 <input type="text" name="reference" required autocomplete="off"
                        placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
                 <input type="tel" name="numero_wave" value="{{ auth()->user()?->telephone }}" inputmode="tel"
@@ -112,6 +115,7 @@
                 @if ($lienGeneral)
                     <a href="{{ $lienGeneral }}" class="inline-block rounded-lg bg-[#1dc8ff] px-3 py-2 font-semibold text-white hover:opacity-90">Payer avec Wave</a>
                 @endif
+                @include('partials.moyen-paiement')
                 <input type="text" name="reference" required autocomplete="off"
                        placeholder="Référence Wave, exemple : T_CN535JQDN4VAPI5R" class="block w-full font-mono {{ $champ }}">
                 <input type="tel" name="numero_wave" value="{{ auth()->user()?->telephone }}" inputmode="tel"

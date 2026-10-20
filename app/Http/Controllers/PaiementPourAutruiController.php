@@ -68,11 +68,11 @@ class PaiementPourAutruiController extends Controller
     {
         $payeur = self::payeur($request);
         $request->validate(['nombre_mois' => ['required', 'integer', Rule::in(CotisationService::CHOIX_MOIS)]], MessagesValidation::tous());
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
             $autrui->verifier($beneficiaire, $payeur);
-            $cotisations->declarer($beneficiaire, $reference, (int) $request->input('nombre_mois'), $numeroWave, $payeur);
+            $cotisations->declarer($beneficiaire, $reference, (int) $request->input('nombre_mois'), $numeroWave, $payeur, $moyen);
         } catch (DomainException $e) {
             return back()->withInput()->withErrors(['reference' => $e->getMessage()]);
         }
@@ -85,11 +85,11 @@ class PaiementPourAutruiController extends Controller
     {
         $payeur = self::payeur($request);
         $request->validate(['montant' => ['required', 'integer', 'min:1', 'max:100000000']], MessagesValidation::tous());
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
             $autrui->verifier($beneficiaire, $payeur);
-            $collectes->declarer($collecte, $beneficiaire, (int) $request->input('montant'), $reference, $numeroWave, $payeur);
+            $collectes->declarer($collecte, $beneficiaire, (int) $request->input('montant'), $reference, $numeroWave, $payeur, $moyen);
         } catch (DomainException $e) {
             return back()->withInput()->withErrors(['montant' => $e->getMessage()]);
         }
@@ -101,12 +101,12 @@ class PaiementPourAutruiController extends Controller
     public function renouvellement(Request $request, Membre $beneficiaire, RenouvellementService $renouvellements): RedirectResponse
     {
         $payeur = self::payeur($request);
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
         $renouvellement = $renouvellements->pour($beneficiaire);
 
         try {
             abort_unless($renouvellement !== null, 404);
-            $renouvellements->declarerPourAutrui($renouvellement, $reference, $numeroWave, $payeur);
+            $renouvellements->declarerPourAutrui($renouvellement, $reference, $numeroWave, $payeur, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['renouvellement' => $e->getMessage()]);
         }
@@ -118,10 +118,10 @@ class PaiementPourAutruiController extends Controller
     public function plastique(Request $request, Membre $beneficiaire, CartePhysiqueService $plastique): RedirectResponse
     {
         $payeur = self::payeur($request);
-        [$reference, $numeroWave] = PaiementMembreController::valider($request);
+        [$reference, $numeroWave, $moyen] = PaiementMembreController::valider($request);
 
         try {
-            $plastique->commanderPourAutrui($beneficiaire, $reference, $numeroWave, $payeur);
+            $plastique->commanderPourAutrui($beneficiaire, $reference, $numeroWave, $payeur, $moyen);
         } catch (DomainException $e) {
             return back()->withErrors(['plastique' => $e->getMessage()]);
         }

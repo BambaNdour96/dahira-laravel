@@ -154,7 +154,7 @@ final class CollecteService
      * Versement Wave déclaré par le membre, à confirmer par le Jewrine finance. Le déclarant peut être le membre qui
      * gère sa fiche, ou un autre membre qui paie pour lui : celui-ci ne voit jamais les montants du bénéficiaire.
      */
-    public function declarer(Collecte $collecte, Membre $membre, int $montant, string $reference, ?string $numeroWave = null, ?User $declarant = null): Paiement
+    public function declarer(Collecte $collecte, Membre $membre, int $montant, string $reference, ?string $numeroWave = null, ?User $declarant = null, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         $engagement = $this->engagementDe($collecte, $membre);
         $pourUnAutre = PaiementPourAutrui::estUnTiers($declarant, $membre);
@@ -187,7 +187,7 @@ final class CollecteService
             'objet' => 'collecte',
             'montant' => $montant,
             'nombre_mois' => 0,
-            'moyen' => MoyenPaiement::Wave,
+            'moyen' => $moyen,
             'reference' => $reference,
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,

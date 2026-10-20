@@ -105,7 +105,7 @@
             if (!champ.min) { champ.min = '1900-01-01'; }
         });
 
-        // 6. Référence Wave : majuscules automatiques, format contrôlé, bouton grisé sinon.
+        // 6. Référence Wave ou Orange Money : majuscules automatiques, format contrôlé selon le moyen choisi, bouton grisé sinon.
         tous('input[name="reference"]').forEach((champ) => {
             champ.setAttribute('autocapitalize', 'characters');
             champ.setAttribute('autocorrect', 'off');
@@ -117,13 +117,17 @@
             const maj = () => {
                 const v = champ.value.toUpperCase().replace(/\s+/g, '');
                 if (champ.value !== v) { champ.value = v; }
-                const ok = /^T_[A-Z0-9]{12,20}$/.test(v);
+                const orange = formulaire?.querySelector('input[name="moyen"]:checked')?.value === 'orange_money';
+                const ok = orange ? /^[A-Z0-9.]{4,40}$/.test(v) : /^T_[A-Z0-9]{12,20}$/.test(v);
                 if (bouton) { bloquer(bouton, !ok); }
                 aide.className = 'mt-1 text-xs ' + (ok ? 'font-medium text-emerald-800' : v === '' ? 'text-stone-500' : 'text-red-700');
                 aide.textContent = ok ? '✓ Format de la référence correct'
+                    : orange ? 'Recopiez la référence du SMS Orange Money : des lettres, des chiffres et des points.'
                     : 'Format attendu : T_ suivi de 12 à 20 lettres et chiffres, par exemple T_CN535JQDN4VAPI5R.';
+                champ.placeholder = orange ? 'Référence du SMS Orange Money' : 'Exemple : T_CN535JQDN4VAPI5R';
             };
             champ.addEventListener('input', maj);
+            formulaire?.querySelectorAll('input[name="moyen"]').forEach((choix) => choix.addEventListener('change', maj));
             maj();
         });
 

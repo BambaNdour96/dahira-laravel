@@ -155,7 +155,7 @@ final class RenouvellementService
     }
 
     /** Étape 2 : le paiement Wave des frais de renouvellement, déclaré par le membre ou pour lui. */
-    public function declarer(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $declarant): Paiement
+    public function declarer(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $declarant, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         $this->verifierAPayer($renouvellement, $declarant);
 
@@ -163,14 +163,14 @@ final class RenouvellementService
             throw new DomainException('Vérifiez d\'abord la fiche.');
         }
 
-        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $declarant);
+        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $declarant, $moyen);
     }
 
     /**
      * Un autre membre paie le renouvellement (« Payer pour un membre ») : le bénéficiaire, qui a son compte, est prévenu ;
      * la vérification de la fiche reste à sa main, et l'empreinte protège la carte s'il a changé.
      */
-    public function declarerPourAutrui(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $payeur): Paiement
+    public function declarerPourAutrui(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $payeur, MoyenPaiement $moyen = MoyenPaiement::Wave): Paiement
     {
         app(PaiementPourAutrui::class)->verifier($renouvellement->membre, $payeur);
 
@@ -178,10 +178,10 @@ final class RenouvellementService
             throw new DomainException('Ce renouvellement est déjà réglé.');
         }
 
-        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $payeur);
+        return $this->creerDeclaration($renouvellement, $reference, $numeroWave, $payeur, $moyen);
     }
 
-    private function creerDeclaration(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $declarant): Paiement
+    private function creerDeclaration(Renouvellement $renouvellement, string $reference, ?string $numeroWave, User $declarant, MoyenPaiement $moyen): Paiement
     {
         if ($this->paiementEnCours($renouvellement->membre) !== null) {
             throw new DomainException('Un paiement de renouvellement est déjà en cours de vérification.');
@@ -191,7 +191,7 @@ final class RenouvellementService
             'objet' => 'renouvellement',
             'montant' => app(PaiementService::class)->montantFraisCarte(),
             'nombre_mois' => 0,
-            'moyen' => MoyenPaiement::Wave,
+            'moyen' => $moyen,
             'reference' => $reference,
             'numero_wave' => $numeroWave,
             'statut' => StatutPaiement::Declare,
