@@ -11,6 +11,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Cartes en plastique](cartes-plastique.md) | Membres, super administrateur, Secrétaire général, Jewrine |
 | [Reprise des listes existantes](reprise-des-donnees.md) | Super administrateur, Secrétaire général, Jewrine, membres importés |
 | [Arabe et Coran](arabe-coran.md) | Membres, commission Culturelle, Jewrine, super administrateur |
+| [Comptes de recette](comptes-de-recette.md) | Recette uniquement (jamais en production) |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |
