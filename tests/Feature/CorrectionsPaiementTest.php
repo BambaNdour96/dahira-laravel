@@ -136,10 +136,12 @@ it('réaffecte une cotisation vers un Jàyante : nouveau reçu, l\'argent reste 
     expect(fn () => $this->service->reaffecter($versement, ['objet' => 'cotisation'], 'Erreur d\'objet', $this->tresorier))->toThrow(DomainException::class, 'mois entiers');
 });
 
-it('transforme un paiement en avoir, que la Finance impute à la main, sans mouvement de caisse', function () {
+it('transforme un paiement en avoir, que la Finance impute à la main, sans changer le solde de la caisse', function () {
     $paiement = $this->cotisations->enregistrerEspeces($this->awa, 2, $this->representante);
     $avoir = $this->service->versAvoir($paiement, 'Payé en trop', $this->tresorier);
-    $mouvements = MouvementCaisse::query()->count();
+    $caisse = $this->tresorerie->caisseDuRepresentant($this->representante);
+    expect($caisse->solde())->toBe(2000)
+        ->and(MouvementCaisse::query()->where('avoir_id', $avoir->id)->where('nature', 'reaffectation')->value('sens'))->toBe(MouvementCaisse::ENTREE);
 
     expect($avoir->reste)->toBe(2000);
     $this->actingAs($this->awa->user)->get(route('cotisations'))->assertSee('un avoir de');
@@ -153,12 +155,13 @@ it('transforme un paiement en avoir, que la Finance impute à la main, sans mouv
     expect($avoir->fresh()->reste)->toBe(1000)
         ->and($impute->avoir_id)->toBe($avoir->id)
         ->and($impute->caisse_id)->toBeNull()
-        ->and(MouvementCaisse::query()->count())->toBe($mouvements)
+        ->and($caisse->solde())->toBe(2000)
+        ->and(MouvementCaisse::query()->where('paiement_id', $impute->id)->where('sens', MouvementCaisse::ENTREE)->value('montant'))->toBe(1000)
         ->and(fn () => $this->service->imputerAvoir($avoir->fresh(), ['objet' => 'cotisation'], 5000, $this->tresorier))->toThrow(DomainException::class, 'Le montant imputé');
 
     // Annuler un paiement par avoir rend son montant à l'avoir.
     $this->service->contrePasser($impute, 'Mauvais membre', $this->tresorier);
-    expect($avoir->fresh()->reste)->toBe(2000);
+    expect($avoir->fresh()->reste)->toBe(2000)->and($caisse->solde())->toBe(2000);
 });
 
 it('rembourse par un ordre de dépense : le paiement n\'est annulé qu\'une fois l\'ordre payé', function () {

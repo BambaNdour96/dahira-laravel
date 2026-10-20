@@ -47,15 +47,17 @@ dataset('roles', [
     'membre' => [['membre'], 'membre'],
 ]);
 
-it('réserve les données de référence au super administrateur', function (array $roles, string $profil) {
+it('réserve les données de référence au super administrateur (les exercices se consultent par la Finance)', function (array $roles, string $profil) {
     $compte = compteAvecRoles($roles);
     $attendu = $profil === 'super';
 
     foreach ([Cellule::class, Commission::class, Exercice::class, Poste::class, Tarif::class] as $modele) {
         $objet = new $modele;
+        // Les exercices se consultent aussi par ceux qui voient les finances (clôture et bilan), sans les modifier.
+        $voit = $attendu || ($modele === Exercice::class && in_array($profil, ['national', 'secretaire', 'jewrine_finance'], true));
 
-        expect($compte->can('viewAny', $modele))->toBe($attendu, "viewAny {$modele}")
-            ->and($compte->can('view', $objet))->toBe($attendu, "view {$modele}")
+        expect($compte->can('viewAny', $modele))->toBe($voit, "viewAny {$modele}")
+            ->and($compte->can('view', $objet))->toBe($voit, "view {$modele}")
             ->and($compte->can('create', $modele))->toBe($attendu, "create {$modele}")
             ->and($compte->can('update', $objet))->toBe($attendu, "update {$modele}")
             ->and($compte->can('delete', $objet))->toBeFalse("delete {$modele} : rien ne se supprime");

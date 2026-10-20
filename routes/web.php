@@ -39,6 +39,7 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ProgrammeExportController;
 use App\Http\Controllers\ProgrammeRapportController;
 use App\Http\Controllers\PvReunionController;
+use App\Http\Controllers\RapportFinancierController;
 use App\Http\Controllers\RapportProjetController;
 use App\Http\Controllers\RapportSuiviPdfController;
 use App\Http\Controllers\RecensementController;
@@ -196,6 +197,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');
     });
     Route::get('/remises/{remise}/bordereau', BordereauRemiseController::class)->name('remises.bordereau');
+    Route::get('/finances/bilan/{exercice}', [RapportFinancierController::class, 'bilan'])->name('finances.bilan');
+    Route::get('/finances/rapport.xlsx', [RapportFinancierController::class, 'excel'])->name('finances.excel');
     Route::get('/ordres-depense/{ordre}/{piece}', PieceOrdreDepenseController::class)->whereIn('piece', ['devis', 'preuve'])->name('ordres-depense.piece');
     Route::get('/reprise/modele', [RepriseController::class, 'modele'])->name('reprise.modele');
     Route::get('/reprise/{import}/rapport', [RepriseController::class, 'rapport'])->name('reprise.rapport');

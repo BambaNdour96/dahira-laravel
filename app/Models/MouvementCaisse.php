@@ -21,10 +21,14 @@ use Illuminate\Support\Carbon;
  * @property int|null $remise_id
  * @property int|null $participation_id
  * @property int|null $ordre_depense_id
+ * @property int|null $avoir_id
  * @property int|null $auteur_id
  * @property Carbon $date_operation
  * @property-read Caisse $caisse
  * @property-read Paiement|null $paiement
+ * @property-read ParticipationSympathisant|null $participation
+ * @property-read OrdreDepense|null $ordreDepense
+ * @property-read Avoir|null $avoir
  * @property-read User|null $auteur
  */
 class MouvementCaisse extends Model
@@ -42,7 +46,7 @@ class MouvementCaisse extends Model
 
     protected $table = 'mouvements_caisse';
 
-    protected $fillable = ['caisse_id', 'sens', 'montant', 'nature', 'libelle', 'paiement_id', 'remise_id', 'participation_id', 'ordre_depense_id', 'auteur_id', 'date_operation'];
+    protected $fillable = ['caisse_id', 'sens', 'montant', 'nature', 'libelle', 'paiement_id', 'remise_id', 'participation_id', 'ordre_depense_id', 'avoir_id', 'auteur_id', 'date_operation'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -60,6 +64,24 @@ class MouvementCaisse extends Model
     public function paiement(): BelongsTo
     {
         return $this->belongsTo(Paiement::class);
+    }
+
+    /** @return BelongsTo<ParticipationSympathisant, $this> */
+    public function participation(): BelongsTo
+    {
+        return $this->belongsTo(ParticipationSympathisant::class, 'participation_id');
+    }
+
+    /** @return BelongsTo<OrdreDepense, $this> */
+    public function ordreDepense(): BelongsTo
+    {
+        return $this->belongsTo(OrdreDepense::class);
+    }
+
+    /** @return BelongsTo<Avoir, $this> */
+    public function avoir(): BelongsTo
+    {
+        return $this->belongsTo(Avoir::class);
     }
 
     /** @return BelongsTo<User, $this> */

@@ -146,6 +146,11 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Signer ou refuser un ordre de dépense (hors Magal) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
 | Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve <br>`depenses.executer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 | Créer et archiver les libellés de dépenses <br>`depenses.libelles` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Décider une réaffectation de fonds (le solde d'un programme vers un projet…) <br>`reaffectations.decider` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Enregistrer une réaffectation de fonds décidée <br>`reaffectations.enregistrer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Préparer la clôture d'un exercice et son bilan <br>`exercices.preparer_cloture` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Confirmer la clôture d'un exercice <br>`exercices.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Voir le détail des paiements par membre dans les rapports <br>`finances.detail_membres` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 
 ### Programmes
 

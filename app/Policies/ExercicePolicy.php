@@ -6,18 +6,19 @@ use App\Models\Exercice;
 use App\Models\User;
 
 /**
- * Réservé à l'administrateur (matrice des permissions, cellule 3).
+ * Les dates se fixent par l'administrateur (référentiel) ; la Finance et le Jewrine national voient les exercices pour
+ * leur clôture et leur bilan. Un exercice clos ne se modifie plus.
  */
 class ExercicePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('referentiel.gerer');
+        return $user->can('referentiel.gerer') || $user->can('finances.voir') || $user->can('exercices.preparer_cloture') || $user->can('exercices.cloturer');
     }
 
     public function view(User $user, Exercice $objet): bool
     {
-        return $user->can('referentiel.gerer');
+        return $this->viewAny($user);
     }
 
     public function create(User $user): bool
@@ -27,7 +28,7 @@ class ExercicePolicy
 
     public function update(User $user, Exercice $objet): bool
     {
-        return $user->can('referentiel.gerer');
+        return $user->can('referentiel.gerer') && ! $objet->estClos();
     }
 
     /** Rien ne se supprime : un exercice reste dans l'historique. */

@@ -16,6 +16,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Caisses et trésorerie](caisses.md) | Super administrateur, Finance, représentants, membres |
 | [Dépenses et ordres de dépense](ordres-de-depense.md) | Finance, Jewrine national, chefs de commission, Jewrine, responsables de projet |
 | [Corriger un paiement validé](corrections.md) | Jewrine finance national |
+| [Réaffectations, rapports financiers, clôture de l'exercice](rapports-et-cloture.md) | Finance, Jewrine national, Secrétaire général, super administrateur |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |

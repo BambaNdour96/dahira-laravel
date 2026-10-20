@@ -62,6 +62,7 @@ final class CorrectionPaiementService
             } elseif ($paiement->avoir !== null) {
                 // Un paiement par avoir annulé rend son montant à l'avoir.
                 $paiement->avoir->increment('reste', $paiement->montant);
+                $this->reimputer($this->caisseDeLAvoir($paiement->avoir), $paiement->montant, ['paiement_id' => $paiement->id], ['avoir_id' => $paiement->avoir->id], 'Retour à l\'avoir #'.$paiement->avoir->id, $auteur);
             }
 
             $this->annuler($paiement, $motif, $auteur);
@@ -85,6 +86,7 @@ final class CorrectionPaiementService
         return DB::transaction(function () use ($paiement, $cible, $motif, $auteur): CorrectionPaiement {
             $this->annuler($paiement, $motif, $auteur);
             $nouveau = $this->nouveauPaiement($paiement, $cible, $paiement->montant, $paiement->moyen, $paiement->caisse_id, null, $auteur);
+            $this->reimputer($this->caisseDeRetrait($paiement), $paiement->montant, ['paiement_id' => $paiement->id], ['paiement_id' => $nouveau->id], 'Réaffectation de '.$paiement->numero_recu, $auteur);
             $correction = $this->tracer($paiement, 'reaffectation', $motif, $auteur, ['nouveau_paiement_id' => $nouveau->id]);
             $this->prevenir($paiement, 'Paiement réaffecté', 'Votre paiement de '.CollecteService::fcfa($paiement->montant).' compte désormais pour : '.$nouveau->libelleObjet().'. Nouveau reçu : '.$nouveau->numero_recu.'.');
 
@@ -103,6 +105,7 @@ final class CorrectionPaiementService
                 'membre_id' => $paiement->membre_id, 'montant' => $paiement->montant, 'reste' => $paiement->montant,
                 'motif' => mb_substr(trim($motif), 0, 255), 'paiement_origine_id' => $paiement->id, 'auteur_id' => $auteur->id,
             ]);
+            $this->reimputer($this->caisseDeRetrait($paiement), $paiement->montant, ['paiement_id' => $paiement->id], ['avoir_id' => $avoir->id], 'Mise en avoir de '.$paiement->numero_recu, $auteur);
             $this->tracer($paiement, 'avoir', $motif, $auteur, ['avoir_id' => $avoir->id]);
             $this->prevenir($paiement, 'Avoir sur votre compte', 'Votre paiement de '.CollecteService::fcfa($paiement->montant).' devient un avoir : la Finance l\'imputera sur un prochain paiement.');
 
@@ -129,6 +132,7 @@ final class CorrectionPaiementService
             $origine = $avoir->origine;
             $paiement = $this->nouveauPaiement($origine ?? new Paiement(['membre_id' => $avoir->membre_id]), $cible, $montant, MoyenPaiement::Avoir, null, $avoir, $auteur);
             $avoir->decrement('reste', $montant);
+            $this->reimputer($this->caisseDeLAvoir($avoir), $montant, ['avoir_id' => $avoir->id], ['paiement_id' => $paiement->id], 'Imputation de l\'avoir #'.$avoir->id, $auteur);
             JournalActivite::enregistrer($avoir, 'modifie', ['apres' => ['imputation' => CollecteService::fcfa($montant).' sur '.$paiement->libelleObjet()]]);
             AvisMembreObserver::avertir($avoir->membre, 'Avoir imputé', CollecteService::fcfa($montant).' de votre avoir réglent : '.$paiement->libelleObjet().'. Reçu : '.$paiement->numero_recu.'.', route('recus.index'), 'Mes reçus');
 
@@ -198,6 +202,28 @@ final class CorrectionPaiementService
         return $caisse->type === TypeCaisse::Representant && $paiement->remise_id !== null
             ? app(TresorerieService::class)->caisse(TypeCaisse::Especes)
             : $caisse;
+    }
+
+    /**
+     * L'argent reste dans sa caisse mais change d'affectation : une sortie de l'ancienne, une entrée dans la nouvelle.
+     *
+     * @param  array<string, int>  $depuis
+     * @param  array<string, int>  $vers
+     */
+    private function reimputer(Caisse $caisse, int $montant, array $depuis, array $vers, string $libelle, User $auteur): void
+    {
+        foreach ([[MouvementCaisse::SORTIE, $depuis], [MouvementCaisse::ENTREE, $vers]] as [$sens, $cible]) {
+            MouvementCaisse::query()->create([
+                'caisse_id' => $caisse->id, 'sens' => $sens, 'montant' => $montant, 'nature' => 'reaffectation', 'libelle' => $libelle,
+                'auteur_id' => $auteur->id, 'date_operation' => now(), ...$cible,
+            ]);
+        }
+    }
+
+    /** La caisse où dort l'argent d'un avoir : celle du paiement d'origine, sinon la caisse générale. */
+    private function caisseDeLAvoir(Avoir $avoir): Caisse
+    {
+        return $avoir->origine !== null ? $this->caisseDeRetrait($avoir->origine) : app(TresorerieService::class)->caisse(TypeCaisse::Especes);
     }
 
     /** Le paiement passe à « annulé » ; ses mois de cotisation sont marqués annulés et redeviennent dus. */
