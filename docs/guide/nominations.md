@@ -141,6 +141,10 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Désigner les représentants finance <br>`representants.designer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 | Recevoir la caisse d'un représentant <br>`caisses.recevoir` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 | Tenir sa caisse de représentant <br>`caisse.tenir` |  |  |  |  |  |  |  |  | ✔ |  |  |
+| Demander un ordre de dépense pour toute la Daara (les chefs de commission, responsables de projet et Jewrine le font pour leur périmètre) <br>`depenses.demander` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Signer ou refuser un ordre de dépense (hors Magal) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve <br>`depenses.executer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Créer et archiver les libellés de dépenses <br>`depenses.libelles` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 
 ### Programmes
 

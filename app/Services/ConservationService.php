@@ -15,6 +15,7 @@ use App\Models\Evenement;
 use App\Models\Indicateur;
 use App\Models\Jalon;
 use App\Models\JournalActivite;
+use App\Models\LibelleDepense;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\ParticipationSympathisant;
@@ -112,7 +113,7 @@ final class ConservationService
     }
 
     /** Archive une cellule, une commission de comité, une étape ou un indicateur de projet. */
-    public function archiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence $objet, User $auteur): void
+    public function archiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense $objet, User $auteur): void
     {
         if ($objet->estArchive()) {
             throw new DomainException('Déjà archivé.');
@@ -129,7 +130,7 @@ final class ConservationService
         $objet->forceFill(['archive_le' => now(), 'archive_par' => $auteur->id])->save();
     }
 
-    public function desarchiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence $objet): void
+    public function desarchiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense $objet): void
     {
         $objet->forceFill(['archive_le' => null, 'archive_par' => null])->save();
     }

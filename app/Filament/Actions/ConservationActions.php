@@ -9,6 +9,7 @@ use App\Models\CommissionComite;
 use App\Models\Competence;
 use App\Models\Indicateur;
 use App\Models\Jalon;
+use App\Models\LibelleDepense;
 use App\Models\RepresentantFinance;
 use App\Models\User;
 use App\Services\ConservationService;
@@ -119,7 +120,7 @@ final class ConservationActions
     /** @phpstan-assert-if-true Cellule|CommissionComite|Jalon|Indicateur $record */
     private static function estArchivable(Model $record): bool
     {
-        return $record instanceof Cellule || $record instanceof CommissionComite || $record instanceof Jalon || $record instanceof Indicateur || $record instanceof Competence || $record instanceof Caisse;
+        return $record instanceof Cellule || $record instanceof CommissionComite || $record instanceof Jalon || $record instanceof Indicateur || $record instanceof Competence || $record instanceof Caisse || $record instanceof LibelleDepense;
     }
 
     private static function executer(Closure $operation, string $succes): void

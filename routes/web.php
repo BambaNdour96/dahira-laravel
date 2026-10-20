@@ -28,9 +28,11 @@ use App\Http\Controllers\MesNotificationsController;
 use App\Http\Controllers\MesRecusController;
 use App\Http\Controllers\MotDePasseController;
 use App\Http\Controllers\MotDePasseOublieController;
+use App\Http\Controllers\OrdreDepenseController;
 use App\Http\Controllers\PaiementMembreController;
 use App\Http\Controllers\PaiementPourAutruiController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\PieceOrdreDepenseController;
 use App\Http\Controllers\PointageController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\ProfilController;
@@ -154,6 +156,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/comites/commissions/{commission}/membres', [ComitesController::class, 'ajouterMembre'])->name('comites.membres.ajouter');
     Route::post('/comites/commissions/{commission}/membres/{membre}/retirer', [ComitesController::class, 'retirerMembre'])->name('comites.membres.retirer');
     Route::post('/comites/commissions/{commission}/taches', [ComitesController::class, 'tache'])->name('comites.taches.store');
+    Route::post('/comites/commissions/{commission}/ordres-depense', [OrdreDepenseController::class, 'pourCommission'])->middleware('throttle:inscription')->name('comites.ordres.store');
     Route::get('/justificatifs/{depense}', [BudgetComiteController::class, 'justificatif'])->name('justificatifs.show');
     Route::get('/comites/{instance}/bilan', [BudgetComiteController::class, 'bilan'])->name('comites.bilan');
     Route::post('/comites/actions/{action}/statut', [ComitesController::class, 'statut'])->name('comites.actions.statut');
@@ -193,6 +196,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/caisse/paiements/{paiement}/refuser', [CaisseController::class, 'refuser'])->name('caisse.refuser');
     });
     Route::get('/remises/{remise}/bordereau', BordereauRemiseController::class)->name('remises.bordereau');
+    Route::get('/ordres-depense/{ordre}/{piece}', PieceOrdreDepenseController::class)->whereIn('piece', ['devis', 'preuve'])->name('ordres-depense.piece');
     Route::get('/reprise/modele', [RepriseController::class, 'modele'])->name('reprise.modele');
     Route::get('/reprise/{import}/rapport', [RepriseController::class, 'rapport'])->name('reprise.rapport');
     Route::get('/lots-cartes/{lot}/{format}', LotCartesController::class)->whereIn('format', ['pdf', 'csv'])->name('lots-cartes.fichier');

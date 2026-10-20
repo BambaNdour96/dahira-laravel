@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $paiement_id
  * @property int|null $remise_id
  * @property int|null $participation_id
+ * @property int|null $ordre_depense_id
  * @property int|null $auteur_id
  * @property Carbon $date_operation
  * @property-read Caisse $caisse
@@ -41,7 +42,7 @@ class MouvementCaisse extends Model
 
     protected $table = 'mouvements_caisse';
 
-    protected $fillable = ['caisse_id', 'sens', 'montant', 'nature', 'libelle', 'paiement_id', 'remise_id', 'participation_id', 'auteur_id', 'date_operation'];
+    protected $fillable = ['caisse_id', 'sens', 'montant', 'nature', 'libelle', 'paiement_id', 'remise_id', 'participation_id', 'ordre_depense_id', 'auteur_id', 'date_operation'];
 
     /** @return array<string, string> */
     protected function casts(): array

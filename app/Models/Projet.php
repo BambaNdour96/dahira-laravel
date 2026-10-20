@@ -75,9 +75,11 @@ class Projet extends Model
         return (int) max(0, min(100, round($ecoule / $duree * 100)));
     }
 
+    /** Les dépenses du projet : celles notées dans son suivi, et les ordres de dépense exécutés pour lui. */
     public function depenses(): int
     {
-        return (int) $this->suivis()->where('type', TypeSuivi::Depense->value)->sum('montant');
+        return (int) $this->suivis()->where('type', TypeSuivi::Depense->value)->sum('montant')
+            + (int) OrdreDepense::query()->where('projet_id', $this->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant');
     }
 
     public function jalonsEnRetard(): int

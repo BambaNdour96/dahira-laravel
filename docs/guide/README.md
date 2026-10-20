@@ -14,6 +14,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Comptes de recette](comptes-de-recette.md) | Recette uniquement (jamais en production) |
 | [Dispense de cotisation](dispenses.md) | Jewrine de cellule, Jewrine national |
 | [Caisses et trésorerie](caisses.md) | Super administrateur, Finance, représentants, membres |
+| [Dépenses et ordres de dépense](ordres-de-depense.md) | Finance, Jewrine national, chefs de commission, Jewrine, responsables de projet |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |

@@ -7,7 +7,9 @@ use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Competence;
 use App\Models\Instance;
+use App\Models\LibelleDepense;
 use App\Models\Membre;
+use App\Models\OrdreDepense;
 use App\Models\User;
 use App\Models\Volontariat;
 use App\Services\ArabeCoranService;
@@ -69,6 +71,8 @@ class ComitesController extends Controller
 
         return view('espace.comites', [
             'competences' => $mesCommissions->isNotEmpty() ? CompetencesService::liste() : [],
+            'libellesDepense' => $mesCommissions->isNotEmpty() ? LibelleDepense::query()->enActivite()->orderBy('ordre')->pluck('nom', 'id')->all() : [],
+            'ordres' => OrdreDepense::query()->with('libelle')->whereIn('commission_comite_id', $mesCommissions->modelKeys())->latest()->get()->groupBy('commission_comite_id'),
             'competence' => $competence,
             'trouves' => $competence !== null ? app(CompetencesService::class)->rechercher($competence) : collect(),
             'recensementArabeCoran' => app(ArabeCoranService::class)->peutVoirRecensement($utilisateur),

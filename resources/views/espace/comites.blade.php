@@ -208,6 +208,39 @@
                 @endif
             </details>
 
+            <details class="mt-4 text-sm">
+                <summary class="cursor-pointer font-semibold text-emerald-900">Demander un ordre de dépense (avant d'acheter)</summary>
+                <p class="mt-1 text-xs text-stone-500">Aucun argent ne sort sans ordre : il est signé, puis la Finance paie le bénéficiaire.</p>
+                <form method="POST" action="{{ route('comites.ordres.store', $commission) }}" enctype="multipart/form-data" class="mt-2 space-y-2">
+                    @csrf
+                    <input type="text" name="objet" required maxlength="255" placeholder="Objet : achat de 40 bols" aria-label="Objet" class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                    <select name="libelle_depense_id" required aria-label="Libellé" class="block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
+                        <option value="">Libellé</option>
+                        @foreach ($libellesDepense as $id => $nom)
+                            <option value="{{ $id }}">{{ $nom }}</option>
+                        @endforeach
+                    </select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" name="montant" required min="1" inputmode="numeric" placeholder="Montant FCFA" aria-label="Montant" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                        <input type="text" name="beneficiaire" required maxlength="150" placeholder="Bénéficiaire" aria-label="Bénéficiaire" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                    </div>
+                    <label class="block text-xs text-stone-600">Devis (facultatif)
+                        <input type="file" name="devis" accept="image/*,application/pdf" class="mt-1 block w-full text-sm">
+                    </label>
+                    <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Envoyer pour signature</button>
+                </form>
+                @if (($ordres[$commission->id] ?? collect())->isNotEmpty())
+                    <ul class="mt-3 divide-y divide-stone-100">
+                        @foreach ($ordres[$commission->id] as $ordre)
+                            <li class="flex justify-between gap-2 py-2">
+                                <span>{{ $ordre->numero }} · {{ $ordre->objet }}</span>
+                                <span class="shrink-0 text-xs font-semibold">{{ number_format($ordre->montant, 0, ',', ' ') }} F · {{ \App\Models\OrdreDepense::LIBELLES[$ordre->statut] }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </details>
+
             <h3 class="mt-4 font-semibold text-emerald-900">Tâches de la commission</h3>
             <ul class="mt-2 space-y-1 text-sm">
                 @forelse ($commission->actions as $tache)
