@@ -97,16 +97,16 @@ it('laisse la direction accepter les demandes de toutes les cellules, en secours
         ->and($this->tresorier->can('changerStatut', [$demande, StatutMembre::Accepte]))->toBeFalse();
 });
 
-it('confie la dispense de cotisation au Jewrine national', function () {
+it('fait décider la dispense par le Jewrine national, sans qu\'il la demande lui-même', function () {
     $membre = Membre::factory()->valide()->create(['valide_le' => now()->subMonths(2)]);
 
-    $this->actingAs($this->secretaire);
-    Livewire::test(ListMembres::class)->assertActionHidden(TestAction::make('exonerer')->table($membre));
+    foreach ([$this->secretaire, $this->national] as $responsable) {
+        $this->actingAs($responsable);
+        Livewire::test(ListMembres::class)->assertActionHidden(TestAction::make('exonerer')->table($membre));
+    }
 
-    $this->actingAs($this->national);
-    Livewire::test(ListMembres::class)
-        ->callAction(TestAction::make('exonerer')->table($membre), data: ['nombre_mois' => 1, 'motif' => 'Étudiant sans revenu'])
-        ->assertHasNoActionErrors();
+    expect($this->national->can('cotisations.dispenser'))->toBeTrue()
+        ->and($this->secretaire->can('cotisations.dispenser'))->toBeFalse();
 });
 
 it('réserve les données de référence au super administrateur, pas au Secrétaire général', function () {

@@ -113,11 +113,11 @@ it('cache le rapport financier aux Jewrine de cellule', function () {
     expect(RapportFinancier::canView())->toBeFalse();
 });
 
-it('garde la dispense pour le seul super administrateur', function () {
+it('ne laisse pas la Finance demander une dispense', function () {
     $membre = membreQuiCotise();
 
     expect($membre->statut)->toBe(StatutMembre::Valide);
 
-    $this->actingAs($this->super)->get('/admin/membres')->assertOk()->assertSee('Dispenser de cotisation');
-    $this->actingAs($this->tresorier)->get('/admin/membres')->assertOk()->assertDontSee('Dispenser de cotisation');
+    $this->actingAs($this->super)->get('/admin/membres')->assertOk()->assertSee('Demander une dispense');
+    $this->actingAs($this->tresorier)->get('/admin/membres')->assertOk()->assertDontSee('Demander une dispense');
 });

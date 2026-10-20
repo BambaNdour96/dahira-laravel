@@ -132,7 +132,8 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Confirmer ou refuser un paiement déclaré <br>`paiements.valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
 | Valider le paiement d'un responsable, selon les règles de validation croisée <br>`paiements.valider_bureau` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
 | Valider en secours, hors règles de validation croisée (jamais son propre paiement) <br>`paiements.secours` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Dispenser un membre de cotisation <br>`cotisations.dispenser` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Demander la dispense de cotisation d'un membre <br>`cotisations.dispense_demander` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
+| Valider ou refuser une demande de dispense de cotisation <br>`cotisations.dispenser` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
 | Suivre les cotisations (tableaux de bord) <br>`cotisations.suivre` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |
 | Voir les rapports financiers <br>`finances.voir` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |
 | Relancer les membres en retard <br>`relances.envoyer` | ✔ |  |  | ✔ | cellule |  |  |  |  |  |  |

@@ -11,6 +11,7 @@ use App\Models\Renouvellement;
 use App\Models\User;
 use App\Services\CartePhysiqueService;
 use App\Services\CotisationService;
+use App\Services\DispenseService;
 use App\Services\PaiementService;
 use App\Services\RenouvellementService;
 use DomainException;
@@ -253,19 +254,21 @@ final class PaiementActions
     }
 
     /** Dispense de cotisation, réservée au Jewrine national et au super administrateur. */
+    /** Le Jewrine de cellule demande la dispense de cotisation d'un membre ; le Jewrine national décide. */
     public static function exoneration(): Action
     {
         return Action::make('exonerer')
-            ->label('Dispenser de cotisation')
+            ->label('Demander une dispense')
             ->icon('heroicon-o-gift')
             ->color('info')
-            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide && self::peutDispenser())
+            ->visible(fn (Membre $record): bool => $record->statut === StatutMembre::Valide
+                && ($utilisateur = self::auteur()) !== null && app(DispenseService::class)->peutDemander($utilisateur, $record))
+            ->modalDescription('La demande part au Jewrine national, qui la valide ou la refuse. Les mois de retard sont dispensés en premier.')
             ->schema([
                 Select::make('nombre_mois')
-                    ->label('Nombre de mois dispensés')
+                    ->label('Nombre de mois à dispenser')
                     ->options(collect(range(1, 12))->mapWithKeys(fn (int $n): array => [$n => $n.' mois'])->all())
-                    ->required()
-                    ->helperText('Les mois de retard sont dispensés en premier.'),
+                    ->required(),
                 Textarea::make('motif')
                     ->label('Motif')
                     ->placeholder('Exemple : maladie, étudiant sans revenu')
@@ -273,27 +276,19 @@ final class PaiementActions
                     ->maxLength(255),
             ])
             ->action(function (Membre $record, array $data): void {
-                if (! self::peutDispenser()) {
-                    return;
-                }
+                $auteur = self::auteur();
+                abort_unless($auteur !== null, 403);
 
                 try {
-                    app(CotisationService::class)->exonerer($record, (int) $data['nombre_mois'], (string) $data['motif']);
+                    app(DispenseService::class)->demander($record, (int) $data['nombre_mois'], (string) $data['motif'], $auteur);
                 } catch (DomainException $e) {
                     Notification::make()->title($e->getMessage())->danger()->send();
 
                     return;
                 }
 
-                Notification::make()->title('Dispense enregistrée.')->success()->send();
+                Notification::make()->title('Demande de dispense envoyée au Jewrine national.')->success()->send();
             });
-    }
-
-    private static function peutDispenser(): bool
-    {
-        $utilisateur = Auth::user();
-
-        return $utilisateur instanceof User && $utilisateur->can('cotisations.dispenser');
     }
 
     private static function fcfa(int $montant): string

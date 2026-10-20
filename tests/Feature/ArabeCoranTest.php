@@ -67,12 +67,14 @@ beforeEach(function () {
 });
 
 it('reprend l\'ancien niveau d\'arabe dans la nouvelle rubrique, puis retire l\'ancien champ', function () {
-    $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
+    // On rejoue seulement la migration de la rubrique, quelle que soit la place des migrations qui la suivent.
+    $migration = 'database/migrations/2026_10_26_100050_arabe_et_coran.php';
+    $this->artisan('migrate:rollback', ['--path' => $migration])->assertSuccessful();
     $id = DB::table('membres')->insertGetId([
         'prenom' => 'Ancien', 'nom' => 'Membre', 'sexe' => 'H', 'telephone' => '+221770009999', 'cellule_id' => $this->medina->id,
         'statut' => 'valide', 'pays_residence' => 'Sénégal', 'niveau_arabe' => 'intermediaire', 'created_at' => now(), 'updated_at' => now(),
     ]);
-    $this->artisan('migrate')->assertSuccessful();
+    $this->artisan('migrate', ['--path' => $migration])->assertSuccessful();
 
     $profil = ProfilArabeCoran::query()->where('membre_id', $id)->firstOrFail();
     expect($profil->lecture)->toBe(NiveauLecture::Couramment)

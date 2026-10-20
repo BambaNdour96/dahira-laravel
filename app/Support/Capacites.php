@@ -79,7 +79,8 @@ final class Capacites
             'paiements.valider' => 'Confirmer ou refuser un paiement déclaré',
             'paiements.valider_bureau' => 'Valider le paiement d\'un responsable, selon les règles de validation croisée',
             'paiements.secours' => 'Valider en secours, hors règles de validation croisée (jamais son propre paiement)',
-            'cotisations.dispenser' => 'Dispenser un membre de cotisation',
+            'cotisations.dispense_demander' => 'Demander la dispense de cotisation d\'un membre',
+            'cotisations.dispenser' => 'Valider ou refuser une demande de dispense de cotisation',
             'cotisations.suivre' => 'Suivre les cotisations (tableaux de bord)',
             'finances.voir' => 'Voir les rapports financiers',
             'relances.envoyer' => 'Relancer les membres en retard',
@@ -165,6 +166,7 @@ final class Capacites
         'jewrine_cellule' => [
             'panneau.acceder', 'panneau.accueil', 'espace.responsable',
             'membres.voir.cellule', 'membres.inscrire.cellule', 'membres.modifier.cellule', 'membres.valider.cellule', 'membres.importer.cellule', 'arabe_coran.apprenants.cellule',
+            'cotisations.dispense_demander.cellule',
             'cotisations.suivre.cellule', 'relances.envoyer.cellule', 'programmes.voir.cellule',
             'dahiras.voir.cellule', 'dahiras.gerer.cellule', 'pointeurs.designer.cellule',
             'sympathisants.voir.cellule', 'sympathisants.gerer.cellule',

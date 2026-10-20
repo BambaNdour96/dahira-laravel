@@ -19,6 +19,7 @@ use App\Filament\Resources\Postes\Pages\ManagePostes;
 use App\Filament\Resources\Tarifs\Pages\ManageTarifs;
 use App\Models\Carte;
 use App\Models\Cotisation;
+use App\Models\DemandeDispense;
 use App\Models\Membre;
 use App\Models\Parametre;
 use App\Models\Poste;
@@ -146,7 +147,7 @@ describe('les membres', function () {
         expect(Cotisation::query()->where('membre_id', $membre->id)->count())->toBe(2);
     });
 
-    it('réserve la dispense au super administrateur', function () {
+    it('fait demander la dispense, sans l\'accorder aussitôt', function () {
         $membre = membreAvecCompte();
 
         $this->actingAs($this->tresorier);
@@ -158,7 +159,8 @@ describe('les membres', function () {
             ->callAction(TestAction::make('exonerer')->table($membre), data: ['nombre_mois' => 1, 'motif' => 'Maladie'])
             ->assertHasNoActionErrors();
 
-        expect(Cotisation::query()->where('membre_id', $membre->id)->where('exoneree', true)->count())->toBe(1);
+        expect(DemandeDispense::query()->where('membre_id', $membre->id)->value('statut'))->toBe(DemandeDispense::EN_ATTENTE)
+            ->and(Cotisation::query()->where('membre_id', $membre->id)->where('exoneree', true)->count())->toBe(0);
     });
 
     it('accepte puis rejette des demandes', function () {
