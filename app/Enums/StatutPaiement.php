@@ -10,6 +10,7 @@ enum StatutPaiement: string implements HasColor, HasLabel
     case Declare = 'declare';
     case Confirme = 'confirme';
     case Refuse = 'refuse';
+    case Contrepasse = 'contrepasse';
 
     public function getLabel(): string
     {
@@ -17,6 +18,7 @@ enum StatutPaiement: string implements HasColor, HasLabel
             self::Declare => 'À vérifier',
             self::Confirme => 'Confirmé',
             self::Refuse => 'Refusé',
+            self::Contrepasse => 'Annulé (contre-passé)',
         };
     }
 
@@ -25,7 +27,7 @@ enum StatutPaiement: string implements HasColor, HasLabel
         return match ($this) {
             self::Declare => 'warning',
             self::Confirme => 'success',
-            self::Refuse => 'danger',
+            self::Refuse, self::Contrepasse => 'danger',
         };
     }
 }

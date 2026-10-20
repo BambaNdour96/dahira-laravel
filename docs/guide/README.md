@@ -15,6 +15,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Dispense de cotisation](dispenses.md) | Jewrine de cellule, Jewrine national |
 | [Caisses et trésorerie](caisses.md) | Super administrateur, Finance, représentants, membres |
 | [Dépenses et ordres de dépense](ordres-de-depense.md) | Finance, Jewrine national, chefs de commission, Jewrine, responsables de projet |
+| [Corriger un paiement validé](corrections.md) | Jewrine finance national |
 | [Nominations, casquettes et droits](nominations.md) | Super administrateur, Jewrine national |
 | [Commissions permanentes](commissions.md) | Jewrine de commission, super administrateur |
 | [Réunions, PV et décisions](reunions.md) | Organisateurs, secrétaires de séance |

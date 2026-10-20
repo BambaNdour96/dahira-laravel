@@ -21,7 +21,7 @@ class RecuController extends Controller
             && ($paiement->membre->user_id === $utilisateur->id || $paiement->declare_par === $utilisateur->id || MembrePolicy::gereLaFiche($utilisateur, $paiement->membre));
 
         abort_unless($proprietaire || Gate::allows('view', $paiement), 403);
-        abort_if($paiement->statut !== StatutPaiement::Confirme || $paiement->numero_recu === null, 404);
+        abort_if(! in_array($paiement->statut, [StatutPaiement::Confirme, StatutPaiement::Contrepasse], true) || $paiement->numero_recu === null, 404);
 
         $logo = public_path('images/logo-ndk.png');
 

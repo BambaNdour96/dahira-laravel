@@ -26,7 +26,7 @@ use RuntimeException;
  * Les ordres de dépense : aucun argent ne sort sans eux. Un responsable demande (la Finance pour toute la Daara ; un chef
  * de commission, un responsable de projet, un Jewrine de cellule ou de commission permanente pour son périmètre), le
  * Jewrine national signe, la Finance exécute depuis une caisse avec la preuve. Personne ne signe son propre ordre, et
- * celui qui ordonne n'est pas celui qui paie. Une caisse ne passe jamais en négatif.
+ * celui qui ordonne (le signataire) n'est pas celui qui paie. Une caisse ne passe jamais en négatif.
  */
 final class OrdreDepenseService
 {
@@ -164,6 +164,7 @@ final class OrdreDepenseService
         }
 
         $ordre->update(['statut' => OrdreDepense::ANNULE]);
+        app(CorrectionPaiementService::class)->apresOrdre($ordre);
     }
 
     public function peutSigner(User $utilisateur, OrdreDepense $ordre): bool
@@ -199,21 +200,24 @@ final class OrdreDepenseService
         }
 
         $ordre->update(['statut' => OrdreDepense::REFUSE, 'signe_le' => now(), 'signe_par' => $auteur->id, 'motif_refus' => mb_substr(trim($motif), 0, 255)]);
+        app(CorrectionPaiementService::class)->apresOrdre($ordre);
         $ordre->demandeur->notify(new NotificationMembre('Ordre refusé : '.$ordre->numero, '« '.$ordre->objet.' » n\'est pas signé : '.trim($motif).'.', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
     }
 
-    /** Exécuter : la Finance, ni demandeur ni signataire de l'ordre. */
+    /**
+     * Exécuter : la Finance, jamais celui qui a signé l'ordre (celui qui ordonne n'est pas celui qui paie). Le Jewrine
+     * finance paie aussi un ordre qu'il a lui-même demandé, puisque le Jewrine national l'a signé entre-temps.
+     */
     public function peutExecuter(User $utilisateur, OrdreDepense $ordre): bool
     {
-        return $ordre->statut === OrdreDepense::SIGNE && $utilisateur->can('depenses.executer')
-            && $ordre->demande_par !== $utilisateur->id && $ordre->signe_par !== $utilisateur->id;
+        return $ordre->statut === OrdreDepense::SIGNE && $utilisateur->can('depenses.executer') && $ordre->signe_par !== $utilisateur->id;
     }
 
     /** L'argent sort de la caisse choisie, avec la preuve (reçu, facture) ; la caisse ne passe jamais en négatif. */
     public function executer(OrdreDepense $ordre, Caisse $caisse, UploadedFile $preuve, User $auteur): void
     {
         if (! $this->peutExecuter($auteur, $ordre)) {
-            throw new DomainException('La Finance exécute l\'ordre signé (jamais celui qu\'elle a demandé ou signé).');
+            throw new DomainException('La Finance exécute l\'ordre signé (jamais celui qui l\'a signé).');
         }
 
         if ($caisse->estArchive()) {
@@ -242,6 +246,7 @@ final class OrdreDepenseService
             $ordre->update(['statut' => OrdreDepense::EXECUTE, 'execute_le' => now(), 'execute_par' => $auteur->id, 'caisse_id' => $caisse->id, 'preuve_path' => $chemin]);
         });
 
+        app(CorrectionPaiementService::class)->apresOrdre($ordre->fresh() ?? $ordre);
         $ordre->demandeur->notify(new NotificationMembre('Ordre exécuté : '.$ordre->numero, CollecteService::fcfa($ordre->montant).' versés pour « '.$ordre->objet.' » ('.$ordre->beneficiaire.').', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
     }
 

@@ -43,6 +43,8 @@ class ManagePaiements extends ManageRecords
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('statut', StatutPaiement::Confirme->value)),
             'refuses' => Tab::make('Refusés')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('statut', StatutPaiement::Refuse->value)),
+            'annules' => Tab::make('Annulés')
+                ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('statut', StatutPaiement::Contrepasse->value)),
             'tous' => Tab::make('Tous'),
         ];
     }

@@ -56,6 +56,7 @@ final class TresorerieService
         return match ($paiement->moyen) {
             MoyenPaiement::Wave => $this->caisse(TypeCaisse::Wave),
             MoyenPaiement::OrangeMoney => $this->caisse(TypeCaisse::OrangeMoney),
+            MoyenPaiement::Avoir => throw new DomainException('Un paiement par avoir n\'entre dans aucune caisse.'),
             MoyenPaiement::Especes => $paiement->traite_par !== null && RepresentantFinance::query()->withoutGlobalScope(RepresentantFinance::EN_COURS)->where('user_id', $paiement->traite_par)->exists()
                 ? $this->caisseDuRepresentant($paiement->traitePar ?? throw new DomainException('Représentant introuvable.'))
                 : $this->caisse(TypeCaisse::Especes),
@@ -65,7 +66,7 @@ final class TresorerieService
     /** Un paiement validé entre dans sa caisse (une seule fois). */
     public function encaisser(Paiement $paiement): void
     {
-        if ($paiement->statut !== StatutPaiement::Confirme || MouvementCaisse::query()->where('paiement_id', $paiement->id)->where('nature', 'encaissement')->exists()) {
+        if ($paiement->statut !== StatutPaiement::Confirme || $paiement->moyen === MoyenPaiement::Avoir || MouvementCaisse::query()->where('paiement_id', $paiement->id)->where('nature', 'encaissement')->exists()) {
             return;
         }
 
@@ -87,7 +88,7 @@ final class TresorerieService
         $caisse = match ($participation->moyen) {
             MoyenPaiement::Wave => $this->caisse(TypeCaisse::Wave),
             MoyenPaiement::OrangeMoney => $this->caisse(TypeCaisse::OrangeMoney),
-            MoyenPaiement::Especes => $this->caisse(TypeCaisse::Especes),
+            MoyenPaiement::Especes, MoyenPaiement::Avoir => $this->caisse(TypeCaisse::Especes),
         };
 
         MouvementCaisse::query()->create([

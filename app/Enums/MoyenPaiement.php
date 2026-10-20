@@ -9,6 +9,7 @@ enum MoyenPaiement: string implements HasLabel
     case Wave = 'wave';
     case Especes = 'especes';
     case OrangeMoney = 'orange_money';
+    case Avoir = 'avoir';
 
     public function getLabel(): string
     {
@@ -16,6 +17,7 @@ enum MoyenPaiement: string implements HasLabel
             self::Wave => 'Wave',
             self::Especes => 'Espèces',
             self::OrangeMoney => 'Orange Money',
+            self::Avoir => 'Avoir',
         };
     }
 }

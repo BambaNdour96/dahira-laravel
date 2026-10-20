@@ -27,6 +27,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $motif_refus
  * @property int|null $cellule_id
  * @property int|null $caisse_id
+ * @property int|null $avoir_id
+ * @property Carbon|null $contrepasse_le
+ * @property int|null $contrepasse_par
+ * @property string|null $motif_correction
+ * @property-read Caisse|null $caisse
+ * @property-read Avoir|null $avoir
  * @property Carbon $declare_le
  * @property int|null $declare_par
  * @property Carbon|null $traite_le
@@ -40,7 +46,7 @@ class Paiement extends Model
     use Indelebile, Journalise;
 
     protected $fillable = [
-        'membre_id', 'cellule_id', 'caisse_id', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
+        'membre_id', 'cellule_id', 'caisse_id', 'avoir_id', 'contrepasse_le', 'contrepasse_par', 'motif_correction', 'collecte_id', 'objet', 'montant', 'nombre_mois', 'moyen', 'reference', 'numero_wave', 'statut',
         'motif_refus', 'declare_le', 'declare_par', 'traite_le', 'traite_par',
     ];
 
@@ -55,7 +61,7 @@ class Paiement extends Model
 
         // Un paiement validé entre dans sa caisse : la trésorerie le voit aussitôt.
         static::saved(function (Paiement $paiement): void {
-            if ($paiement->statut === StatutPaiement::Confirme && $paiement->caisse_id === null) {
+            if ($paiement->statut === StatutPaiement::Confirme && $paiement->caisse_id === null && $paiement->moyen !== MoyenPaiement::Avoir) {
                 app(TresorerieService::class)->encaisser($paiement);
             }
         });
@@ -79,6 +85,7 @@ class Paiement extends Model
             'nombre_mois' => 'integer',
             'declare_le' => 'datetime',
             'traite_le' => 'datetime',
+            'contrepasse_le' => 'datetime',
         ];
     }
 
@@ -175,6 +182,18 @@ class Paiement extends Model
     public function declarant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'declare_par');
+    }
+
+    /** @return BelongsTo<Caisse, $this> */
+    public function caisse(): BelongsTo
+    {
+        return $this->belongsTo(Caisse::class);
+    }
+
+    /** @return BelongsTo<Avoir, $this> */
+    public function avoir(): BelongsTo
+    {
+        return $this->belongsTo(Avoir::class);
     }
 
     /**

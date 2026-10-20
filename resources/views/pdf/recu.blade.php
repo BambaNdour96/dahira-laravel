@@ -36,6 +36,11 @@
 
     <div class="contenu">
         <div class="numero">{{ $paiement->natureRecu() }} n° {{ $paiement->numero_recu }}</div>
+        @if ($paiement->statut === \App\Enums\StatutPaiement::Contrepasse)
+            <div style="margin: 3mm 0; padding: 2mm; border: 0.5mm solid #b91c1c; color: #b91c1c; font-weight: bold; text-align: center;">
+                ANNULÉ le {{ $paiement->contrepasse_le?->format('d/m/Y') }} · {{ $paiement->motif_correction }}
+            </div>
+        @endif
         <div>Émis le {{ $paiement->traite_le?->format('d/m/Y à H:i') }}</div>
 
         <table class="infos">

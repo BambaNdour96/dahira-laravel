@@ -18,7 +18,7 @@ chaque caisse, tous ses **mouvements** (date, nature, libellé, entrée, sortie,
 
 Un paiement compte dès qu'il est **validé** : il entre aussitôt dans sa caisse. À la **remise** d'un représentant, ses
 espèces sortent de sa caisse et entrent dans la caisse générale. Un mouvement ne s'efface jamais : une erreur se
-corrigera par un mouvement nouveau (corrections, lot R3c).
+corrige par un mouvement nouveau (voir [Corriger un paiement validé](corrections.md)).
 
 ## Payer avec Orange Money (sur le téléphone)
 

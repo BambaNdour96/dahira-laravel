@@ -43,6 +43,12 @@
         </div>
     @endif
 
+    @if ($avoir > 0)
+        <p class="mt-4 rounded-xl bg-sky-50 p-4 text-sm text-sky-900 ring-1 ring-sky-200">
+            {{ $proche ? $proche->prenom.' a' : 'Vous avez' }} un avoir de <strong>{{ $fcfa($avoir) }}</strong> : la Finance l'imputera sur un prochain paiement.
+        </p>
+    @endif
+
     {{-- Calendrier de l'année --}}
     <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
         <h2 class="font-semibold text-emerald-900">Année {{ now()->year }}</h2>

@@ -114,7 +114,7 @@ it('fait demander par le chef de commission, signer par le Jewrine national, pui
     $this->actingAs(membreOrdre($this->dakar)->user)->get(route('ordres-depense.piece', [$ordre, 'preuve']))->assertForbidden();
 });
 
-it('ne laisse personne signer son propre ordre, ni payer ce qu\'il a ordonné, et garde la caisse positive', function () {
+it('ne laisse personne signer son propre ordre, ni le signataire payer, et garde la caisse positive', function () {
     $ordre = $this->service->demander(ordre(['montant' => 2000]), null, $this->super);
 
     expect($this->service->peutSigner($this->super, $ordre))->toBeFalse()
@@ -122,15 +122,17 @@ it('ne laisse personne signer son propre ordre, ni payer ce qu\'il a ordonné, e
 
     $this->service->signer($ordre, $this->national);
     $generale = app(TresorerieService::class)->caisse(TypeCaisse::Especes);
+    // Le signataire ne paie jamais ; le demandeur peut payer son ordre une fois signé.
     expect($this->service->peutExecuter($this->national, $ordre->fresh()))->toBeFalse()
-        ->and($this->service->peutExecuter($this->super, $ordre->fresh()))->toBeFalse();
+        ->and($this->service->peutExecuter($this->super, $ordre->fresh()))->toBeTrue();
 
     $this->service->executer($ordre->fresh(), $generale, UploadedFile::fake()->image('recu.jpg'), $this->tresorier);
     expect($generale->solde())->toBe(3000);
 
     $gros = $this->service->demander(ordre(['montant' => 50000]), null, $this->tresorier);
     $this->service->signer($gros, $this->national);
-    expect(fn () => $this->service->executer($gros->fresh(), $generale, UploadedFile::fake()->image('r.jpg'), $this->super))->toThrow(DomainException::class, 'Solde insuffisant')
+    expect($this->service->peutExecuter($this->tresorier, $gros->fresh()))->toBeTrue()
+        ->and(fn () => $this->service->executer($gros->fresh(), $generale, UploadedFile::fake()->image('r.jpg'), $this->tresorier))->toThrow(DomainException::class, 'Solde insuffisant')
         ->and($generale->solde())->toBe(3000);
 });
 

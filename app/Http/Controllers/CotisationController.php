@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
+use App\Models\Avoir;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\User;
@@ -31,6 +32,7 @@ class CotisationController extends Controller
         return view('espace.cotisations', [
             'membre' => $membre,
             'proche' => $proche,
+            'avoir' => (int) Avoir::query()->where('membre_id', $membre->id)->sum('reste'),
             'mensuel' => $mensuel,
             'retard' => $cotisations->moisEnRetard($membre),
             'regleJusqua' => $cotisations->regleJusqua($membre),

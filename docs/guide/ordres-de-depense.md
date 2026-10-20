@@ -26,8 +26,8 @@ signés par le comité de suivi des dépenses (lot R5) ; d'ici là, le Jewrine n
 
 La **Finance** paie l'ordre signé : elle choisit la **caisse** (son solde s'affiche) et joint la **preuve** (reçu,
 facture, capture du transfert). L'argent sort de la caisse : la dépense apparaît dans ses mouvements, et dans les
-dépenses du projet quand l'ordre lui est rattaché. La Finance n'exécute jamais un ordre qu'elle a demandé ou signé, et
-une caisse ne passe jamais en négatif.
+dépenses du projet quand l'ordre lui est rattaché. Celui qui a signé l'ordre ne le paie jamais ; le Jewrine finance
+peut payer un ordre qu'il a lui-même demandé, une fois signé par le Jewrine national. Une caisse ne passe jamais en négatif.
 
 Le demandeur est prévenu à chaque étape ; le devis et la preuve restent consultables par lui et par ceux qui suivent
 les finances.

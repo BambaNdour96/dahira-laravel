@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Paiements;
 use App\Enums\StatutMembre;
 use App\Enums\StatutPaiement;
 use App\Models\CartePhysique;
+use App\Models\Collecte;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\Renouvellement;
 use App\Models\User;
 use App\Services\CartePhysiqueService;
+use App\Services\CorrectionPaiementService;
 use App\Services\CotisationService;
 use App\Services\DispenseService;
 use App\Services\PaiementService;
@@ -19,6 +21,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -242,6 +245,60 @@ final class PaiementActions
     }
 
     /** Télécharger le reçu d'un paiement confirmé. */
+    /**
+     * Les corrections d'un paiement validé, réservées au Jewrine finance national.
+     *
+     * @return list<Action>
+     */
+    public static function corrections(): array
+    {
+        $visible = fn (Paiement $record): bool => ($utilisateur = self::auteur()) !== null && CorrectionPaiementService::peutCorriger($utilisateur, $record);
+        $motif = Textarea::make('motif')->label('Motif (obligatoire)')->required()->maxLength(255);
+        $cible = [
+            Select::make('objet')->label('Le paiement compte désormais pour')->required()->live()
+                ->options(['cotisation' => 'Des mois de cotisation', 'collecte' => 'Un Jàyante (programme)']),
+            Select::make('collecte_id')->label('Programme')
+                ->options(fn (): array => Collecte::query()->latest('ouverture')->pluck('titre', 'id')->all())
+                ->visible(fn (Get $get): bool => $get('objet') === 'collecte'),
+        ];
+
+        return [
+            Action::make('contrePasser')->label('Annuler (contre-passer)')->icon('heroicon-o-arrow-uturn-left')->color('danger')->visible($visible)
+                ->modalDescription('Écriture inverse : l\'argent sort de la caisse où il était entré (la caisse générale si le représentant l\'a déjà remis). Les mois de cotisation redeviennent dus.')
+                ->schema([$motif])
+                ->action(fn (Paiement $record, array $data) => self::corriger(fn (CorrectionPaiementService $service, User $auteur) => $service->contrePasser($record, (string) $data['motif'], $auteur), 'Paiement annulé.')),
+            Action::make('reaffecter')->label('Réaffecter')->icon('heroicon-o-arrows-right-left')->color('warning')->visible($visible)
+                ->modalDescription('Le paiement est remplacé par un paiement nouveau, avec son reçu ; l\'argent reste dans sa caisse.')
+                ->schema([...$cible, $motif])
+                ->action(fn (Paiement $record, array $data) => self::corriger(fn (CorrectionPaiementService $service, User $auteur) => $service->reaffecter($record, ['objet' => (string) $data['objet'], 'collecte_id' => isset($data['collecte_id']) ? (int) $data['collecte_id'] : null], (string) $data['motif'], $auteur), 'Paiement réaffecté.')),
+            Action::make('versAvoir')->label('Transformer en avoir')->icon('heroicon-o-wallet')->color('gray')->visible($visible)
+                ->modalDescription('Le paiement devient un crédit sur le compte du membre, que la Finance imputera à la main (Trésorerie → Avoirs).')
+                ->schema([$motif])
+                ->action(fn (Paiement $record, array $data) => self::corriger(fn (CorrectionPaiementService $service, User $auteur) => $service->versAvoir($record, (string) $data['motif'], $auteur), 'Avoir créé.')),
+            Action::make('rembourser')->label('Rembourser')->icon('heroicon-o-banknotes')->color('gray')->visible($visible)
+                ->modalDescription('Un ordre de dépense de remboursement est demandé ; le paiement sera annulé quand l\'ordre aura été signé puis payé.')
+                ->schema([$motif])
+                ->action(fn (Paiement $record, array $data) => self::corriger(fn (CorrectionPaiementService $service, User $auteur) => $service->rembourser($record, (string) $data['motif'], $auteur), 'Ordre de remboursement envoyé pour signature.')),
+        ];
+    }
+
+    /** @param  callable(CorrectionPaiementService, User): mixed  $operation */
+    private static function corriger(callable $operation, string $succes): void
+    {
+        $auteur = self::auteur();
+        abort_unless($auteur !== null, 403);
+
+        try {
+            $operation(app(CorrectionPaiementService::class), $auteur);
+        } catch (DomainException $e) {
+            Notification::make()->title($e->getMessage())->danger()->send();
+
+            return;
+        }
+
+        Notification::make()->title($succes)->success()->send();
+    }
+
     public static function recu(): Action
     {
         return Action::make('recu')
@@ -253,7 +310,6 @@ final class PaiementActions
             ->openUrlInNewTab();
     }
 
-    /** Dispense de cotisation, réservée au Jewrine national et au super administrateur. */
     /** Le Jewrine de cellule demande la dispense de cotisation d'un membre ; le Jewrine national décide. */
     public static function exoneration(): Action
     {

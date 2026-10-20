@@ -7,6 +7,7 @@ use App\Enums\StatutPaiement;
 use App\Filament\Resources\Paiements\Pages\ManagePaiements;
 use App\Models\Paiement;
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -72,6 +73,7 @@ class PaiementResource extends Resource
                 PaiementActions::confirmer(),
                 PaiementActions::refuser(),
                 PaiementActions::recu(),
+                ActionGroup::make(PaiementActions::corrections())->label('Corriger')->icon('heroicon-o-wrench')->color('gray'),
             ])
             ->defaultSort('declare_le', 'desc');
     }
