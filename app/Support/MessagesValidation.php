@@ -33,6 +33,9 @@ final class MessagesValidation
             'telephone.regex' => 'Numéro invalide. Exemple : 77 123 45 67, ou +33 6 12 34 56 78 depuis l\'étranger.',
             'telephone.unique' => 'Ce numéro est déjà inscrit. Contactez votre Jewrine de cellule.',
             'email.unique' => 'Cette adresse email est déjà utilisée.',
+            'nombre_hizb.required_if' => 'Indiquez le nombre de hizb mémorisés.',
+            'nombre_hizb.max' => 'De 1 à 59 hizb ; avec les 60 hizb, choisissez « Hafiz ».',
+            'nombre_hizb.min' => 'De 1 à 59 hizb.',
         ];
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\User;
 use App\Models\Volontariat;
+use App\Services\ArabeCoranService;
 use App\Services\ComiteService;
 use App\Services\CompetencesService;
 use DomainException;
@@ -70,6 +71,7 @@ class ComitesController extends Controller
             'competences' => $mesCommissions->isNotEmpty() ? CompetencesService::liste() : [],
             'competence' => $competence,
             'trouves' => $competence !== null ? app(CompetencesService::class)->rechercher($competence) : collect(),
+            'recensementArabeCoran' => app(ArabeCoranService::class)->peutVoirRecensement($utilisateur),
             'instances' => $instances,
             'actions' => $actions,
             'mesCommissions' => $mesCommissions,

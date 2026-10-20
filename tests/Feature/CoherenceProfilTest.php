@@ -1,9 +1,10 @@
 <?php
 
-use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
+use App\Enums\NiveauLecture;
 use App\Enums\SituationProfessionnelle;
 use App\Models\Membre;
+use App\Models\ProfilArabeCoran;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -33,8 +34,9 @@ it('permet à un retraité sans études d\'atteindre 100 % de profil', function 
         'email' => 'retraite@exemple.sn', 'adresse' => 'Médina', 'ville' => 'Kaolack',
         'niveau_etudes' => NiveauEtudes::Aucun,
         'situation_professionnelle' => SituationProfessionnelle::Retraite,
-        'langues' => ['wolof'], 'niveau_arabe' => NiveauArabe::Debutant,
+        'langues' => ['wolof'],
     ]);
+    ProfilArabeCoran::query()->create(['membre_id' => $membre->id, 'lecture' => NiveauLecture::Difficulte]);
 
     expect($membre->fresh()->completude())->toBe(100);
 });

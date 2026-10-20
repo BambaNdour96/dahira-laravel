@@ -22,6 +22,10 @@ class CommissionsSeeder extends Seeder
                 $commission->forceFill(['code' => Commission::SUIVI_EVALUATION])->save();
             }
 
+            if ($nom === 'Culturelle' && $commission->code === null) {
+                $commission->forceFill(['code' => Commission::CULTURELLE])->save();
+            }
+
             $commissions->comite($commission);
         }
     }

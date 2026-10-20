@@ -34,6 +34,9 @@ class Commission extends Model
     /** La commission Suivi et Évaluation : ses membres ont la casquette du même nom. */
     public const SUIVI_EVALUATION = 'suivi_evaluation';
 
+    /** La commission Culturelle : ses membres voient le recensement Arabe et Coran. */
+    public const CULTURELLE = 'culturelle';
+
     protected $fillable = ['nom', 'description', 'actif'];
 
     /** @return array<string, string> */

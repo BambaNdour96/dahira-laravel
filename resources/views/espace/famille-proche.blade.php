@@ -121,6 +121,12 @@
         </form>
     @endif
 
+    <form method="POST" action="{{ route('famille.arabe_coran', $proche) }}" class="mt-5">
+        @csrf
+        @include('espace.partials.arabe-coran', ['profil' => $profilArabeCoran, 'legende' => 'Son arabe et son Coran'])
+        <button type="submit" class="mt-3 w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white hover:bg-emerald-900">Enregistrer</button>
+    </form>
+
     {{-- Son propre compte : proposé à 18 ans, jamais imposé --}}
     @if ($peutDonnerSonCompte)
         <div class="mt-5 rounded-xl bg-or-100 p-5 ring-1 ring-or-400">

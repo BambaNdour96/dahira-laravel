@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
@@ -30,7 +29,6 @@ class MembreFactory extends Factory
             'ville' => fake()->randomElement(['Kaolack', 'Dakar', 'Touba', 'Thiès']),
             'cellule_id' => Cellule::factory(),
             'niveau_etudes' => fake()->randomElement(NiveauEtudes::cases()),
-            'niveau_arabe' => fake()->randomElement(NiveauArabe::cases()),
             'langues' => fake()->randomElements(array_keys(Langues::liste()), 2),
             'situation_professionnelle' => fake()->randomElement(SituationProfessionnelle::cases()),
             'profession' => fake()->jobTitle(),

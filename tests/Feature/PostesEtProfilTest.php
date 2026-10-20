@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\NiveauLecture;
 use App\Models\Membre;
 use App\Models\Poste;
+use App\Models\ProfilArabeCoran;
 use App\Models\User;
 use Database\Seeders\PostesSeeder;
 use Database\Seeders\RolesSeeder;
@@ -31,13 +33,16 @@ it('réserve l\'écran des postes au super administrateur', function () {
 });
 
 it('calcule le pourcentage de profil complété', function () {
-    $vide = Membre::factory()->create(array_fill_keys(Membre::CHAMPS_PROFIL, null));
+    // La rubrique « Arabe et Coran » vit dans sa propre table : elle compte, mais n'est pas une colonne du membre.
+    $vide = Membre::factory()->create(array_fill_keys(array_diff(Membre::CHAMPS_PROFIL, ['arabe_coran']), null));
     $complet = Membre::factory()->create([
         'email' => 'awa@exemple.sn',
         'diplome' => 'Licence',
         'domaine_etudes' => 'Gestion',
         'secteur_activite' => 'Commerce',
     ]);
+
+    ProfilArabeCoran::query()->create(['membre_id' => $complet->id, 'lecture' => NiveauLecture::Couramment]);
 
     expect($vide->completude())->toBe(0)
         ->and($complet->completude())->toBe(100);

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Membres\Schemas;
 
 use App\Enums\LienFamille;
-use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
@@ -106,7 +105,6 @@ class MembreForm
                     Select::make('niveau_etudes')->label('Niveau d\'études')->options(NiveauEtudes::class),
                     TextInput::make('diplome')->label('Diplôme le plus élevé')->maxLength(150),
                     TextInput::make('domaine_etudes')->label('Domaine d\'études')->maxLength(150),
-                    Select::make('niveau_arabe')->label('Niveau en arabe')->options(NiveauArabe::class),
                     CheckboxList::make('langues')->label('Langues parlées')->options(Langues::liste())->columns(3)->columnSpanFull(),
                 ]),
 

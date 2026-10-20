@@ -39,7 +39,6 @@ class MembreExporter extends Exporter
             ExportColumn::make('diplome')->label('Diplôme'),
             ExportColumn::make('domaine_etudes')->label('Domaine d\'études'),
             ExportColumn::make('langues')->label('Langues')->formatStateUsing(fn ($state) => is_string($state) ? (Langues::liste()[$state] ?? $state) : $state),
-            ExportColumn::make('niveau_arabe')->label('Niveau en arabe')->formatStateUsing(fn ($state) => self::libelle($state)),
             ExportColumn::make('situation_professionnelle')->label('Situation professionnelle')->formatStateUsing(fn ($state) => self::libelle($state)),
             ExportColumn::make('profession')->label('Profession'),
             ExportColumn::make('secteur_activite')->label('Secteur d\'activité'),

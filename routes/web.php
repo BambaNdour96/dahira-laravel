@@ -39,6 +39,7 @@ use App\Http\Controllers\ProgrammeRapportController;
 use App\Http\Controllers\PvReunionController;
 use App\Http\Controllers\RapportProjetController;
 use App\Http\Controllers\RapportSuiviPdfController;
+use App\Http\Controllers\RecensementController;
 use App\Http\Controllers\RecuController;
 use App\Http\Controllers\RecuSympathisantController;
 use App\Http\Controllers\RelanceController;
@@ -117,6 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/frais', [FamilleController::class, 'frais'])->middleware('throttle:inscription')->name('famille.frais');
     Route::post('/ma-famille/{proche}/compte', [FamilleController::class, 'compte'])->name('famille.compte');
     Route::post('/ma-famille/{proche}/savoir-faire', [FamilleController::class, 'competences'])->name('famille.competences');
+    Route::post('/ma-famille/{proche}/arabe-coran', [FamilleController::class, 'arabeCoran'])->name('famille.arabe_coran');
     Route::get('/ma-famille/{proche}/carte', [CarteController::class, 'show'])->name('famille.carte');
     Route::get('/ma-famille/{proche}/carte/pdf', [CarteController::class, 'pdf'])->name('famille.carte.pdf');
     Route::post('/ma-famille/{proche}/carte/plastique', [CarteController::class, 'commander'])->middleware('throttle:inscription')->name('famille.carte.plastique');
@@ -164,6 +166,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/renouvellement/fiche', [RenouvellementController::class, 'verifier'])->name('famille.renouvellement.verifier');
     Route::post('/ma-famille/{proche}/renouvellement/signaler', [RenouvellementController::class, 'signaler'])->middleware('throttle:inscription')->name('famille.renouvellement.signaler');
     Route::post('/ma-famille/{proche}/renouvellement/paiement', [RenouvellementController::class, 'declarer'])->middleware('throttle:inscription')->name('famille.renouvellement.payer');
+    Route::get('/recensement-arabe-coran', [RecensementController::class, 'index'])->name('recensement.index');
+    Route::get('/apprenants-arabe-coran', [RecensementController::class, 'apprenants'])->name('recensement.apprenants');
     Route::get('/ma-cellule', [CelluleController::class, 'index'])->name('cellule.index');
     Route::post('/ma-cellule', [CelluleController::class, 'demander'])->middleware('throttle:inscription')->name('cellule.demander');
     Route::post('/ma-cellule/demandes/{changement}/retirer', [CelluleController::class, 'retirer'])->name('cellule.retirer');

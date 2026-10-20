@@ -10,6 +10,7 @@ use App\Models\Membre;
 use App\Models\Parametre;
 use App\Models\User;
 use App\Policies\MembrePolicy;
+use App\Services\ArabeCoranService;
 use App\Services\CompetencesService;
 use App\Services\CotisationService;
 use App\Services\FamilleService;
@@ -94,9 +95,20 @@ class FamilleController extends Controller
             'recus' => $proche->paiements()->where('statut', StatutPaiement::Confirme->value)->whereNotNull('numero_recu')->latest('traite_le')->limit(12)->get(),
             'peutDonnerSonCompte' => $familles->peutDonnerSonCompte($utilisateur, $proche) && ! $proche->estEnfant(),
             'renouvellement' => app(RenouvellementService::class)->pour($proche),
+            'profilArabeCoran' => $proche->profilArabeCoran,
             'competences' => $proche->estEnfant() ? [] : CompetencesService::liste(),
             'sesCompetences' => $proche->competences()->pluck('competences.id')->map(fn (mixed $id): int => (int) $id)->all(),
         ]);
+    }
+
+    /** La rubrique « Arabe et Coran » d'un proche (enfant compris), remplie par le membre qui gère sa fiche. */
+    public function arabeCoran(Request $request, Membre $proche, ArabeCoranService $arabeCoran): RedirectResponse
+    {
+        $utilisateur = self::utilisateur($request);
+        self::verifier($utilisateur, $proche);
+        $arabeCoran->enregistrer($proche, ArabeCoranService::donnees($request->validate(ArabeCoranService::regles(), MessagesValidation::tous())), $utilisateur);
+
+        return redirect()->route('famille.show', $proche)->with('succes', 'La rubrique Arabe et Coran de '.$proche->prenom.' est enregistrée.');
     }
 
     /** Les savoir-faire d'un proche adulte, indiqués par le membre qui gère sa fiche. */

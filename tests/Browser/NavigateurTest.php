@@ -14,6 +14,7 @@ use App\Services\CarteService;
 use App\Services\ComiteService;
 use App\Services\CommissionService;
 use App\Services\RenouvellementService;
+use Database\Seeders\CommissionsSeeder;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
 use Database\Seeders\ReglesValidationSeeder;
@@ -156,7 +157,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte', '/admin/recensement-arabe-coran',
     ])->assertNoJavascriptErrors();
 });
 
@@ -364,4 +365,18 @@ it('laisse un membre importé activer son compte avec son matricule, sur le tél
         ->assertNoJavascriptErrors();
 
     expect($importe->fresh()->user_id)->not->toBeNull();
+});
+
+it('montre la rubrique Arabe et Coran dans le profil, et le recensement à la commission Culturelle, sur le téléphone', function () {
+    $this->seed(CommissionsSeeder::class);
+    app(CommissionService::class)->ajouter(Commission::query()->where('code', Commission::CULTURELLE)->firstOrFail(), $this->membre, $this->super);
+    $this->actingAs($this->compte);
+
+    visit('/mon-espace/profil')->on()->mobile()->assertSee('Arabe et Coran')->assertSee('Coran mémorisé')->assertNoJavascriptErrors();
+    visit('/mes-comites')->on()->mobile()->assertSee('Recensement Arabe et Coran')->assertNoJavascriptErrors();
+    visit('/recensement-arabe-coran')->on()->mobile()
+        ->select('critere', 'souhaite_apprendre')
+        ->press('Filtrer')
+        ->assertSee('Aucun membre pour ce filtre')
+        ->assertNoJavascriptErrors();
 });

@@ -83,15 +83,6 @@
                     @endforeach
                 </div>
             </fieldset>
-            <div>
-                <label for="niveau_arabe" class="block text-sm font-medium">Niveau en arabe</label>
-                <select id="niveau_arabe" name="niveau_arabe" class="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
-                    <option value="">Choisir</option>
-                    @foreach (\App\Enums\NiveauArabe::cases() as $niveau)
-                        <option value="{{ $niveau->value }}" @selected(old('niveau_arabe', $membre->niveau_arabe?->value) === $niveau->value)>{{ $niveau->getLabel() }}</option>
-                    @endforeach
-                </select>
-            </div>
         </fieldset>
 
         <fieldset class="space-y-5 rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
@@ -110,6 +101,8 @@
         </fieldset>
 
         @if (! $correction)
+            @include('espace.partials.arabe-coran', ['profil' => $membre->profilArabeCoran, 'legende' => 'Arabe et Coran'])
+
             <fieldset class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                 <legend class="px-1 font-semibold text-emerald-900">Mes savoir-faire</legend>
                 <p class="text-xs text-stone-500">Pour être appelé quand la Daara a besoin de vous (Magal, Ziar, chantiers…).</p>

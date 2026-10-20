@@ -70,6 +70,8 @@ final class Capacites
             'membres.exporter' => 'Exporter les membres',
             'membres.changer_cellule' => 'Valider ou refuser un changement de cellule (seul le super administrateur)',
             'renouvellement.ouvrir' => 'Ouvrir la campagne de renouvellement annuel (seul le super administrateur)',
+            'arabe_coran.voir' => 'Voir le recensement Arabe et Coran (la commission Culturelle, par son appartenance ; le super administrateur)',
+            'arabe_coran.apprenants' => 'Voir les membres qui souhaitent apprendre l\'arabe et le Coran (nom et téléphone seulement)',
         ],
         'Paiements et cotisations' => [
             'paiements.voir' => 'Voir les paiements',
@@ -162,7 +164,7 @@ final class Capacites
         ],
         'jewrine_cellule' => [
             'panneau.acceder', 'panneau.accueil', 'espace.responsable',
-            'membres.voir.cellule', 'membres.inscrire.cellule', 'membres.modifier.cellule', 'membres.valider.cellule', 'membres.importer.cellule',
+            'membres.voir.cellule', 'membres.inscrire.cellule', 'membres.modifier.cellule', 'membres.valider.cellule', 'membres.importer.cellule', 'arabe_coran.apprenants.cellule',
             'cotisations.suivre.cellule', 'relances.envoyer.cellule', 'programmes.voir.cellule',
             'dahiras.voir.cellule', 'dahiras.gerer.cellule', 'pointeurs.designer.cellule',
             'sympathisants.voir.cellule', 'sympathisants.gerer.cellule',

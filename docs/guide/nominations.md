@@ -120,6 +120,8 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Exporter les membres <br>`membres.exporter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
 | Valider ou refuser un changement de cellule (seul le super administrateur) <br>`membres.changer_cellule` | ✔ |  |  |  |  |  |  |  |  |  |  |
 | Ouvrir la campagne de renouvellement annuel (seul le super administrateur) <br>`renouvellement.ouvrir` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Voir le recensement Arabe et Coran (la commission Culturelle, par son appartenance ; le super administrateur) <br>`arabe_coran.voir` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Voir les membres qui souhaitent apprendre l'arabe et le Coran (nom et téléphone seulement) <br>`arabe_coran.apprenants` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
 
 ### Paiements et cotisations
 

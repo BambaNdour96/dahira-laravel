@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\LienFamille;
-use App\Enums\NiveauArabe;
 use App\Enums\NiveauEtudes;
 use App\Enums\Sexe;
 use App\Enums\SituationProfessionnelle;
@@ -51,7 +50,6 @@ use Illuminate\Support\Str;
  * @property string|null $diplome
  * @property string|null $domaine_etudes
  * @property list<string>|null $langues
- * @property NiveauArabe|null $niveau_arabe
  * @property SituationProfessionnelle|null $situation_professionnelle
  * @property string|null $profession
  * @property string|null $secteur_activite
@@ -79,7 +77,7 @@ class Membre extends Model
     /** Champs pris en compte dans la barre « Profil complété ». */
     public const CHAMPS_PROFIL = [
         'email', 'adresse', 'ville', 'niveau_etudes', 'diplome', 'domaine_etudes',
-        'langues', 'niveau_arabe', 'situation_professionnelle', 'profession', 'secteur_activite',
+        'langues', 'arabe_coran', 'situation_professionnelle', 'profession', 'secteur_activite',
     ];
 
     /**
@@ -95,7 +93,7 @@ class Membre extends Model
     protected $fillable = [
         'niveau_etudes_autre', 'user_id', 'prenom', 'nom', 'sexe', 'date_naissance', 'lieu_naissance', 'telephone', 'email',
         'adresse', 'ville', 'pays_residence', 'cellule_id', 'photo_path',
-        'niveau_etudes', 'diplome', 'domaine_etudes', 'langues', 'niveau_arabe',
+        'niveau_etudes', 'diplome', 'domaine_etudes', 'langues',
         'situation_professionnelle', 'profession', 'secteur_activite',
         'date_adhesion', 'consentement_le', 'consentement_version',
         'responsable_id', 'lien_famille', 'inscrit_par', 'compte_propose_le', 'origine', 'import_id',
@@ -165,7 +163,6 @@ class Membre extends Model
             'sexe' => Sexe::class,
             'statut' => StatutMembre::class,
             'niveau_etudes' => NiveauEtudes::class,
-            'niveau_arabe' => NiveauArabe::class,
             'situation_professionnelle' => SituationProfessionnelle::class,
             'langues' => 'array',
             'date_naissance' => 'date',
@@ -182,7 +179,9 @@ class Membre extends Model
     public function completude(): int
     {
         $champs = array_values(array_filter(self::CHAMPS_PROFIL, fn (string $champ): bool => $this->champApplicable($champ)));
-        $remplis = collect($champs)->filter(fn (string $champ): bool => filled($this->getAttribute($champ)))->count();
+        $remplis = collect($champs)->filter(fn (string $champ): bool => $champ === 'arabe_coran'
+            ? $this->profilArabeCoran?->estRemplie() === true
+            : filled($this->getAttribute($champ)))->count();
 
         return (int) round($remplis / count($champs) * 100);
     }
@@ -320,6 +319,16 @@ class Membre extends Model
     public function changementsCellule(): HasMany
     {
         return $this->hasMany(ChangementCellule::class);
+    }
+
+    /**
+     * Sa rubrique « Arabe et Coran » (confidentielle).
+     *
+     * @return HasOne<ProfilArabeCoran, $this>
+     */
+    public function profilArabeCoran(): HasOne
+    {
+        return $this->hasOne(ProfilArabeCoran::class);
     }
 
     /** @return BelongsTo<Membre, $this> */

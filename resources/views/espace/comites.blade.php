@@ -43,6 +43,15 @@
         </section>
     @endif
 
+    @if ($recensementArabeCoran)
+        <a href="{{ route('recensement.index') }}" class="mt-5 block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-or-400 hover:bg-stone-100">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Commission Culturelle</p>
+            <p class="text-lg font-semibold text-emerald-950">📖 Recensement Arabe et Coran</p>
+            <p class="text-sm text-stone-600">Chiffres par cellule, et liste des membres par critère.</p>
+        </a>
+        <a href="{{ route('recensement.apprenants') }}" class="mt-2 block text-sm font-medium text-emerald-800 underline">Ceux qui souhaitent apprendre</a>
+    @endif
+
     @foreach ($commissionsDirigees as $permanente)
         @php
             $souhaits = $permanente->appartenances->filter(fn ($appartenance) => $appartenance->estSouhait());
