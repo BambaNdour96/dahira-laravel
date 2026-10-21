@@ -82,6 +82,9 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 12. **Tests Browser, fenêtre de rappel** : un programme ouvert, avec rappels, affiche sa fenêtre sur toutes les pages
     sauf « Mes engagements » ; elle couvre les boutons et un `press()` ou un `click()` attend alors sans fin (le test
     semble bloqué, sans erreur). Dans un test Browser, créer le programme avec `'rappels_actifs' => false`.
+13. **Tests en parallèle** : jamais deux passages sur la base `dahira_test` en même temps (chacun recrée le schéma et
+    efface les tables de l'autre). Les disques factices (`Storage::fake`) sont propres à chaque processus
+    (`tests/TestCase.php`) : un passage SQLite peut tourner pendant un passage PostgreSQL.
 
 ## Commandes utiles
 
