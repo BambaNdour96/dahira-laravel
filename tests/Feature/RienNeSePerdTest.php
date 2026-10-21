@@ -106,7 +106,7 @@ describe('la base de données', function () {
     });
 
     it('refuse d\'effacer un comité qui a des commissions', function () {
-        $instance = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+        $instance = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
         CommissionComite::query()->create(['instance_id' => $instance->id, 'nom' => 'Cuisine']);
 
         expect(fn () => DB::transaction(fn () => DB::table('instances')->where('id', $instance->id)->delete()))->toThrow(QueryException::class);
@@ -114,7 +114,7 @@ describe('la base de données', function () {
 
     it('refuse toute suppression des données importantes par l\'application', function () {
         $programme = programmeConserve();
-        $instance = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+        $instance = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
         $reunion = reunionConservee($instance);
         $decision = Decision::query()->create(['instance_id' => $instance->id, 'reunion_id' => $reunion->id, 'texte' => 'Le Magal se tiendra à Touba.']);
         $action = ActionComite::query()->create(['instance_id' => $instance->id, 'reunion_id' => $reunion->id, 'description' => 'Réserver les cars']);
@@ -225,7 +225,7 @@ describe('les dahiras et les événements', function () {
 
 describe('les réunions', function () {
     beforeEach(function () {
-        $this->instance = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+        $this->instance = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
         $this->membre = membreConserve($this->kaolack, Sexe::Homme, 'Modou');
         $this->instance->membres()->attach($this->membre->id);
         $this->comites = app(ComiteService::class);

@@ -75,7 +75,7 @@ it('crée un CDGMT avec le Comité directeur, ses commissions et leurs chefs, m�
 
     Livewire::test(CreateInstance::class)
         ->fillForm([
-            'type' => Instance::CDGMT, 'nom' => 'CDGMT – Grand Magal de Touba 2026', 'code' => 'CDGMT', 'annee' => 2026,
+            'type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT – Grand Magal de Touba 2026', 'code' => 'CDGMT', 'annee' => 2026,
             'president_id' => $this->ousmane->id, 'statut' => 'active',
             'commissions' => [
                 ['nom' => 'Cuisine', 'mission' => 'Menus et service', 'chef_id' => $this->fatou->id],
@@ -86,11 +86,11 @@ it('crée un CDGMT avec le Comité directeur, ses commissions et leurs chefs, m�
         ->assertHasNoFormErrors();
     $repeater();
 
-    $cdgmt = Instance::query()->where('type', Instance::CDGMT)->firstOrFail();
+    $cdgmt = Instance::query()->where('type', Instance::COMITE_ORGANISATION)->firstOrFail();
     expect($cdgmt->membres()->pluck('membres.id')->sort()->values()->all())->toBe(collect([$this->ousmane->id, $this->modou->id, $this->fatou->id])->sort()->values()->all())
         ->and($cdgmt->commissions()->count())->toBe(2);
 
-    $suivant = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2027', 'code' => 'CDGMT', 'annee' => 2027, 'president_id' => $this->modou->id]);
+    $suivant = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2027', 'code' => 'CDGMT', 'annee' => 2027, 'president_id' => $this->modou->id]);
     expect($this->service->reprendreCommissions($suivant))->toBe(2)
         ->and($suivant->commissions()->whereNull('chef_id')->count())->toBe(2);
 
@@ -100,7 +100,7 @@ it('crée un CDGMT avec le Comité directeur, ses commissions et leurs chefs, m�
 it('tient une réunion de bout en bout : convocation, présences, décisions numérotées, actions et PV publié', function () {
     Notification::fake();
     $repeater = Repeater::fake();
-    $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->ousmane->id]);
+    $cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->ousmane->id]);
     $cdgmt->membres()->sync([$this->ousmane->id, $this->modou->id, $this->fatou->id]);
     $cuisine = CommissionComite::query()->create(['instance_id' => $cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->fatou->id]);
 
@@ -192,7 +192,7 @@ it('note dans le PV si une décision est prise à l\'unanimité ou tranchée par
 
 describe('la convocation modifiée', function () {
     beforeEach(function () {
-        $this->cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->ousmane->id]);
+        $this->cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->ousmane->id]);
         $this->cdgmt->membres()->sync([$this->ousmane->id, $this->modou->id, $this->fatou->id]);
         $this->reunion = Reunion::query()->create([
             'instance_id' => $this->cdgmt->id, 'titre' => 'Réunion n° 2', 'debut' => now()->addDays(3)->setTime(20, 0),

@@ -110,7 +110,8 @@ final class ComiteService
 
         $membre = $utilisateur->membre;
 
-        return $membre !== null && $instance->membres()->whereKey($membre->id)->exists();
+        return ($membre !== null && $instance->membres()->whereKey($membre->id)->exists())
+            || ($instance->estComiteOrganisation() && $instance->jewrineSuiviDepenses()?->id === $utilisateur->id);
     }
 
     /**
@@ -165,7 +166,7 @@ final class ComiteService
     /** Un nouveau CDGMT commence avec tous les membres du Comité directeur. */
     public function preparerCdgmt(Instance $instance): void
     {
-        if ($instance->type !== Instance::CDGMT) {
+        if ($instance->type !== Instance::COMITE_ORGANISATION) {
             return;
         }
 

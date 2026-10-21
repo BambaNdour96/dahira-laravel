@@ -13,7 +13,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Le budget des commissions d'un comité : les besoins exprimés par les chefs, retenus par le président ;
+ * Le budget des commissions d'un comité : les besoins exprimés par les chefs, retenus par l'arbitre (voir SuiviDepensesService) ;
  * les dépenses déclarées par les chefs, validées par le Jewrine finance ; le solde du Magal.
  */
 final class BudgetComiteService
@@ -25,9 +25,10 @@ final class BudgetComiteService
             || ComiteService::peutOrganiser($utilisateur, $commission->instance);
     }
 
+    /** Retenir ou écarter un besoin fait partie de l'arbitrage (comité de suivi, sinon Jewrine national). */
     public static function peutRetenir(User $utilisateur, CommissionComite $commission): bool
     {
-        return ComiteService::peutOrganiser($utilisateur, $commission->instance);
+        return app(SuiviDepensesService::class)->peutArbitrer($utilisateur, $commission->instance);
     }
 
     public static function peutValider(User $utilisateur, DepenseCommission $depense): bool
@@ -58,7 +59,7 @@ final class BudgetComiteService
     private function traiterBesoin(BesoinCommission $besoin, string $statut, ?string $motif, User $auteur): void
     {
         if (! self::peutRetenir($auteur, $besoin->commission)) {
-            throw new DomainException('Les besoins sont retenus ou écartés par le président du comité.');
+            throw new DomainException('Les besoins sont retenus ou écartés par celui qui arbitre le budget (le Jewrine du suivi des dépenses, sinon le Jewrine national).');
         }
 
         $besoin->update(['statut' => $statut, 'motif' => $motif, 'traite_par' => $auteur->id]);

@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $cree_par
  * @property-read Membre|null $president
  * @property-read Collecte|null $collecte
+ * @property bool $suivi_depenses
  * @property-read Commission|null $commission
  */
 class Instance extends Model
@@ -33,25 +34,25 @@ class Instance extends Model
 
     public const COMITE_DIRECTEUR = 'comite_directeur';
 
-    public const CDGMT = 'cdgmt';
+    /** Un comité d'organisation dédié (le CDGMT pour un Magal, le Grand Ziar…) : le même espace pour tous. */
+    public const COMITE_ORGANISATION = 'comite_organisation';
 
     public const COMMISSION = 'commission';
 
     /** Les types que l'on crée à l'écran ; l'espace d'une commission permanente se crée avec elle. */
     public const TYPES = [
         self::COMITE_DIRECTEUR => 'Comité directeur',
-        self::CDGMT => 'CDGMT (Comité d\'organisation du Grand Magal de Touba)',
-        'autre' => 'Autre comité',
+        self::COMITE_ORGANISATION => 'Comité d\'organisation (CDGMT, Grand Ziar…)',
     ];
 
     protected $attributes = ['statut' => 'active'];
 
-    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'commission_id', 'president_id', 'mise_en_place', 'statut', 'cree_par'];
+    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'commission_id', 'president_id', 'mise_en_place', 'statut', 'suivi_depenses', 'cree_par'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['mise_en_place' => 'date', 'annee' => 'integer'];
+        return ['mise_en_place' => 'date', 'annee' => 'integer', 'suivi_depenses' => 'boolean'];
     }
 
     public static function comiteDirecteur(): self
@@ -62,6 +63,54 @@ class Instance extends Model
     public function estComiteDirecteur(): bool
     {
         return $this->type === self::COMITE_DIRECTEUR;
+    }
+
+    public function estComiteOrganisation(): bool
+    {
+        return $this->type === self::COMITE_ORGANISATION;
+    }
+
+    /** Le CDGMT : le comité d'organisation d'un Magal. */
+    public function estCdgmt(): bool
+    {
+        return $this->estComiteOrganisation() && ($this->code === 'CDGMT' || $this->collecte?->type?->code === TypeProgramme::MAGAL);
+    }
+
+    /** Le Jewrine du comité de suivi des dépenses (nomination en cours), si le comité en a un. */
+    public function jewrineSuiviDepenses(): ?User
+    {
+        return User::query()->whereIn('id', Nomination::query()->where('instance_id', $this->id)
+            ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::JEWRINE_SUIVI_DEPENSES))->select('user_id'))->first();
+    }
+
+    /**
+     * Les propositions du président pour le Jewrine du suivi des dépenses.
+     *
+     * @return HasMany<PropositionSuiviDepenses, $this>
+     */
+    public function propositionsSuivi(): HasMany
+    {
+        return $this->hasMany(PropositionSuiviDepenses::class);
+    }
+
+    /**
+     * Les engagements de l'événement du comité (onglet Collecte).
+     *
+     * @return HasMany<Engagement, $this>
+     */
+    public function engagements(): HasMany
+    {
+        return $this->hasMany(Engagement::class, 'collecte_id', 'collecte_id');
+    }
+
+    /**
+     * Les ordres de dépense de l'événement du comité (onglet Argent).
+     *
+     * @return HasMany<OrdreDepense, $this>
+     */
+    public function ordresDepense(): HasMany
+    {
+        return $this->hasMany(OrdreDepense::class, 'collecte_id', 'collecte_id');
     }
 
     /** L'espace d'une commission permanente. */

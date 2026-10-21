@@ -44,7 +44,7 @@ it('charge en une commande un jeu de recette complet, avec un compte par casquet
         ->and(Paiement::query()->where('statut', StatutPaiement::Declare->value)->count())->toBeGreaterThanOrEqual(4)
         ->and(Membre::query()->where('statut', StatutMembre::EnAttente->value)->exists())->toBeTrue()
         ->and(Collecte::query()->firstOrFail()->engagements()->count())->toBe(7)
-        ->and(Instance::query()->where('type', Instance::CDGMT)->firstOrFail()->commissions()->count())->toBe(3)
+        ->and(Instance::query()->where('type', Instance::COMITE_ORGANISATION)->firstOrFail()->commissions()->count())->toBe(3)
         ->and(Reunion::query()->firstOrFail()->estPubliee())->toBeTrue()
         ->and(CampagneRenouvellement::ouverte())->not->toBeNull()
         ->and(ProfilArabeCoran::query()->count())->toBe(7);

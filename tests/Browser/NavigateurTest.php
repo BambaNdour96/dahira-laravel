@@ -20,6 +20,7 @@ use App\Services\ComiteService;
 use App\Services\CommissionService;
 use App\Services\ProgrammeService;
 use App\Services\RenouvellementService;
+use App\Services\SuiviDepensesService;
 use Database\Seeders\CommissionsSeeder;
 use Database\Seeders\ParametresSeeder;
 use Database\Seeders\PostesSeeder;
@@ -319,7 +320,7 @@ it('retrouve un membre à payer par son téléphone, sur le téléphone', functi
 it('laisse un membre demander à changer de cellule, puis se porter volontaire, depuis son téléphone', function () {
     Cellule::factory()->create(['nom' => 'Sam']);
     $chef = Membre::factory()->for(User::factory())->valide()->create();
-    $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+    $cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
     CommissionComite::query()->create(['instance_id' => $cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $chef->id]);
     $this->actingAs($this->compte);
 
@@ -434,4 +435,30 @@ it('montre le Sass d\'office et laisse l\'augmenter, puis le Jewrine répartit u
         ->assertNoJavascriptErrors();
 
     expect(ActionComite::query()->where('collecte_id', $prokhane->id)->value('responsable_id'))->toBe($this->membre->id);
+});
+
+it('ouvre l\'espace d\'un comité d\'organisation et ses onglets, puis le budget arbitré du chef sur le téléphone', function () {
+    $programmes = app(ProgrammeService::class);
+    $magal = $programmes->enregistrer([
+        'titre' => 'Grand Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'debut' => now()->addMonths(2)->format('Y-m-d 08:00'), 'lieu' => 'Touba',
+        'mode' => ModeCollecte::Jayante->value, 'budget' => 1000000, 'organisation' => Collecte::COMITE, 'ouverture' => now()->subDay()->toDateString(),
+        'statut' => 'ouverte', 'rappels_actifs' => false,
+    ], null, $this->super);
+    $cdgmt = $magal->comite ?? throw new RuntimeException('Pas de comité.');
+    $cuisine = CommissionComite::query()->create(['instance_id' => $cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->membre->id]);
+    app(SuiviDepensesService::class)->arbitrer($cuisine, 400000, 'Repas des trois jours', $this->super);
+
+    $this->actingAs($this->super);
+    visit('/admin/instances/'.$cdgmt->id)
+        ->assertSee('Tableau de bord')
+        ->click('Commissions et budget')
+        ->assertSee('Cuisine')
+        ->assertSee('400 000 FCFA')
+        ->assertNoJavascriptErrors();
+
+    $this->actingAs($this->compte);
+    visit('/mes-comites')->on()->mobile()
+        ->assertSee('Budget arbitré : 400 000 FCFA')
+        ->assertSee('Repas des trois jours')
+        ->assertNoJavascriptErrors();
 });

@@ -156,10 +156,6 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Je dirige</p>
             <h2 class="text-lg font-semibold text-emerald-950">Commission {{ $commission->nom }}</h2>
             <p class="text-xs text-stone-500">{{ $commission->instance->nom }}</p>
-            <p class="mt-2 text-sm text-stone-700">
-                Budget retenu : <span class="font-semibold">{{ number_format($commission->budget(), 0, ',', ' ') }} FCFA</span>
-                · dépensé : <span class="font-semibold">{{ number_format($commission->depense(), 0, ',', ' ') }} FCFA</span>
-            </p>
 
             <h3 class="mt-4 font-semibold text-emerald-900">Membres de la commission ({{ $commission->membres->count() }})</h3>
             <ul class="mt-2 space-y-1 text-sm">
@@ -316,6 +312,19 @@
                     </form>
                 </details>
             @endif
+
+            @php
+                $derniereRevision = $commission->revisions->first();
+            @endphp
+            <div class="mt-4 rounded-lg bg-emerald-50 p-3 text-sm" data-test="budget-commission">
+                <p class="font-semibold text-emerald-900">
+                    Budget {{ $commission->budget_arrete !== null ? 'arbitré' : 'proposé (besoins retenus)' }} : {{ number_format($commission->budget(), 0, ',', ' ') }} FCFA
+                    · dépensé {{ number_format($commission->depense(), 0, ',', ' ') }} FCFA
+                </p>
+                @if ($derniereRevision)
+                    <p class="mt-1 text-xs text-stone-600">Dernière révision le {{ $derniereRevision->created_at->format('d/m/Y') }} : {{ $derniereRevision->motif }}</p>
+                @endif
+            </div>
 
             <h3 class="mt-4 font-semibold text-emerald-900">Nos besoins</h3>
             <ul class="mt-2 space-y-1 text-sm">

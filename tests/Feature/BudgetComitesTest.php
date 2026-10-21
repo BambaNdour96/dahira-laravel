@@ -53,7 +53,7 @@ beforeEach(function () {
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
     $this->cdgmt = Instance::query()->create([
-        'type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026,
+        'type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026,
         'president_id' => $this->president->id, 'collecte_id' => $this->collecte->id,
     ]);
     $this->cuisine = CommissionComite::query()->create(['instance_id' => $this->cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->chef->id]);
@@ -64,7 +64,7 @@ beforeEach(function () {
     $this->service = app(BudgetComiteService::class);
 });
 
-it('fait exprimer les besoins par le chef, et retenir par le président pour former le budget', function () {
+it('fait exprimer les besoins par le chef, et retenir par l\'arbitre (ici le Jewrine national) pour former le budget', function () {
     $this->actingAs($this->compteChef)->get(route('comites.index'))->assertSee('Je dirige')->assertSee('Exprimer un besoin');
     $this->actingAs($this->compteChef)->post(route('comites.besoins.store', $this->cuisine), ['designation' => 'Sacs de riz', 'quantite' => 10, 'prix_unitaire' => 25000])
         ->assertSessionHas('comite_succes');
@@ -75,7 +75,10 @@ it('fait exprimer les besoins par le chef, et retenir par le président pour for
         ->assertSessionHas('comite_erreur');
 
     [$riz, $viande] = BesoinCommission::query()->orderBy('id')->get()->all();
+    // Sans comité de suivi des dépenses, le Jewrine national arbitre ; le président ne retient plus les besoins.
     $this->actingAs($this->comptePresident);
+    Livewire::test(ListBesoinsCommission::class)->assertActionHidden(TestAction::make('retenir')->table($riz));
+    $this->actingAs(nommerPourLeTest(User::query()->findOrFail(membreBudget('Serigne')->user_id), 'jewrine_national'));
     Livewire::test(ListBesoinsCommission::class)
         ->callAction(TestAction::make('retenir')->table($riz))
         ->callAction(TestAction::make('ecarter')->table($viande), ['motif' => 'Offerte par un fidèle'])
@@ -84,7 +87,7 @@ it('fait exprimer les besoins par le chef, et retenir par le président pour for
     expect($this->cuisine->budget())->toBe(250000)
         ->and($viande->fresh()->statut)->toBe('ecarte');
 
-    $suivant = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2027', 'code' => 'CDGMT', 'annee' => 2027, 'president_id' => $this->president->id]);
+    $suivant = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2027', 'code' => 'CDGMT', 'annee' => 2027, 'president_id' => $this->president->id]);
     app(ComiteService::class)->reprendreCommissions($suivant);
     expect(BesoinCommission::query()->whereHas('commission', fn ($query) => $query->where('instance_id', $suivant->id))->pluck('statut')->all())->toBe(['propose']);
 });

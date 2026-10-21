@@ -108,7 +108,7 @@ describe('les savoir-faire', function () {
 describe('le volontariat', function () {
     beforeEach(function () {
         $this->chef = membreR2b('Modou', $this->sam);
-        $this->cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+        $this->cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
         $this->commission = CommissionComite::query()->create(['instance_id' => $this->cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->chef->id]);
     });
 

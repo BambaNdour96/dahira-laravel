@@ -229,7 +229,7 @@ it('crée le comité dédié du Magal avec son président, prévenu', function (
         'mode' => ModeCollecte::Jayante->value, 'itineraire_transport' => true,
     ]), null, $this->super);
 
-    expect($magal->comite?->type)->toBe(Instance::CDGMT)
+    expect($magal->comite?->type)->toBe(Instance::COMITE_ORGANISATION)
         ->and($magal->comite?->president_id)->toBe($president->id)
         ->and($magal->comite?->membres()->whereKey($president->id)->exists())->toBeTrue()
         ->and($magal->itineraire_transport)->toBeTrue();
@@ -242,7 +242,9 @@ it('crée le comité dédié du Magal avec son président, prévenu', function (
 
     // Un Ziar organisé par un comité « autre ».
     $ziar = $this->service->enregistrer(evenement(['titre' => 'Grand Ziar', 'type_programme_id' => typeProgramme('ziar'), 'organisation' => Collecte::COMITE]), null, $this->super);
-    expect($ziar->comite?->type)->toBe('autre');
+    expect($ziar->comite?->type)->toBe(Instance::COMITE_ORGANISATION)
+        ->and($ziar->comite?->suivi_depenses)->toBeFalse()
+        ->and($magal->comite()->value('suivi_depenses'))->toBeTrue();
 });
 
 it('clôture : le solde rejoint la caisse générale par une réaffectation que la Finance enregistre', function () {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\StatutMembre;
 use App\Models\Cellule;
 use App\Models\Commission;
+use App\Models\Instance;
 use App\Models\Nomination;
 use App\Models\Poste;
 use App\Models\User;
@@ -35,7 +36,7 @@ final class NominationService
      * Nomme une personne à un poste. Sur un poste à titulaire unique, la nomination précédente
      * (dans la même cellule pour un Jewrine de cellule) prend fin : « remplacé(e) par … ».
      */
-    public function nommer(User $personne, Poste $poste, ?Cellule $cellule, User $auteur, ?Carbon $debut = null, ?Commission $commission = null): Nomination
+    public function nommer(User $personne, Poste $poste, ?Cellule $cellule, User $auteur, ?Carbon $debut = null, ?Commission $commission = null, ?Instance $comite = null): Nomination
     {
         if (! self::peutNommer($auteur, $poste)) {
             throw new DomainException(in_array($poste->code, Poste::RESERVES_AU_SUPER_ADMINISTRATEUR, true)
@@ -61,24 +62,30 @@ final class NominationService
             throw new DomainException('Choisissez la commission de ce '.$poste->nom.'.');
         }
 
+        if ($poste->estDeComite() && $comite === null) {
+            throw new DomainException('Choisissez le comité de ce '.$poste->nom.'.');
+        }
+
         $cellule = $poste->estDeCellule() ? $cellule : null;
         $commission = $poste->estDeCommission() ? $commission : null;
+        $comite = $poste->estDeComite() ? $comite : null;
 
         $dejaNomme = Nomination::query()
             ->where('user_id', $personne->id)
             ->where('poste_id', $poste->id)
             ->where('cellule_id', $cellule?->id)
             ->where('commission_id', $commission?->id)
+            ->where('instance_id', $comite?->id)
             ->exists();
 
         if ($dejaNomme) {
             throw new DomainException($membre->prenom.' '.$membre->nom.' occupe déjà ce poste.');
         }
 
-        $nomination = DB::transaction(function () use ($personne, $poste, $cellule, $commission, $auteur, $debut, $membre): Nomination {
+        $nomination = DB::transaction(function () use ($personne, $poste, $cellule, $commission, $comite, $auteur, $debut, $membre): Nomination {
             if ($poste->titulaire_unique) {
                 $precedentes = Nomination::query()->where('poste_id', $poste->id)
-                    ->where('cellule_id', $cellule?->id)->where('commission_id', $commission?->id)->get();
+                    ->where('cellule_id', $cellule?->id)->where('commission_id', $commission?->id)->where('instance_id', $comite?->id)->get();
 
                 foreach ($precedentes as $precedente) {
                     $this->clore($precedente, 'Remplacé(e) par '.$membre->prenom.' '.$membre->nom, $auteur);
@@ -90,6 +97,7 @@ final class NominationService
                 'poste_id' => $poste->id,
                 'cellule_id' => $cellule?->id,
                 'commission_id' => $commission?->id,
+                'instance_id' => $comite?->id,
                 'debut_le' => ($debut ?? now())->toDateString(),
                 'designe_par' => $auteur->id,
             ]);

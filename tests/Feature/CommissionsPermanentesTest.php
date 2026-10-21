@@ -179,7 +179,7 @@ describe('le secrétaire de séance', function () {
     it('est un membre du Comité directeur pour le Comité directeur et les comités d\'organisation', function () {
         $ousmane = membrePermanent('Ousmane');
         app(ComiteService::class)->definirComiteDirecteur([$ousmane->id], $this->super);
-        $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $ousmane->id]);
+        $cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $ousmane->id]);
 
         expect(array_keys(ComiteService::secretairesPossibles($cdgmt)))->toBe([$ousmane->id])
             ->and(array_keys(ComiteService::secretairesPossibles(Instance::comiteDirecteur())))->toBe([$ousmane->id]);

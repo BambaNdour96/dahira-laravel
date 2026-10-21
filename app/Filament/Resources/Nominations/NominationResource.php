@@ -214,7 +214,8 @@ class NominationResource extends Resource
     {
         $auteur = self::utilisateur();
 
-        return Poste::query()->where('actif', true)->orderBy('ordre')->get()
+        // Le Jewrine du suivi des dépenses se nomme depuis l'espace de son comité (proposition du président).
+        return Poste::query()->where('actif', true)->where('perimetre', '!=', 'comite')->orderBy('ordre')->get()
             ->filter(fn (Poste $poste): bool => $auteur !== null && NominationService::peutNommer($auteur, $poste))
             ->mapWithKeys(fn (Poste $poste): array => [$poste->id => $poste->nom])
             ->all();

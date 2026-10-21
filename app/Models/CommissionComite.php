@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $nom
  * @property string|null $mission
  * @property int|null $chef_id
+ * @property int|null $budget_arrete
  * @property int $ordre
  * @property-read Instance $instance
  * @property-read Membre|null $chef
@@ -70,16 +71,33 @@ class CommissionComite extends Model
         return $this->hasMany(DepenseCommission::class, 'commission_id');
     }
 
-    /** Le budget : la somme des besoins retenus. */
+    /** Le budget : celui arrêté par l'arbitrage ; à défaut, la somme des besoins retenus. */
     public function budget(): int
+    {
+        return $this->budget_arrete ?? $this->besoinsRetenus();
+    }
+
+    /** La somme des besoins retenus : la base proposée à l'arbitrage. */
+    public function besoinsRetenus(): int
     {
         return (int) $this->besoins()->where('statut', 'retenu')->get()->sum(fn (BesoinCommission $besoin): int => $besoin->montant());
     }
 
-    /** Ce qui a été dépensé : les dépenses validées par le Jewrine finance. */
+    /** Ce qui a été dépensé : les ordres de dépense payés, et les anciennes dépenses validées (avant R5). */
     public function depense(): int
     {
-        return (int) $this->depenses()->where('statut', 'validee')->sum('montant');
+        return (int) OrdreDepense::query()->where('commission_comite_id', $this->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant')
+            + (int) $this->depenses()->where('statut', 'validee')->sum('montant');
+    }
+
+    /**
+     * Les révisions de son budget, de la plus récente à la plus ancienne.
+     *
+     * @return HasMany<RevisionBudget, $this>
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(RevisionBudget::class, 'commission_comite_id')->latest('id');
     }
 
     /** @return HasMany<ActionComite, $this> */

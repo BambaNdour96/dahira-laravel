@@ -76,7 +76,7 @@ function ordre(array $valeurs = []): array
 it('fait demander par le chef de commission, signer par le Jewrine national, puis payer par la Finance', function () {
     Notification::fake();
     $chef = membreOrdre($this->kaolack);
-    $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
+    $cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026]);
     $cuisine = CommissionComite::query()->create(['instance_id' => $cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $chef->id]);
 
     $this->actingAs($chef->user)->get(route('comites.index'))->assertSee('Demander un ordre de dépense');

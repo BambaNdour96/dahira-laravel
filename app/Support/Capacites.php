@@ -30,6 +30,7 @@ final class Capacites
         'jewrine_commission' => 'Jewrine de commission',
         'suivi_evaluation' => 'Membre de la commission Suivi et Évaluation',
         'convocateur_comite_directeur' => 'Convocateur du Comité directeur',
+        'jewrine_suivi_depenses' => 'Jewrine du comité de suivi des dépenses',
         'representant_finance' => 'Représentant finance',
         'comite_directeur' => 'Membre du Comité directeur',
         'membre' => 'Membre',
@@ -39,7 +40,7 @@ final class Capacites
     public const PERSONNELLES = ['caisse.tenir'];
 
     /** Les casquettes qui viennent d'un poste (nomination). */
-    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'jewrine_commission', 'convocateur_comite_directeur'];
+    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'jewrine_commission', 'convocateur_comite_directeur', 'jewrine_suivi_depenses'];
 
     /**
      * Les capacités, par domaine : code => libellé.
@@ -120,7 +121,8 @@ final class Capacites
             'statistiques.voir' => 'Statistiques des événements et des sympathisants',
         ],
         'Comités' => [
-            'comites.diriger' => 'Créer un comité d\'organisation, en désigner le président, le gérer',
+            'comites.diriger' => 'Créer un comité d\'organisation, en désigner le président, le gérer ; activer son comité de suivi des dépenses',
+            'comites.arbitrer' => 'Arbitrer le budget des commissions d\'un comité d\'organisation (le Jewrine du suivi des dépenses pour son comité ; sinon le Jewrine national)',
             'comite_directeur.convoquer' => 'Convoquer le Comité directeur et préparer ses réunions',
             'comites.consulter' => 'Consulter les comités, réunions, décisions et actions',
             'comites.budget_voir' => 'Voir les besoins et les dépenses des commissions',
@@ -151,7 +153,7 @@ final class Capacites
             'representants.voir',
             'programmes.voir', 'programmes.parametrer', 'programmes.cloturer', 'programmes.piloter', 'programmes.exporter',
             'evenements.voir', 'evenements.gerer', 'dahiras.voir', 'pointage.partout', 'sympathisants.voir', 'statistiques.voir',
-            'comites.diriger', 'comite_directeur.convoquer', 'comites.consulter', 'comites.budget_voir',
+            'comites.diriger', 'comites.arbitrer', 'comite_directeur.convoquer', 'comites.consulter', 'comites.budget_voir',
             'projets.voir', 'projets.gerer', 'rapports.rediger',
         ],
         'secretaire_general' => [
@@ -193,6 +195,7 @@ final class Capacites
             'projets.voir', 'projets.gerer', 'rapports.rediger', 'rapports.tout_lire',
         ],
         'convocateur_comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comite_directeur.convoquer'],
+        'jewrine_suivi_depenses' => ['panneau.acceder', 'espace.responsable', 'comites.budget_voir', 'comites.arbitrer'],
         'representant_finance' => ['espace.responsable', 'caisse.tenir'],
         'comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comites.budget_voir'],
         'membre' => [],
@@ -253,7 +256,7 @@ final class Capacites
     public const ABREVIATIONS = [
         'super_administrateur' => 'SA', 'jewrine_national' => 'JN', 'secretaire_general' => 'SG', 'jewrine_finance' => 'JF',
         'jewrine_cellule' => 'JC', 'jewrine_commission' => 'JCo', 'suivi_evaluation' => 'SE',
-        'convocateur_comite_directeur' => 'CCD', 'representant_finance' => 'RF', 'comite_directeur' => 'CD', 'membre' => 'M',
+        'convocateur_comite_directeur' => 'CCD', 'jewrine_suivi_depenses' => 'JSD', 'representant_finance' => 'RF', 'comite_directeur' => 'CD', 'membre' => 'M',
     ];
 
     /** Le tableau de la matrice, tel qu'il figure dans docs/guide/nominations.md (un test vérifie qu'ils concordent). */

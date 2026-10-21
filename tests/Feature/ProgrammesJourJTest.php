@@ -55,7 +55,7 @@ it('crée un programme avec son jour J, en un seul formulaire', function () {
         ->and($collecte->evenement?->titre)->toBe('Magal de Touba 2026')
         ->and($collecte->evenement?->lieu)->toBe('Touba')
         ->and($collecte->itineraire_transport)->toBeTrue()
-        ->and($collecte->comite?->type)->toBe(Instance::CDGMT)
+        ->and($collecte->comite?->type)->toBe(Instance::COMITE_ORGANISATION)
         ->and($collecte->budget)->toBe(3000000);
 
     Livewire::test(ViewCollecte::class, ['record' => $collecte->getRouteKey()])->assertOk();

@@ -10,6 +10,8 @@ use App\Filament\Resources\Reunions\ReunionResource;
 use App\Models\Collecte;
 use App\Models\Instance;
 use App\Models\Membre;
+use App\Models\Nomination;
+use App\Models\Poste;
 use App\Models\User;
 use App\Services\ComiteService;
 use BackedEnum;
@@ -20,11 +22,11 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -66,7 +68,19 @@ class InstanceResource extends Resource
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && ($utilisateur->can('comites.consulter') || ReunionResource::instancesOrganisables($utilisateur) !== []);
+        return $utilisateur !== null && ($utilisateur->can('comites.consulter') || ReunionResource::instancesOrganisables($utilisateur) !== []
+            || self::comitesSuivis($utilisateur) !== []);
+    }
+
+    /**
+     * Les comités dont cette personne est le Jewrine du suivi des dépenses.
+     *
+     * @return list<int>
+     */
+    public static function comitesSuivis(User $utilisateur): array
+    {
+        return array_values(array_map('intval', Nomination::query()->where('user_id', $utilisateur->id)->whereNotNull('instance_id')
+            ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::JEWRINE_SUIVI_DEPENSES))->pluck('instance_id')->all()));
     }
 
     /** @return Builder<Instance> */
@@ -77,7 +91,7 @@ class InstanceResource extends Resource
         $utilisateur = self::utilisateur();
 
         if ($utilisateur !== null && ! $utilisateur->can('comites.consulter')) {
-            $query->whereIn('id', array_keys(ReunionResource::instancesOrganisables($utilisateur)));
+            $query->whereIn('id', [...array_keys(ReunionResource::instancesOrganisables($utilisateur)), ...self::comitesSuivis($utilisateur)]);
         }
 
         return $query;
@@ -120,22 +134,20 @@ class InstanceResource extends Resource
                     Select::make('type')
                         ->label('Type')
                         ->options(array_diff_key(Instance::TYPES, [Instance::COMITE_DIRECTEUR => true]))
-                        ->default(Instance::CDGMT)
+                        ->default(Instance::COMITE_ORGANISATION)
                         ->required()
-                        ->live()
-                        ->afterStateUpdated(function (Set $set, ?string $state): void {
-                            $set('code', $state === Instance::CDGMT ? 'CDGMT' : 'COM');
-
-                            if ($state === Instance::CDGMT) {
-                                $set('nom', 'CDGMT – Grand Magal de Touba '.now()->year);
-                            }
-                        }),
+                        ->live(),
                     TextInput::make('nom')->label('Nom')->required()->maxLength(150)->default('CDGMT – Grand Magal de Touba '.now()->year),
                     TextInput::make('code')->label('Code (numéros des décisions)')->required()->maxLength(15)->default('CDGMT')
-                        ->helperText('Exemple : CDGMT donne CDGMT-2026-D-001.'),
+                        ->helperText('Exemple : CDGMT donne CDGMT-2026-D-001 ; GZ pour le Grand Ziar.'),
                     TextInput::make('annee')->label('Année')->numeric()->required()->default(now()->year),
                     Select::make('collecte_id')->label('Programme lié')->options(fn (): array => Collecte::query()->latest('ouverture')->pluck('titre', 'id')->all())
-                        ->placeholder('Aucun')->visible(fn (Get $get): bool => $get('type') === Instance::CDGMT),
+                        ->placeholder('Aucun')->visible(fn (Get $get): bool => $get('type') === Instance::COMITE_ORGANISATION),
+                    Toggle::make('suivi_depenses')
+                        ->label('Comité de suivi des dépenses')
+                        ->helperText('D\'office pour un Magal. Actif, son Jewrine arbitre le budget des commissions et signe les ordres de dépense ; sinon, le Jewrine national.')
+                        ->disabled(fn (): bool => ! (($utilisateur = self::utilisateur()) !== null && $utilisateur->can('comites.diriger')))
+                        ->visible(fn (Get $get): bool => $get('type') === Instance::COMITE_ORGANISATION),
                     Select::make('president_id')
                         ->label('Président (membre du Comité directeur)')
                         ->options(fn (): array => ComiteService::choixMembres(Instance::comiteDirecteur()))
@@ -180,7 +192,7 @@ class InstanceResource extends Resource
                 TextColumn::make('nom')->label('Comité')->weight('bold')->searchable(),
                 TextColumn::make('type')->label('Type')->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        Instance::CDGMT => 'CDGMT',
+                        Instance::COMITE_ORGANISATION => 'Comité d\'organisation',
                         Instance::COMMISSION => 'Commission permanente',
                         default => Instance::TYPES[$state] ?? $state,
                     }),

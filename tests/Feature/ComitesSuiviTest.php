@@ -60,7 +60,7 @@ beforeEach(function () {
     ]);
 
     $this->cdgmt = Instance::query()->create([
-        'type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026,
+        'type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026,
         'president_id' => $this->president->id, 'collecte_id' => $collecte->id,
     ]);
     $this->cuisine = CommissionComite::query()->create(['instance_id' => $this->cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->chef->id]);

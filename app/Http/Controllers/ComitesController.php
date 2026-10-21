@@ -50,7 +50,7 @@ class ComitesController extends Controller
 
         $mesCommissions = CommissionComite::query()
             ->with([
-                'instance', 'membres', 'actions.responsable', 'besoins' => fn ($query) => $query->latest(), 'depenses' => fn ($query) => $query->latest('date_depense'),
+                'instance', 'membres', 'actions.responsable', 'besoins' => fn ($query) => $query->latest(), 'revisions', 'depenses' => fn ($query) => $query->latest('date_depense'),
                 'volontariats' => fn ($query) => $query->whereIn('statut', Volontariat::EN_ATTENTE)->with('membre.cellule')->oldest(),
             ])
             ->where('chef_id', $membre->id)

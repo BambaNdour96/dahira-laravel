@@ -30,10 +30,13 @@ class Poste extends Model
 
     public const CONVOCATEUR_COMITE_DIRECTEUR = 'convocateur_comite_directeur';
 
+    /** Le Jewrine du comité de suivi des dépenses d'un comité d'organisation (nommé depuis l'espace du comité). */
+    public const JEWRINE_SUIVI_DEPENSES = 'jewrine_suivi_depenses';
+
     /** Les postes que seul le super administrateur attribue. */
     public const RESERVES_AU_SUPER_ADMINISTRATEUR = [self::JEWRINE_NATIONAL, self::JEWRINE_COMMISSION, self::CONVOCATEUR_COMITE_DIRECTEUR];
 
-    public const PERIMETRES = ['national' => 'Toute la Daara', 'cellule' => 'Une cellule', 'commission' => 'Une commission permanente'];
+    public const PERIMETRES = ['national' => 'Toute la Daara', 'cellule' => 'Une cellule', 'commission' => 'Une commission permanente', 'comite' => 'Un comité d\'organisation'];
 
     protected $fillable = ['nom', 'ordre', 'actif', 'perimetre', 'titulaire_unique'];
 
@@ -57,6 +60,11 @@ class Poste extends Model
     public function estDeCommission(): bool
     {
         return $this->perimetre === 'commission';
+    }
+
+    public function estDeComite(): bool
+    {
+        return $this->perimetre === 'comite';
     }
 
     public static function parCode(string $code): ?self

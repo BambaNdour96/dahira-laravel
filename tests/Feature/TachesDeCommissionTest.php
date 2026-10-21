@@ -31,7 +31,7 @@ beforeEach(function () {
     $this->awa = membreTache('Awa');
     app(ComiteService::class)->definirComiteDirecteur([$this->president->id], $super);
 
-    $this->cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->president->id]);
+    $this->cdgmt = Instance::query()->create(['type' => Instance::COMITE_ORGANISATION, 'nom' => 'CDGMT 2026', 'code' => 'CDGMT', 'annee' => 2026, 'president_id' => $this->president->id]);
     $this->cuisine = CommissionComite::query()->create(['instance_id' => $this->cdgmt->id, 'nom' => 'Cuisine', 'chef_id' => $this->fatou->id]);
     app(ComiteService::class)->integrerResponsables($this->cdgmt);
 

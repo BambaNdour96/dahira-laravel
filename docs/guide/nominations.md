@@ -15,6 +15,7 @@ en cours. Quand une casquette prend fin, seuls ses droits à elle disparaissent.
 | **Jewrine de cellule** | Nomination par le super administrateur ou le Jewrine national, pour une cellule ; responsable de tous ses membres, Goor Yalla et Sokhnas |
 | **Jewrine de commission** | Nomination par le super administrateur seulement, pour une commission permanente (voir [Commissions permanentes](commissions.md)) |
 | **Convocateur du Comité directeur** | Nomination par le super administrateur seulement (voir [Réunions](reunions.md)) |
+| **Jewrine du comité de suivi des dépenses** | Pour un comité d'organisation : proposé par le président et validé par le Jewrine national, ou désigné par le super administrateur, depuis l'espace du comité (voir [Espace des grands événements](comites-organisation.md)) |
 | **Membre de la commission Suivi et Évaluation** | Ajouté par le Jewrine de la commission Suivi et Évaluation |
 | **Représentant finance** | Désigné par le Jewrine finance (Trésorerie → Représentants finance) |
 | **Membre du Comité directeur** | Liste tenue par le super administrateur |
@@ -85,7 +86,7 @@ Ce tableau est produit à partir du code (`app/Support/Capacites.php`) ; après 
 Légende : **SA** super administrateur · **JN** Jewrine national · **SG** Secrétaire général ·
 **JF** Jewrine finance national · **JC** Jewrine de cellule · **JCo** Jewrine de commission ·
 **SE** membre de la commission Suivi et Évaluation · **CCD** Convocateur du Comité directeur ·
-**RF** Représentant finance · **CD** Membre du Comité directeur · **M** Membre.
+**JSD** Jewrine du comité de suivi des dépenses · **RF** Représentant finance · **CD** Membre du Comité directeur · **M** Membre.
 
 S'ajoutent les droits liés à la personne, vérifiés au cas par cas : le président d'un comité d'organisation le gère ;
 le Jewrine d'une commission permanente gère ses membres et son espace ; le secrétaire de séance rédige et publie
@@ -93,108 +94,109 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 
 ### Plateforme
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Réglages, journaux, sessions, comptes, règles de validation, « voir en tant que » <br>`plateforme.administrer` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Accéder au panneau du bureau (/admin) <br>`panneau.acceder` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |  | ✔ |  |
-| Arriver sur le panneau du bureau après la connexion <br>`panneau.accueil` | ✔ | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |
-| Charte de confidentialité et déconnexion rapide des responsables <br>`espace.responsable` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |  |
-| Voir les nominations <br>`nominations.voir` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Nommer et mettre fin à une nomination (Jewrine national, Jewrine de commission, convocateur : seul le super administrateur) <br>`nominations.gerer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Cellules, commissions permanentes, exercices, postes, tarifs <br>`referentiel.gerer` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Gérer les membres de toutes les commissions permanentes <br>`commissions.gerer` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Réglages, journaux, sessions, comptes, règles de validation, « voir en tant que » <br>`plateforme.administrer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Accéder au panneau du bureau (/admin) <br>`panneau.acceder` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |  | ✔ |  |
+| Arriver sur le panneau du bureau après la connexion <br>`panneau.accueil` | ✔ | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
+| Charte de confidentialité et déconnexion rapide des responsables <br>`espace.responsable` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |  |
+| Voir les nominations <br>`nominations.voir` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Nommer et mettre fin à une nomination (Jewrine national, Jewrine de commission, convocateur : seul le super administrateur) <br>`nominations.gerer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Cellules, commissions permanentes, exercices, postes, tarifs <br>`referentiel.gerer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Gérer les membres de toutes les commissions permanentes <br>`commissions.gerer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
 
 ### Membres et cartes
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Voir les fiches des membres <br>`membres.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  |  |  |  |  |  |
-| Inscrire un membre <br>`membres.inscrire` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |
-| Modifier une fiche <br>`membres.modifier` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |
-| Accepter, faire corriger ou rejeter une inscription (toute la Daara : tout changement de statut hors suspension) <br>`membres.valider` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |
-| Suspendre un membre, ou le réactiver <br>`membres.suspendre` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Changer le statut d'un responsable <br>`membres.statut_responsables` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Révoquer une carte <br>`cartes.revoquer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
-| Préparer les lots de cartes en plastique pour l'imprimeur <br>`cartes.imprimer` | ✔ |  | ✔ |  |  |  |  |  |  |  |  |
-| Reprendre les listes existantes (import de membres ; le Jewrine pour sa cellule) <br>`membres.importer` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |
-| Exporter les membres <br>`membres.exporter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
-| Valider ou refuser un changement de cellule (seul le super administrateur) <br>`membres.changer_cellule` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Ouvrir la campagne de renouvellement annuel (seul le super administrateur) <br>`renouvellement.ouvrir` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Voir le recensement Arabe et Coran (la commission Culturelle, par son appartenance ; le super administrateur) <br>`arabe_coran.voir` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Voir les membres qui souhaitent apprendre l'arabe et le Coran (nom et téléphone seulement) <br>`arabe_coran.apprenants` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Voir les fiches des membres <br>`membres.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  |  |  |  |  |  |  |
+| Inscrire un membre <br>`membres.inscrire` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |  |
+| Modifier une fiche <br>`membres.modifier` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |  |
+| Accepter, faire corriger ou rejeter une inscription (toute la Daara : tout changement de statut hors suspension) <br>`membres.valider` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |  |
+| Suspendre un membre, ou le réactiver <br>`membres.suspendre` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Changer le statut d'un responsable <br>`membres.statut_responsables` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Révoquer une carte <br>`cartes.revoquer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Préparer les lots de cartes en plastique pour l'imprimeur <br>`cartes.imprimer` | ✔ |  | ✔ |  |  |  |  |  |  |  |  |  |
+| Reprendre les listes existantes (import de membres ; le Jewrine pour sa cellule) <br>`membres.importer` | ✔ | ✔ | ✔ |  | cellule |  |  |  |  |  |  |  |
+| Exporter les membres <br>`membres.exporter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
+| Valider ou refuser un changement de cellule (seul le super administrateur) <br>`membres.changer_cellule` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Ouvrir la campagne de renouvellement annuel (seul le super administrateur) <br>`renouvellement.ouvrir` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Voir le recensement Arabe et Coran (la commission Culturelle, par son appartenance ; le super administrateur) <br>`arabe_coran.voir` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Voir les membres qui souhaitent apprendre l'arabe et le Coran (nom et téléphone seulement) <br>`arabe_coran.apprenants` | ✔ |  |  |  | cellule |  |  |  |  |  |  |  |
 
 ### Paiements et cotisations
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Voir les paiements <br>`paiements.voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
-| Enregistrer un paiement en espèces <br>`paiements.encaisser` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Confirmer ou refuser un paiement déclaré <br>`paiements.valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Valider le paiement d'un responsable, selon les règles de validation croisée <br>`paiements.valider_bureau` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
-| Valider en secours, hors règles de validation croisée (jamais son propre paiement) <br>`paiements.secours` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Corriger un paiement validé : contre-passation, réaffectation, avoir, remboursement (Jewrine finance national) <br>`paiements.corriger` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Demander la dispense de cotisation d'un membre <br>`cotisations.dispense_demander` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
-| Valider ou refuser une demande de dispense de cotisation <br>`cotisations.dispenser` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Suivre les cotisations (tableaux de bord) <br>`cotisations.suivre` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |
-| Voir les rapports financiers <br>`finances.voir` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |
-| Relancer les membres en retard <br>`relances.envoyer` | ✔ |  |  | ✔ | cellule |  |  |  |  |  |  |
-| Voir les représentants finance <br>`representants.voir` | ✔ | ✔ |  | ✔ |  |  |  |  |  |  |  |
-| Désigner les représentants finance <br>`representants.designer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Recevoir la caisse d'un représentant <br>`caisses.recevoir` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Tenir sa caisse de représentant <br>`caisse.tenir` |  |  |  |  |  |  |  |  | ✔ |  |  |
-| Demander un ordre de dépense pour toute la Daara (les chefs de commission, responsables de projet et Jewrine le font pour leur périmètre) <br>`depenses.demander` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Signer ou refuser un ordre de dépense (hors Magal) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve <br>`depenses.executer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Créer et archiver les libellés de dépenses <br>`depenses.libelles` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Décider une réaffectation de fonds (le solde d'un programme vers un projet…) <br>`reaffectations.decider` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Enregistrer une réaffectation de fonds décidée <br>`reaffectations.enregistrer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Préparer la clôture d'un exercice et son bilan <br>`exercices.preparer_cloture` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Confirmer la clôture d'un exercice <br>`exercices.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Voir le détail des paiements par membre dans les rapports <br>`finances.detail_membres` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Voir les paiements <br>`paiements.voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
+| Enregistrer un paiement en espèces <br>`paiements.encaisser` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Confirmer ou refuser un paiement déclaré <br>`paiements.valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Valider le paiement d'un responsable, selon les règles de validation croisée <br>`paiements.valider_bureau` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Valider en secours, hors règles de validation croisée (jamais son propre paiement) <br>`paiements.secours` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Corriger un paiement validé : contre-passation, réaffectation, avoir, remboursement (Jewrine finance national) <br>`paiements.corriger` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Demander la dispense de cotisation d'un membre <br>`cotisations.dispense_demander` | ✔ |  |  |  | cellule |  |  |  |  |  |  |  |
+| Valider ou refuser une demande de dispense de cotisation <br>`cotisations.dispenser` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Suivre les cotisations (tableaux de bord) <br>`cotisations.suivre` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |  |
+| Voir les rapports financiers <br>`finances.voir` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |  |
+| Relancer les membres en retard <br>`relances.envoyer` | ✔ |  |  | ✔ | cellule |  |  |  |  |  |  |  |
+| Voir les représentants finance <br>`representants.voir` | ✔ | ✔ |  | ✔ |  |  |  |  |  |  |  |  |
+| Désigner les représentants finance <br>`representants.designer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Recevoir la caisse d'un représentant <br>`caisses.recevoir` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Tenir sa caisse de représentant <br>`caisse.tenir` |  |  |  |  |  |  |  |  |  | ✔ |  |  |
+| Demander un ordre de dépense pour toute la Daara (les chefs de commission, responsables de projet et Jewrine le font pour leur périmètre) <br>`depenses.demander` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Signer ou refuser un ordre de dépense (hors Magal) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve <br>`depenses.executer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Créer et archiver les libellés de dépenses <br>`depenses.libelles` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Décider une réaffectation de fonds (le solde d'un programme vers un projet…) <br>`reaffectations.decider` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Enregistrer une réaffectation de fonds décidée <br>`reaffectations.enregistrer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Préparer la clôture d'un exercice et son bilan <br>`exercices.preparer_cloture` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Confirmer la clôture d'un exercice <br>`exercices.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Voir le détail des paiements par membre dans les rapports <br>`finances.detail_membres` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
 
 ### Programmes
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Voir les programmes et les engagements <br>`programmes.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |
-| Créer, paramétrer et annuler un événement (objectif, budget, Sass, organisation) ; confier ses tâches aux commissions <br>`programmes.parametrer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Choisir le mode de contribution d'un événement (Jàyante ou Sass) <br>`programmes.contribution` | ✔ |  |  |  |  |  |  |  |  |  |  |
-| Clôturer et rouvrir un programme <br>`programmes.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Modifier un engagement, fiche de paramétrage <br>`programmes.piloter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
-| Exporter un programme et son rapport <br>`programmes.exporter` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Voir les programmes et les engagements <br>`programmes.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |  |
+| Créer, paramétrer et annuler un événement (objectif, budget, Sass, organisation) ; confier ses tâches aux commissions <br>`programmes.parametrer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Choisir le mode de contribution d'un événement (Jàyante ou Sass) <br>`programmes.contribution` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Clôturer et rouvrir un programme <br>`programmes.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Modifier un engagement, fiche de paramétrage <br>`programmes.piloter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
+| Exporter un programme et son rapport <br>`programmes.exporter` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |  |
 
 ### Dahiras et événements
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Voir les événements <br>`evenements.voir` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |
-| Créer, modifier et annuler un événement <br>`evenements.gerer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
-| Voir les dahiras et l'assiduité <br>`dahiras.voir` | ✔ | ✔ | ✔ |  | cellule |  | ✔ |  |  |  |  |
-| Créer, modifier et annuler une dahira <br>`dahiras.gerer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
-| Pointer partout, et corriger un pointage après coup <br>`pointage.partout` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Désigner les pointeurs <br>`pointeurs.designer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
-| Voir les sympathisants <br>`sympathisants.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |
-| Modifier et retirer un sympathisant du registre <br>`sympathisants.gerer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |
-| Enregistrer la participation d'un sympathisant <br>`sympathisants.participations` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Statistiques des événements et des sympathisants <br>`statistiques.voir` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Voir les événements <br>`evenements.voir` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |  |
+| Créer, modifier et annuler un événement <br>`evenements.gerer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Voir les dahiras et l'assiduité <br>`dahiras.voir` | ✔ | ✔ | ✔ |  | cellule |  | ✔ |  |  |  |  |  |
+| Créer, modifier et annuler une dahira <br>`dahiras.gerer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |  |
+| Pointer partout, et corriger un pointage après coup <br>`pointage.partout` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Désigner les pointeurs <br>`pointeurs.designer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |  |
+| Voir les sympathisants <br>`sympathisants.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |  |
+| Modifier et retirer un sympathisant du registre <br>`sympathisants.gerer` | ✔ |  |  |  | cellule |  |  |  |  |  |  |  |
+| Enregistrer la participation d'un sympathisant <br>`sympathisants.participations` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Statistiques des événements et des sympathisants <br>`statistiques.voir` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |  |
 
 ### Comités
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Créer un comité d'organisation, en désigner le président, le gérer <br>`comites.diriger` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Convoquer le Comité directeur et préparer ses réunions <br>`comite_directeur.convoquer` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |
-| Consulter les comités, réunions, décisions et actions <br>`comites.consulter` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  | ✔ |  |
-| Voir les besoins et les dépenses des commissions <br>`comites.budget_voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  | ✔ |  |
-| Valider les dépenses des commissions <br>`comites.depenses_valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |
-| Tenir la liste du Comité directeur <br>`comite_directeur.composer` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Créer un comité d'organisation, en désigner le président, le gérer ; activer son comité de suivi des dépenses <br>`comites.diriger` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Arbitrer le budget des commissions d'un comité d'organisation (le Jewrine du suivi des dépenses pour son comité ; sinon le Jewrine national) <br>`comites.arbitrer` | ✔ | ✔ |  |  |  |  |  |  | ✔ |  |  |  |
+| Convoquer le Comité directeur et préparer ses réunions <br>`comite_directeur.convoquer` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |  |
+| Consulter les comités, réunions, décisions et actions <br>`comites.consulter` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  | ✔ |  |
+| Voir les besoins et les dépenses des commissions <br>`comites.budget_voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  | ✔ |  |
+| Valider les dépenses des commissions <br>`comites.depenses_valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Tenir la liste du Comité directeur <br>`comite_directeur.composer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
 
 ### Projets et Suivi-Évaluation
 
-| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
-| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| Voir les projets <br>`projets.voir` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |
-| Créer et piloter les projets <br>`projets.gerer` | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |  |
-| Rédiger des rapports de suivi <br>`rapports.rediger` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |
-| Lire les rapports en brouillon <br>`rapports.tout_lire` | ✔ |  |  |  |  |  | ✔ |  |  |  |  |
-| Modifier le brouillon d'un autre auteur <br>`rapports.corriger` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | RF | CD | M |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| Voir les projets <br>`projets.voir` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |  |
+| Créer et piloter les projets <br>`projets.gerer` | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |  |  |
+| Rédiger des rapports de suivi <br>`rapports.rediger` | ✔ | ✔ | ✔ |  |  |  | ✔ |  |  |  |  |  |
+| Lire les rapports en brouillon <br>`rapports.tout_lire` | ✔ |  |  |  |  |  | ✔ |  |  |  |  |  |
+| Modifier le brouillon d'un autre auteur <br>`rapports.corriger` | ✔ |  |  |  |  |  |  |  |  |  |  |  |

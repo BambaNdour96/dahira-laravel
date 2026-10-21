@@ -182,8 +182,10 @@ final class ProgrammeService
         if ($comite === null) {
             $estMagal = $collecte->type?->code === TypeProgramme::MAGAL;
             $comite = Instance::query()->create([
-                'type' => $estMagal ? Instance::CDGMT : 'autre',
-                'nom' => ($estMagal ? 'CDGMT – ' : 'Comité – ').$collecte->titre,
+                'type' => Instance::COMITE_ORGANISATION,
+                'nom' => ($estMagal ? 'CDGMT – ' : 'Comité d\'organisation – ').$collecte->titre,
+                // Le comité de suivi des dépenses : d'office pour un Magal ; le Jewrine national peut l'activer ailleurs.
+                'suivi_depenses' => $estMagal,
                 'code' => $estMagal ? 'CDGMT' : 'COM',
                 'annee' => ($collecte->debut ?? now())->year,
                 'collecte_id' => $collecte->id,
