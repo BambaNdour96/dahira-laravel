@@ -8,9 +8,11 @@ use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\Paiement;
 use App\Models\ProfilArabeCoran;
+use App\Models\PropositionSuiviDepenses;
 use App\Models\Reunion;
 use App\Models\User;
 use App\Services\CotisationService;
+use App\Services\SuiviDepensesService;
 use Database\Seeders\RecetteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +35,7 @@ it('charge en une commande un jeu de recette complet, avec un compte par casquet
         ->and($roles('+221770100045'))->toContain('suivi_evaluation')
         ->and(Auth::attempt(['telephone' => '+221770100101', 'password' => RecetteSeeder::MOT_DE_PASSE]))->toBeTrue();
 
+    $cdgmt = Instance::query()->where('type', Instance::COMITE_ORGANISATION)->where('code', 'CDGMT')->firstOrFail();
     $cotisations = app(CotisationService::class);
     $aJour = Membre::query()->where('telephone', '+221770100101')->firstOrFail();
     $enRetard = Membre::query()->where('telephone', '+221770100105')->firstOrFail();
@@ -43,9 +46,13 @@ it('charge en une commande un jeu de recette complet, avec un compte par casquet
         ->and($fils->estEnfant())->toBeTrue()
         ->and(Paiement::query()->where('statut', StatutPaiement::Declare->value)->count())->toBeGreaterThanOrEqual(4)
         ->and(Membre::query()->where('statut', StatutMembre::EnAttente->value)->exists())->toBeTrue()
-        ->and(Collecte::query()->firstOrFail()->engagements()->count())->toBe(7)
-        ->and(Instance::query()->where('type', Instance::COMITE_ORGANISATION)->firstOrFail()->commissions()->count())->toBe(3)
-        ->and(Reunion::query()->firstOrFail()->estPubliee())->toBeTrue()
+        ->and(Collecte::query()->where('titre', 'like', 'Grand Magal%')->firstOrFail()->engagements()->count())->toBe(7)
+        ->and($cdgmt->commissions()->count())->toBe(3)
+        ->and($cdgmt->president?->telephone)->toBe('+221770100003')
+        ->and($cdgmt->suivi_depenses)->toBeTrue()
+        ->and($cdgmt->propositionsSuivi()->where('statut', PropositionSuiviDepenses::PROPOSEE)->firstOrFail()->membre->telephone)->toBe('+221770100110')
+        ->and(app(SuiviDepensesService::class)->peutDecider(User::query()->where('telephone', '+221770100002')->firstOrFail(), $cdgmt->propositionsSuivi()->firstOrFail()))->toBeTrue()
+        ->and(Reunion::query()->where('instance_id', $cdgmt->id)->orderBy('id')->firstOrFail()->estPubliee())->toBeTrue()
         ->and(CampagneRenouvellement::ouverte())->not->toBeNull()
         ->and(ProfilArabeCoran::query()->count())->toBe(7);
 

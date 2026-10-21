@@ -33,6 +33,7 @@ use App\Services\ProgrammeService;
 use App\Services\RenouvellementService;
 use App\Services\RepresentantFinanceService;
 use App\Services\StatutMembreService;
+use App\Services\SuiviDepensesService;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -45,6 +46,9 @@ use RuntimeException;
 class RecetteSeeder extends Seeder
 {
     /** Le mot de passe de tous les comptes de recette. */
+    /** Astou Diop, Secrétaire générale et membre du Comité directeur : présidente du CDGMT. */
+    private const TELEPHONE_PRESIDENTE_CDGMT = '+221770100003';
+
     public const MOT_DE_PASSE = 'Recette2026';
 
     /** Le téléphone du super administrateur de recette : sa présence signale un jeu déjà chargé. */
@@ -268,7 +272,8 @@ class RecetteSeeder extends Seeder
             'titre' => 'Grand Magal de Touba '.now()->year, 'type_programme_id' => TypeProgramme::parCode(TypeProgramme::MAGAL)->id, 'mode' => ModeCollecte::Jayante->value,
             'debut' => now()->addMonths(3)->setTime(8, 0), 'fin' => now()->addMonths(3)->addDays(2)->setTime(20, 0), 'lieu' => 'Touba', 'avec_jour_j' => true,
             'itineraire_transport' => true, 'objectif' => 5000000, 'budget' => 3500000, 'organisation' => Collecte::COMITE,
-            'president_id' => Instance::comiteDirecteur()->membres()->orderBy('membres.id')->value('membres.id'),
+            // La présidente du CDGMT : Astou Diop (Comité directeur), distincte du Jewrine national qui valide ses propositions.
+            'president_id' => Membre::query()->where('telephone', self::TELEPHONE_PRESIDENTE_CDGMT)->value('id'),
             'ouverture' => now()->subMonth(), 'date_limite' => now()->addMonths(2), 'statut' => StatutCollecte::Ouverte->value,
             'description' => 'Participation de la Daara au Grand Magal : hébergement, repas et transport des pèlerins.',
         ], null, $this->super);
@@ -307,12 +312,15 @@ class RecetteSeeder extends Seeder
         $programmes->confierTache($prokhane, $culturelle, 'Préparer le programme des khassaides de la nuit', now()->addMonths(4)->toDateString(), $this->super);
     }
 
-    /** Le CDGMT, créé avec le Magal : commissions et chefs, une réunion convoquée, tenue et son PV publié. */
+    /**
+     * Le CDGMT, créé avec le Magal (comité de suivi des dépenses actif) : commissions et chefs, une proposition de Jewrine
+     * du suivi des dépenses qui attend le Jewrine national, une réunion convoquée, tenue et son PV publié.
+     */
     private function cdgmt(Collecte $magal): void
     {
         $comiteDirecteur = Instance::comiteDirecteur()->membres()->orderBy('membres.id')->get();
-        $president = $comiteDirecteur->firstOrFail();
-        $secretaire = $comiteDirecteur->last() ?? $president;
+        $presidente = Membre::query()->where('telephone', self::TELEPHONE_PRESIDENTE_CDGMT)->firstOrFail();
+        $secretaire = $comiteDirecteur->last() ?? $presidente;
 
         $cdgmt = $magal->comite ?? throw new RuntimeException('Le Magal n\'a pas son comité.');
         $comites = app(ComiteService::class);
@@ -325,6 +333,8 @@ class RecetteSeeder extends Seeder
         }
 
         $comites->integrerResponsables($cdgmt);
+        app(SuiviDepensesService::class)->proposer($cdgmt, Membre::query()->where('telephone', '+221770100110')->firstOrFail(),
+            $presidente->user ?? throw new RuntimeException('Compte manquant.'));
         $comites->accueillir($commissions[0], Membre::query()->where('telephone', '+221770100102')->firstOrFail());
 
         $reunion = Reunion::query()->create([

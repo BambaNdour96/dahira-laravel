@@ -18,8 +18,8 @@ Pour voir des **cotisations en retard**, le mois de démarrage des cotisations (
 | Téléphone | Nom | Casquettes | Cellule |
 | --- | --- | --- | --- |
 | 77 010 00 01 | Super Administrateur | Super administrateur | Kaolack |
-| 77 010 00 02 | Serigne Ndiaye | Jewrine national, Comité directeur | Kaolack |
-| 77 010 00 03 | Astou Diop | Secrétaire général, Comité directeur | Dakar |
+| 77 010 00 02 | Serigne Ndiaye | Jewrine national, Comité directeur ; valide la proposition de Jewrine du suivi des dépenses du CDGMT | Kaolack |
+| 77 010 00 03 | Astou Diop | Secrétaire général, Comité directeur ; **présidente du CDGMT** | Dakar |
 | 77 010 00 04 | Fatou Ndiaye | Jewrine finance national, Comité directeur | Kaolack |
 | 77 010 00 31 | El Hadji Mbaye | Comité directeur (sans poste) ; secrétaire de séance de la réunion du CDGMT | Dakar |
 | 77 010 00 11 | Modou Fall | Jewrine de cellule | Kaolack |
@@ -57,7 +57,7 @@ Pour voir des **cotisations en retard**, le mois de démarrage des cotisations (
 | 77 010 01 07 | Sokhna Ka | En retard ; cotisation Wave à valider (3 mois) ; cheffe de la commission Transport | Médina Baye |
 | 77 010 01 08 | Mamadou Ly | En retard | Médina Baye |
 | 77 010 01 09 | Rokhaya Gaye | Validée il y a un mois : renouvelée d'office | Médina Baye |
-| 77 010 01 10 | Saliou Touré | Validé il y a deux mois : renouvelé d'office | Kaolack |
+| 77 010 01 10 | Saliou Touré | Validé il y a deux mois : renouvelé d'office ; **proposé comme Jewrine du suivi des dépenses du CDGMT** (en attente du Jewrine national) | Kaolack |
 | 77 010 01 20 | Daouda Sène | Inscription en attente du Jewrine | Kaolack |
 | 77 010 01 21 | Mame Diagne | Inscription acceptée, frais de carte Wave à valider | Kaolack |
 
@@ -75,7 +75,10 @@ Pour voir des **cotisations en retard**, le mois de démarrage des cotisations (
 - **Prokhane** (Sass de 5 000 FCFA, organisé par les commissions Culturelle et Organisation, chacune avec sa part du
   budget) : tous les membres validés y sont engagés d'office ; une tâche est confiée à la commission Culturelle,
   à répartir par son Jewrine.
-- **CDGMT**, créé avec le Magal : présidé par le premier membre du Comité directeur (Serigne Ndiaye), trois commissions (Cuisine,
+- **CDGMT**, créé avec le Magal, comité de suivi des dépenses actif : présidé par Astou Diop, qui a proposé Saliou
+  Touré comme Jewrine du suivi des dépenses. Pour essayer le circuit : Serigne Ndiaye (Jewrine national) ouvre le
+  CDGMT → « Suivi des dépenses » → « Valider la proposition » (ou « Refuser la proposition »). Saliou Touré peut ensuite
+  arbitrer le budget des commissions (onglet « Commissions et budget »). Trois commissions (Cuisine,
   Hygiène et environnement, Transport) avec leurs chefs, une réunion de lancement convoquée, tenue (présences,
   décisions, une action) et son **PV publié** par le secrétaire de séance (El Hadji Mbaye).
 - **Renouvellement** : la campagne de l'exercice suivant est ouverte (date limite dans deux mois) ; les membres validés
