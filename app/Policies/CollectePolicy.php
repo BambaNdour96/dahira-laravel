@@ -10,8 +10,9 @@ use App\Services\CasquettesService;
 
 /**
  * Droits sur les programmes (voir App\Support\Capacites) :
- * - « programmes.parametrer » : créer, paramétrer, annuler (super administrateur) ;
- * - « programmes.cloturer » : clôturer et rouvrir ; « programmes.attribuer » : attribuer des montants ;
+ * - « programmes.parametrer » : créer, régler, annuler un événement (super administrateur, Jewrine national) ;
+ * - « programmes.contribution » : choisir Jàyante ou Sass (super administrateur, vérifié dans ProgrammeService) ;
+ * - « programmes.cloturer » : clôturer et rouvrir ;
  * - « programmes.piloter » : modifier un engagement, avec motif et trace ;
  * - « programmes.voir » : toute la Daara, ou sa cellule pour le Jewrine de cellule.
  * Les versements se confirment selon PaiementPolicy.
@@ -64,11 +65,6 @@ class CollectePolicy
     public function cloturer(User $user, Collecte $collecte): bool
     {
         return $user->can('programmes.cloturer');
-    }
-
-    public function attribuer(User $user, Collecte $collecte): bool
-    {
-        return $user->can('programmes.attribuer');
     }
 
     public function modifierEngagement(User $user, Collecte $collecte): bool

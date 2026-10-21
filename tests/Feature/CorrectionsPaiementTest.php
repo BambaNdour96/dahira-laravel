@@ -2,7 +2,6 @@
 
 use App\Enums\ModeCollecte;
 use App\Enums\MoyenPaiement;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\Sexe;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutPaiement;
@@ -115,7 +114,7 @@ it('retire l\'argent de la caisse générale si le représentant l\'a déjà rem
 });
 
 it('réaffecte une cotisation vers un Jàyante : nouveau reçu, l\'argent reste dans sa caisse', function () {
-    $collecte = Collecte::query()->create(['titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte]);
+    $collecte = Collecte::query()->create(['titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte]);
     $engagement = app(CollecteService::class)->fixerParMembre($collecte, $this->awa, 10000);
     $paiement = $this->cotisations->enregistrerEspeces($this->awa, 2, $this->representante);
     $caisse = $this->tresorerie->caisseDuRepresentant($this->representante);

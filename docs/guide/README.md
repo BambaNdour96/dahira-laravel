@@ -12,6 +12,7 @@ Il est mis à jour à chaque changement d'écran.
 | [Reprise des listes existantes](reprise-des-donnees.md) | Super administrateur, Secrétaire général, Jewrine, membres importés |
 | [Arabe et Coran](arabe-coran.md) | Membres, commission Culturelle, Jewrine, super administrateur |
 | [Comptes de recette](comptes-de-recette.md) | Recette uniquement (jamais en production) |
+| [Les événements et leurs programmes (Jàyante, Sass, organisation, tâches, clôture)](programmes.md) | Super administrateur, Jewrine national, Jewrine de commission, Finance, membres |
 | [Dispense de cotisation](dispenses.md) | Jewrine de cellule, Jewrine national |
 | [Caisses et trésorerie](caisses.md) | Super administrateur, Finance, représentants, membres |
 | [Dépenses et ordres de dépense](ordres-de-depense.md) | Finance, Jewrine national, chefs de commission, Jewrine, responsables de projet |

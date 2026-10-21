@@ -90,7 +90,8 @@ class OrdreDepense extends Model
     public function imputation(): string
     {
         return match ($this->rattachement) {
-            'programme' => ($this->collecte->titre ?? 'Programme').($this->commissionComite !== null ? ' · commission '.$this->commissionComite->nom : ''),
+            'programme' => ($this->collecte->titre ?? 'Programme').($this->commissionComite !== null ? ' · commission '.$this->commissionComite->nom : '')
+                .($this->commission !== null ? ' · commission '.$this->commission->nom : ''),
             'projet' => 'Projet : '.($this->projet->titre ?? '—'),
             default => 'Fonctionnement'.($this->cellule !== null ? ' · cellule '.$this->cellule->nom : '').($this->commission !== null ? ' · commission '.$this->commission->nom : ''),
         };

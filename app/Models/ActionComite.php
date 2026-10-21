@@ -16,11 +16,13 @@ use Illuminate\Support\Carbon;
  * @property string $description
  * @property int|null $responsable_id
  * @property int|null $commission_id
+ * @property int|null $collecte_id
  * @property Carbon|null $echeance
  * @property string $statut
  * @property-read Membre|null $responsable
  * @property-read CommissionComite|null $commission
  * @property-read Instance $instance
+ * @property-read Collecte|null $collecte
  * @property-read Reunion|null $reunion
  */
 class ActionComite extends Model
@@ -36,7 +38,7 @@ class ActionComite extends Model
 
     protected $attributes = ['statut' => 'a_faire'];
 
-    protected $fillable = ['instance_id', 'reunion_id', 'description', 'responsable_id', 'commission_id', 'echeance', 'statut'];
+    protected $fillable = ['instance_id', 'reunion_id', 'description', 'responsable_id', 'commission_id', 'collecte_id', 'echeance', 'statut'];
 
     /** @return array<string, string> */
     protected function casts(): array
@@ -101,5 +103,11 @@ class ActionComite extends Model
     public function reunion(): BelongsTo
     {
         return $this->belongsTo(Reunion::class);
+    }
+
+    /** @return BelongsTo<Collecte, $this> */
+    public function collecte(): BelongsTo
+    {
+        return $this->belongsTo(Collecte::class);
     }
 }

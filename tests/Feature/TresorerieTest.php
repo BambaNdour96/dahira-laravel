@@ -2,7 +2,6 @@
 
 use App\Enums\ModeCollecte;
 use App\Enums\MoyenPaiement;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\Sexe;
 use App\Enums\StatutCollecte;
 use App\Enums\TypeCaisse;
@@ -80,7 +79,7 @@ it('fait entrer chaque paiement validé dans sa caisse, et la remise dans la cai
     expect(solde($this->representante))->toBe(0)->and(solde(TypeCaisse::Especes))->toBe(3000);
 
     // La participation d'un sympathisant entre aussi en caisse.
-    $collecte = Collecte::query()->create(['titre' => 'Magal', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte]);
+    $collecte = Collecte::query()->create(['titre' => 'Magal', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte]);
     $sympathisant = Sympathisant::query()->create(['prenom' => 'Ali', 'nom' => 'Sarr', 'sexe' => 'H', 'cellule_id' => $this->cellule->id, 'consentement_le' => now()]);
     app(SympathisantService::class)->participer($collecte, $sympathisant, 5000, MoyenPaiement::Wave, $this->tresorier);
     expect(solde(TypeCaisse::Wave))->toBe(6000);

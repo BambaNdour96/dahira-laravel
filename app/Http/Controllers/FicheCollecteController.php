@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Models\Cellule;
+use App\Models\Commission;
+use App\Models\TypeProgramme;
 use App\Models\User;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
- * Fiche de paramétrage d'une collecte, à imprimer : le bureau coche les paramètres décidés,
- * puis le super administrateur crée la collecte à partir de la fiche.
+ * Fiche de paramétrage d'un événement, à imprimer : le bureau coche les paramètres décidés,
+ * puis le super administrateur ou le Jewrine national crée l'événement à partir de la fiche.
  */
 class FicheCollecteController extends Controller
 {
@@ -24,7 +25,8 @@ class FicheCollecteController extends Controller
         $logo = public_path('images/logo-ndk.png');
 
         $html = view('pdf.fiche-collecte', [
-            'programmes' => ProgrammeCollecte::cases(),
+            'types' => TypeProgramme::query()->enActivite()->orderBy('ordre')->pluck('nom')->all(),
+            'commissions' => Commission::query()->orderBy('nom')->pluck('nom')->all(),
             'modes' => ModeCollecte::cases(),
             'cellules' => Cellule::query()->enActivite()->orderBy('nom')->pluck('nom')->all(),
             'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,
@@ -37,7 +39,7 @@ class FicheCollecteController extends Controller
 
         return response((string) $pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="Fiche-parametrage-collecte.pdf"',
+            'Content-Disposition' => 'attachment; filename="Fiche-parametrage-evenement.pdf"',
         ]);
     }
 }

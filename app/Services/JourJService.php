@@ -6,58 +6,32 @@ use App\Models\Collecte;
 use App\Models\Evenement;
 
 /**
- * Le « jour J » d'un programme : le rendez-vous lui-même (date, lieu, scan des cartes),
- * enregistré comme un événement relié à la collecte.
+ * Le « jour J » d'un événement : le rendez-vous lui-même, avec le scan des cartes à l'entrée. Il reprend les dates et
+ * le lieu saisis une fois sur l'événement, et s'enregistre comme un événement de pointage relié à la collecte.
  */
 final class JourJService
 {
     /**
-     * Retire du formulaire les champs du jour J (ce ne sont pas des colonnes de la collecte).
-     *
-     * @param  array<string, mixed>  $data
-     * @return array{avec: bool, debut: mixed, fin: mixed, lieu: string|null}
-     */
-    public static function extraire(array &$data): array
-    {
-        $jourJ = [
-            'avec' => (bool) ($data['avec_jour_j'] ?? false),
-            'debut' => $data['jour_j_debut'] ?? null,
-            'fin' => $data['jour_j_fin'] ?? null,
-            'lieu' => isset($data['jour_j_lieu']) ? (string) $data['jour_j_lieu'] : null,
-        ];
-
-        unset($data['avec_jour_j'], $data['jour_j_debut'], $data['jour_j_fin'], $data['jour_j_lieu']);
-
-        return $jourJ;
-    }
-
-    /**
-     * Remplit le formulaire avec le jour J existant.
+     * Le formulaire de l'événement, rempli avec ce qui ne se stocke pas sur lui : le jour J, le président, les commissions.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public static function remplir(Collecte $collecte, array $data): array
     {
-        $evenement = $collecte->evenement;
-
         return [
             ...$data,
-            'avec_jour_j' => $evenement !== null,
-            'jour_j_debut' => $evenement?->debut,
-            'jour_j_fin' => $evenement?->fin,
-            'jour_j_lieu' => $evenement?->lieu,
+            'avec_jour_j' => $collecte->evenement_id !== null,
+            'president_id' => $collecte->comite?->president_id,
+            'commissions' => $collecte->commissionsChoisies()->whereNull('retiree_le')->get()
+                ->map(fn ($choix): array => ['commission_id' => $choix->commission_id, 'budget' => $choix->budget])->values()->all(),
         ];
     }
 
-    /**
-     * Crée, met à jour ou détache le jour J. Un jour J détaché est conservé (avec ses présences).
-     *
-     * @param  array{avec: bool, debut: mixed, fin: mixed, lieu: string|null}  $jourJ
-     */
-    public function synchroniser(Collecte $collecte, array $jourJ, ?int $auteurId): void
+    /** Crée, met à jour ou détache le jour J. Un jour J détaché est conservé (avec ses présences). */
+    public function synchroniser(Collecte $collecte, bool $avec, ?int $auteurId): void
     {
-        if (! $jourJ['avec']) {
+        if (! $avec || $collecte->debut === null) {
             if ($collecte->evenement_id !== null) {
                 $collecte->update(['evenement_id' => null]);
             }
@@ -68,9 +42,9 @@ final class JourJService
         $valeurs = [
             'titre' => $collecte->titre,
             'description' => $collecte->description,
-            'lieu' => (string) $jourJ['lieu'],
-            'debut' => $jourJ['debut'],
-            'fin' => $jourJ['fin'],
+            'lieu' => (string) $collecte->lieu,
+            'debut' => $collecte->debut,
+            'fin' => $collecte->fin,
             'cellule_id' => $collecte->cellule_id,
         ];
 

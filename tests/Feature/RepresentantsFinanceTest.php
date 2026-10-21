@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\Sexe;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutPaiement;
@@ -94,7 +93,7 @@ it('prévient la représentante et la laisse valider un paiement de son périmè
 
 it('encaisse les espèces des cotisations, des Sass et des Jàyante, puis remet la caisse au national', function () {
     $collecte = Collecte::query()->create([
-        'titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
     $engagement = app(CollecteService::class)->fixerParMembre($collecte, $this->sokhna, 10000);

@@ -33,6 +33,7 @@ class EngagementController extends Controller
                 'collecte' => $collecte,
                 'engagement' => $engagement,
                 'peutFixer' => $service->peutFixer($collecte, $membre),
+                'peutAugmenter' => $service->peutAugmenter($collecte, $engagement),
                 'minimum' => $service->minimum($collecte),
                 'verse' => $engagement?->verse() ?? 0,
                 'reste' => $reste,
@@ -92,6 +93,30 @@ class EngagementController extends Controller
 
         return redirect()->to($this->retour($proche))
             ->with('succes', 'Merci ! Votre versement de '.CollecteService::fcfa((int) $request->input('montant')).' est en cours de vérification par le Jewrine finance. Votre jauge avancera dès sa confirmation.');
+    }
+
+    /** Pour un Sass : le membre (ou le parent pour un proche) augmente son engagement. */
+    public function augmenter(Request $request, Collecte $collecte, CollecteService $service, ?Membre $proche = null): RedirectResponse
+    {
+        $membre = $this->membre($request, $proche);
+        $montant = (int) $request->validate(['montant' => ['required', 'integer', 'min:1', 'max:100000000']])['montant'];
+        $engagement = $service->engagementDe($collecte, $membre);
+        $auteur = $request->user();
+        abort_unless($auteur instanceof User && $engagement !== null, 404);
+
+        try {
+            $service->augmenter($engagement, $montant, $auteur);
+        } catch (DomainException $e) {
+            return back()->withInput()->withErrors(['augmenter' => $e->getMessage()]);
+        }
+
+        return redirect()->to($this->retour($proche))
+            ->with('succes', ($proche !== null ? 'L\'engagement de '.$proche->prenom : 'Votre engagement').' pour « '.$collecte->titre.' » passe à '.CollecteService::fcfa($montant).'. Qu\'Allah l\'accepte.');
+    }
+
+    public function augmenterPourProche(Request $request, Membre $proche, Collecte $collecte, CollecteService $service): RedirectResponse
+    {
+        return $this->augmenter($request, $collecte, $service, $proche);
     }
 
     /** Le parent fixe le Jàyante d'un proche dont il gère la fiche (« Ma famille »). */

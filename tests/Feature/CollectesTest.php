@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
 use App\Filament\Resources\Collectes\Pages\ViewCollecte;
@@ -26,7 +25,7 @@ function nouvelleCollecte(ModeCollecte $mode, array $attributs = []): Collecte
 {
     return Collecte::query()->create(array_merge([
         'titre' => 'Magal de Touba 2026',
-        'programme' => ProgrammeCollecte::Magal,
+        'type_programme_id' => typeProgramme('magal'),
         'mode' => $mode,
         'ouverture' => now()->subDay(),
         'date_limite' => now()->addMonth(),
@@ -57,7 +56,7 @@ beforeEach(function () {
 
 it('laisse le membre fixer son engagement une seule fois, puis le bureau le modifie avec une trace', function () {
     Notification::fake();
-    $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre);
+    $collecte = nouvelleCollecte(ModeCollecte::Jayante);
 
     $engagement = $this->service->fixerParMembre($collecte, $this->membre, 25000);
 
@@ -79,38 +78,51 @@ it('laisse le membre fixer son engagement une seule fois, puis le bureau le modi
     Notification::assertSentTo($this->compte, NotificationMembre::class);
 });
 
-it('impose le minimum du Prokhane, et permet de donner davantage', function () {
-    $collecte = nouvelleCollecte(ModeCollecte::Minimum, ['titre' => 'Prokhane 2026', 'programme' => ProgrammeCollecte::Prokhane, 'montant' => 5000]);
-
-    expect(fn () => $this->service->fixerParMembre($collecte, $this->membre, 3000))->toThrow(DomainException::class, 'minimum');
-
-    expect($this->service->fixerParMembre($collecte, $this->membre, 7500)->montant)->toBe(7500);
-});
-
-it('crée automatiquement l\'engagement quand le montant est identique pour tous', function () {
-    $collecte = nouvelleCollecte(ModeCollecte::Identique, ['montant' => 2000]);
+it('engage d\'office au Sass du Prokhane, laisse l\'augmenter et jamais descendre en dessous', function () {
+    $collecte = nouvelleCollecte(ModeCollecte::Sass, ['titre' => 'Prokhane 2026', 'type_programme_id' => typeProgramme('prokhane'), 'montant' => 5000]);
 
     $engagement = $this->service->engagementDe($collecte, $this->membre);
-
-    expect($engagement?->montant)->toBe(2000)
+    expect($engagement?->montant)->toBe(5000)
         ->and($engagement?->fixe_par)->toBe('auto')
-        ->and($this->service->peutFixer($collecte, $this->membre))->toBeFalse();
+        ->and($engagement?->nature())->toBe('Sass')
+        ->and($this->service->peutFixer($collecte, $this->membre))->toBeFalse()
+        ->and(fn () => $this->service->fixerParMembre($collecte, $this->membre, 7500))->toThrow(DomainException::class, 'augmenter')
+        ->and(fn () => $this->service->augmenter($engagement, 4000, $this->compte))->toThrow(DomainException::class, 'dépasser');
+
+    $this->service->augmenter($engagement, 7500, $this->compte);
+    expect($engagement->fresh()->montant)->toBe(7500)
+        ->and(HistoriqueEngagement::query()->latest('id')->value('motif'))->toBe('Sass augmenté par le membre')
+        ->and(fn () => $this->service->modifier($engagement->fresh(), 3000, 'Erreur', membreDuBureau('jewrine_finance')))->toThrow(DomainException::class, 'en dessous du Sass');
 });
 
-it('laisse le bureau attribuer des montants (Ziar), et les autres membres fixer le leur', function () {
-    $collecte = nouvelleCollecte(ModeCollecte::Attribue, ['titre' => 'Ziar 2026', 'programme' => ProgrammeCollecte::Ziar]);
-    $secretaire = membreDuBureau('secretaire_general');
-
+it('suit le Sass quand le Jewrine national le change, sans toucher à ceux qui ont donné davantage', function () {
+    $collecte = nouvelleCollecte(ModeCollecte::Sass, ['montant' => 2000]);
     $autre = Membre::factory()->valide()->create();
-    $this->service->attribuer($collecte, $autre, 50000, $secretaire);
 
-    expect($this->service->peutFixer($collecte, $autre))->toBeFalse()
-        ->and($this->service->peutFixer($collecte, $this->membre))->toBeTrue()
-        ->and($this->service->fixerParMembre($collecte, $this->membre, 10000)->fixe_par)->toBe('membre');
+    expect($this->service->engagerAuSass($collecte, $this->super))->toBe(2);
+    $this->service->augmenter($this->service->engagementDe($collecte, $autre), 10000, $this->super);
+
+    $collecte->update(['montant' => 3000]);
+    $this->service->engagerAuSass($collecte, $this->super);
+
+    expect($this->service->engagementDe($collecte, $this->membre)?->montant)->toBe(3000)
+        ->and($this->service->engagementDe($collecte, $autre)?->montant)->toBe(10000)
+        ->and($this->service->engagerAuSass(nouvelleCollecte(ModeCollecte::Jayante), $this->super))->toBe(0);
+});
+
+it('ferme la collecte aux membres tant que la contribution n\'est pas réglée', function () {
+    $sansMode = nouvelleCollecte(ModeCollecte::Jayante, ['titre' => 'Gamou 2026']);
+    $sansMode->forceFill(['mode' => null])->save();
+    $sassSansMontant = nouvelleCollecte(ModeCollecte::Sass, ['titre' => 'Ziar 2026']);
+
+    expect($sansMode->fresh()->estOuverte())->toBeFalse()
+        ->and($sassSansMontant->estOuverte())->toBeFalse()
+        ->and($this->service->engagementDe($sassSansMontant, $this->membre))->toBeNull()
+        ->and($this->service->ouvertesPour($this->membre))->toHaveCount(0);
 });
 
 it('compte les versements confirmés, avec un reçu EVT, même après la date limite', function () {
-    $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre, ['date_limite' => now()->subDays(3)]);
+    $collecte = nouvelleCollecte(ModeCollecte::Jayante, ['date_limite' => now()->subDays(3)]);
     $engagement = $this->service->fixerParMembre($collecte, $this->membre, 10000);
     $tresorier = membreDuBureau('jewrine_finance');
 
@@ -132,24 +144,25 @@ it('compte les versements confirmés, avec un reçu EVT, même après la date li
 });
 
 it('répartit les droits, du super administrateur au Jewrine finance', function () {
-    $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre);
+    $collecte = nouvelleCollecte(ModeCollecte::Jayante);
     $national = membreDuBureau('jewrine_national');
     $secretaire = membreDuBureau('secretaire_general');
     $tresorier = membreDuBureau('jewrine_finance');
 
     expect($this->super->can('create', Collecte::class))->toBeTrue()
-        ->and($national->can('create', Collecte::class))->toBeFalse()
+        ->and($national->can('create', Collecte::class))->toBeTrue()
+        ->and($national->can('programmes.contribution'))->toBeFalse()
+        ->and($this->super->can('programmes.contribution'))->toBeTrue()
         ->and($national->can('cloturer', $collecte))->toBeTrue()
+        ->and($secretaire->can('create', Collecte::class))->toBeFalse()
         ->and($secretaire->can('cloturer', $collecte))->toBeFalse()
-        ->and($secretaire->can('attribuer', $collecte))->toBeTrue()
-        ->and($tresorier->can('attribuer', $collecte))->toBeFalse()
         ->and($tresorier->can('modifierEngagement', $collecte))->toBeTrue()
         ->and($this->compte->can('viewAny', Collecte::class))->toBeFalse();
 });
 
 it('montre au membre ses engagements, avec le bouton Wave du montant restant', function () {
     Parametre::query()->updateOrCreate(['cle' => 'wave_lien_frais_carte'], ['valeur' => 'https://pay.wave.com/m/DAARA/c/sn/?amount=1000', 'libelle' => 'Lien Wave']);
-    $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre, ['visible_membres' => true, 'objectif' => 1000000]);
+    $collecte = nouvelleCollecte(ModeCollecte::Jayante, ['visible_membres' => true, 'objectif' => 1000000]);
 
     $this->actingAs($this->compte)->get(route('engagements.index'))
         ->assertOk()
@@ -177,7 +190,7 @@ it('fournit la fiche de paramétrage au bureau, en PDF', function () {
 
 it('ouvre la liste et le tableau de bord d\'une collecte dans le panneau', function () {
     Filament::setCurrentPanel(Filament::getPanel('admin'));
-    $collecte = nouvelleCollecte(ModeCollecte::EngagementLibre, ['objectif' => 500000]);
+    $collecte = nouvelleCollecte(ModeCollecte::Jayante, ['objectif' => 500000]);
     $this->service->fixerParMembre($collecte, $this->membre, 10000);
 
     $this->actingAs($this->super);

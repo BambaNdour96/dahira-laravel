@@ -66,7 +66,7 @@ class Engagement extends Model
     /** « Jàyante » si le membre l'a fixé lui-même, « Sass » si le bureau l'a fixé. */
     public function nature(): string
     {
-        return $this->fixe_par === 'membre' ? 'Jàyante' : 'Sass';
+        return $this->collecte->estSass() ? 'Sass' : 'Jàyante';
     }
 
     public function libelleFixePar(): string

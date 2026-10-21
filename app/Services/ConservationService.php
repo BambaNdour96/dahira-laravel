@@ -22,6 +22,7 @@ use App\Models\ParticipationSympathisant;
 use App\Models\RepresentantFinance;
 use App\Models\Reunion;
 use App\Models\Sympathisant;
+use App\Models\TypeProgramme;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
 use DomainException;
@@ -112,8 +113,8 @@ final class ConservationService
         }
     }
 
-    /** Archive une cellule, une commission de comité, une étape ou un indicateur de projet. */
-    public function archiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense $objet, User $auteur): void
+    /** Archive une cellule, une commission de comité, une étape ou un indicateur de projet, un type d'événement… */
+    public function archiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense|TypeProgramme $objet, User $auteur): void
     {
         if ($objet->estArchive()) {
             throw new DomainException('Déjà archivé.');
@@ -130,7 +131,7 @@ final class ConservationService
         $objet->forceFill(['archive_le' => now(), 'archive_par' => $auteur->id])->save();
     }
 
-    public function desarchiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense $objet): void
+    public function desarchiver(Caisse|Cellule|CommissionComite|Jalon|Indicateur|Competence|LibelleDepense|TypeProgramme $objet): void
     {
         $objet->forceFill(['archive_le' => null, 'archive_par' => null])->save();
     }

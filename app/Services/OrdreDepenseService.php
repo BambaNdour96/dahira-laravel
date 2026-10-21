@@ -12,6 +12,7 @@ use App\Models\MouvementCaisse;
 use App\Models\Nomination;
 use App\Models\OrdreDepense;
 use App\Models\Poste;
+use App\Models\ProgrammeCommission;
 use App\Models\Projet;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
@@ -126,6 +127,19 @@ final class OrdreDepenseService
                 $imputation['commission_comite_id'] = $commissionComite?->id;
                 $imputation['collecte_id'] = $id('collecte_id') ?? $commissionComite?->instance->collecte_id;
                 $permis = $permis || ($commissionComite !== null && in_array($commissionComite->id, $perimetre['commissions_comite'], true));
+
+                // Une commission permanente choisie pour l'événement : son Jewrine demande pour elle.
+                if ($id('commission_id') !== null) {
+                    $choisie = $imputation['collecte_id'] !== null && ProgrammeCommission::query()->where('collecte_id', $imputation['collecte_id'])
+                        ->where('commission_id', $id('commission_id'))->whereNull('retiree_le')->exists();
+
+                    if (! $choisie) {
+                        throw new DomainException('Cette commission n\'est pas choisie pour organiser ce programme.');
+                    }
+
+                    $imputation['commission_id'] = $id('commission_id');
+                    $permis = $permis || in_array($imputation['commission_id'], $perimetre['commissions'], true);
+                }
 
                 if ($imputation['collecte_id'] === null && $commissionComite === null) {
                     throw new DomainException('Choisissez le programme (ou la commission de son comité).');
@@ -271,7 +285,9 @@ final class OrdreDepenseService
         $tout = $perimetre['tout'];
 
         return [
-            'collectes' => $tout ? Collecte::query()->latest('ouverture')->pluck('titre', 'id')->all() : [],
+            'collectes' => Collecte::query()
+                ->when(! $tout, fn ($query) => $query->whereIn('id', ProgrammeCommission::query()->whereIn('commission_id', $perimetre['commissions'])->whereNull('retiree_le')->select('collecte_id')))
+                ->latest('ouverture')->pluck('titre', 'id')->all(),
             'commissions_comite' => CommissionComite::query()->with('instance')->when(! $tout, fn ($query) => $query->whereKey($perimetre['commissions_comite']))
                 ->whereHas('instance', fn ($query) => $query->where('statut', 'active'))->get()
                 ->mapWithKeys(fn (CommissionComite $commission): array => [$commission->id => $commission->instance->nom.' · '.$commission->nom])->all(),

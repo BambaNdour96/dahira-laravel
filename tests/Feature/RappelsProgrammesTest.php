@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Models\Collecte;
 use App\Models\Evenement;
@@ -21,8 +20,8 @@ function programmeDeRappel(array $attributs = []): Collecte
 {
     return Collecte::query()->create(array_merge([
         'titre' => 'Magal de Touba 2026',
-        'programme' => ProgrammeCollecte::Magal,
-        'mode' => ModeCollecte::EngagementLibre,
+        'type_programme_id' => typeProgramme('magal'),
+        'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDays(2),
         'statut' => StatutCollecte::Ouverte,
     ], $attributs));

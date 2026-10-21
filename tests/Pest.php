@@ -4,6 +4,7 @@ use App\Models\Cellule;
 use App\Models\Commission;
 use App\Models\Nomination;
 use App\Models\Poste;
+use App\Models\TypeProgramme;
 use App\Models\User;
 use App\Services\CasquettesService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,4 +80,10 @@ function celluleDirigeePar(User $jewrine, array $attributs = []): Cellule
     nommerPourLeTest($jewrine, 'jewrine_cellule', $cellule);
 
     return $cellule;
+}
+
+/** L'identifiant d'un type d'événement (magal, ziar, prokhane, gamou, laylatoul_qadr), créé par la migration. */
+function typeProgramme(string $code): int
+{
+    return TypeProgramme::parCode($code)->id;
 }

@@ -2,7 +2,6 @@
 
 use App\Enums\ModeCollecte;
 use App\Enums\MoyenPaiement;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Models\Cellule;
 use App\Models\Collecte;
@@ -32,7 +31,7 @@ beforeEach(function () {
     $this->tresorier->assignRole('jewrine_finance');
     $this->cellule = Cellule::factory()->create(['nom' => 'Kaolack']);
     $this->collecte = Collecte::query()->create([
-        'titre' => 'Magal de Touba 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Magal de Touba 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
     $this->sympathisant = Sympathisant::query()->create([

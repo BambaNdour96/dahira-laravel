@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutMembre;
 use App\Filament\Resources\ChangementsCellule\Pages\ListChangementsCellule;
@@ -177,7 +176,7 @@ describe('le changement de cellule', function () {
             'prenom' => 'Fallou', 'nom' => 'Fall', 'sexe' => 'H', 'date_naissance' => now()->subYears(8)->toDateString(), 'lien_famille' => 'enfant',
         ], UploadedFile::fake()->image('f.jpg'));
         $collecte = Collecte::query()->create([
-            'titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
+            'titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
         ]);
         $tresorier = User::factory()->create();
         $tresorier->assignRole('jewrine_finance');

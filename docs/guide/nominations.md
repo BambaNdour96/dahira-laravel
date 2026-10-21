@@ -157,9 +157,9 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | RF | CD | M |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | Voir les programmes et les engagements <br>`programmes.voir` | ✔ | ✔ | ✔ | ✔ | cellule |  | ✔ |  |  |  |  |
-| Créer, paramétrer et annuler un programme <br>`programmes.parametrer` | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Créer, paramétrer et annuler un événement (objectif, budget, Sass, organisation) ; confier ses tâches aux commissions <br>`programmes.parametrer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
+| Choisir le mode de contribution d'un événement (Jàyante ou Sass) <br>`programmes.contribution` | ✔ |  |  |  |  |  |  |  |  |  |  |
 | Clôturer et rouvrir un programme <br>`programmes.cloturer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |
-| Attribuer un montant à un membre <br>`programmes.attribuer` | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |  |
 | Modifier un engagement, fiche de paramétrage <br>`programmes.piloter` | ✔ | ✔ | ✔ | ✔ |  |  |  |  |  |  |  |
 | Exporter un programme et son rapport <br>`programmes.exporter` | ✔ | ✔ | ✔ | ✔ |  |  | ✔ |  |  |  |  |
 

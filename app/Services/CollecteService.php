@@ -19,17 +19,19 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Les règles des collectes : qui fixe l'engagement, les versements, et la trace de chaque modification.
+ * Jàyante : le membre fixe librement son montant, une fois. Sass : chaque membre concerné est engagé d'office au
+ * montant du Sass, peut l'augmenter, et personne ne s'engage en dessous.
  */
 final class CollecteService
 {
     /**
-     * L'engagement du membre ; créé automatiquement quand le montant est identique pour tous.
+     * L'engagement du membre ; pour un Sass, créé d'office au montant du Sass.
      */
     public function engagementDe(Collecte $collecte, Membre $membre): ?Engagement
     {
         $engagement = $collecte->engagements()->where('membre_id', $membre->id)->first();
 
-        if ($engagement === null && $collecte->mode === ModeCollecte::Identique && $collecte->montant !== null && $collecte->concerne($membre)) {
+        if ($engagement === null && $collecte->estSass() && $collecte->contributionReglee() && $collecte->concerne($membre)) {
             $engagement = $collecte->engagements()->create([
                 'membre_id' => $membre->id,
                 'montant' => $collecte->montant,
@@ -40,22 +42,88 @@ final class CollecteService
         return $engagement;
     }
 
-    /** Le membre peut-il fixer lui-même son engagement ? */
+    /** Le membre peut-il fixer lui-même son Jàyante ? */
     public function peutFixer(Collecte $collecte, Membre $membre): bool
     {
         return $collecte->concerne($membre)
-            && $collecte->mode !== ModeCollecte::Identique
+            && $collecte->mode === ModeCollecte::Jayante
             && $this->engagementDe($collecte, $membre) === null;
     }
 
+    /** Le plancher d'un engagement : le Sass, sinon 1 FCFA. */
     public function minimum(Collecte $collecte): int
     {
-        return $collecte->mode === ModeCollecte::Minimum ? (int) $collecte->montant : 1;
+        return $collecte->estSass() ? (int) $collecte->montant : 1;
+    }
+
+    /** Pour un Sass, le membre peut augmenter son engagement (jamais le baisser). */
+    public function peutAugmenter(Collecte $collecte, ?Engagement $engagement): bool
+    {
+        return $collecte->estSass() && $engagement !== null && $collecte->estOuverte();
+    }
+
+    /** Le membre (ou le parent qui gère sa fiche) augmente son Sass ; tracé. */
+    public function augmenter(Engagement $engagement, int $montant, User $auteur): Engagement
+    {
+        if (! $this->peutAugmenter($engagement->collecte, $engagement)) {
+            throw new DomainException('Seul un Sass, dans un programme ouvert, s\'augmente par le membre.');
+        }
+
+        if ($montant <= $engagement->montant) {
+            throw new DomainException('Le nouveau montant doit dépasser '.self::fcfa($engagement->montant).'.');
+        }
+
+        $ancien = $engagement->montant;
+
+        DB::transaction(function () use ($engagement, $montant, $ancien, $auteur): void {
+            $engagement->update(['montant' => $montant, 'fixe_par' => 'membre']);
+            $engagement->historique()->create(['ancien' => $ancien, 'nouveau' => $montant, 'motif' => 'Sass augmenté par le membre', 'auteur_id' => $auteur->id]);
+        });
+
+        return $engagement;
+    }
+
+    /**
+     * Engage d'office au Sass tous les membres concernés, et remonte au Sass ceux qui étaient en dessous ; un engagement
+     * au Sass précédent, jamais augmenté par le membre, suit le nouveau montant. Tout est tracé.
+     */
+    public function engagerAuSass(Collecte $collecte, ?User $auteur): int
+    {
+        if (! $collecte->estSass() || ! $collecte->contributionReglee()) {
+            return 0;
+        }
+
+        $sass = (int) $collecte->montant;
+        $nombre = 0;
+
+        DB::transaction(function () use ($collecte, $sass, $auteur, &$nombre): void {
+            $existants = $collecte->engagements()->get()->keyBy('membre_id');
+
+            foreach ($collecte->membresConcernes()->get() as $membre) {
+                $engagement = $existants->get($membre->id);
+
+                if ($engagement === null) {
+                    $collecte->engagements()->create(['membre_id' => $membre->id, 'montant' => $sass, 'fixe_par' => 'auto']);
+                    $nombre++;
+                } elseif ($engagement->montant < $sass || ($engagement->fixe_par === 'auto' && $engagement->montant !== $sass)) {
+                    $ancien = $engagement->montant;
+                    $engagement->update(['montant' => $sass]);
+                    $engagement->historique()->create(['ancien' => $ancien, 'nouveau' => $sass, 'motif' => 'Le Sass passe à '.self::fcfa($sass), 'auteur_id' => $auteur?->id]);
+                    $nombre++;
+                }
+            }
+        });
+
+        return $nombre;
     }
 
     /** Le membre fixe son engagement, une seule fois ; ensuite, seul le bureau peut le modifier. */
     public function fixerParMembre(Collecte $collecte, Membre $membre, int $montant): Engagement
     {
+        if ($collecte->estSass()) {
+            throw new DomainException('Pour un Sass, vous êtes engagé d\'office au montant du Sass ; vous pouvez l\'augmenter.');
+        }
+
         if (! $this->peutFixer($collecte, $membre)) {
             throw new DomainException('Votre Jàyante est déjà fixé. Pour le modifier, adressez-vous au bureau.');
         }
@@ -84,39 +152,6 @@ final class CollecteService
         });
     }
 
-    /** Le bureau attribue un montant à un membre (Ziar, ou tout autre mode). */
-    public function attribuer(Collecte $collecte, Membre $membre, int $montant, User $auteur, string $motif = 'Montant attribué par le bureau'): Engagement
-    {
-        if (! $collecte->concerne($membre)) {
-            throw new DomainException($membre->prenom.' '.$membre->nom.' n\'est pas concerné par cette collecte.');
-        }
-
-        $existant = $collecte->engagements()->where('membre_id', $membre->id)->first();
-
-        if ($existant !== null) {
-            return $this->modifier($existant, $montant, $motif, $auteur);
-        }
-
-        return DB::transaction(function () use ($collecte, $membre, $montant, $auteur, $motif): Engagement {
-            $engagement = $collecte->engagements()->create([
-                'membre_id' => $membre->id,
-                'montant' => $montant,
-                'fixe_par' => 'bureau',
-            ]);
-
-            $engagement->historique()->create([
-                'ancien' => null,
-                'nouveau' => $montant,
-                'motif' => $motif,
-                'auteur_id' => $auteur->id,
-            ]);
-
-            $this->prevenir($engagement, null);
-
-            return $engagement;
-        });
-    }
-
     /** Le bureau modifie un engagement : le motif est obligatoire, et tout est tracé. */
     public function modifier(Engagement $engagement, int $nouveau, string $motif, User $auteur): Engagement
     {
@@ -126,6 +161,10 @@ final class CollecteService
 
         if ($nouveau < 1) {
             throw new DomainException('Le montant doit être positif.');
+        }
+
+        if ($nouveau < $this->minimum($engagement->collecte)) {
+            throw new DomainException('Personne ne s\'engage en dessous du Sass ('.self::fcfa($this->minimum($engagement->collecte)).').');
         }
 
         $ancien = $engagement->montant;
@@ -296,7 +335,7 @@ final class CollecteService
             ->orderByRaw('date_limite is null')
             ->orderBy('date_limite')
             ->get()
-            ->filter(fn (Collecte $collecte): bool => $collecte->concerne($membre))
+            ->filter(fn (Collecte $collecte): bool => $collecte->contributionReglee() && $collecte->concerne($membre))
             ->values();
     }
 

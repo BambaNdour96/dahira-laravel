@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\LienFamille;
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\Sexe;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutMembre;
@@ -21,6 +20,7 @@ use App\Models\Membre;
 use App\Models\Poste;
 use App\Models\RepresentantFinance;
 use App\Models\Reunion;
+use App\Models\TypeProgramme;
 use App\Models\User;
 use App\Services\ArabeCoranService;
 use App\Services\CollecteService;
@@ -29,6 +29,7 @@ use App\Services\CommissionService;
 use App\Services\CotisationService;
 use App\Services\NominationService;
 use App\Services\PaiementService;
+use App\Services\ProgrammeService;
 use App\Services\RenouvellementService;
 use App\Services\RepresentantFinanceService;
 use App\Services\StatutMembreService;
@@ -81,8 +82,9 @@ class RecetteSeeder extends Seeder
         $this->commissions();
         $this->famille();
         $this->paiements($simples);
-        $this->programme($simples);
-        $this->cdgmt();
+        $magal = $this->programme($simples);
+        $this->prokhane();
+        $this->cdgmt($magal);
         $this->arabeCoran();
 
         // La campagne de renouvellement en dernier : tous les membres validés sont concernés.
@@ -256,17 +258,20 @@ class RecetteSeeder extends Seeder
     }
 
     /**
-     * Le Magal en cours : des Jàyante fixés, des versements en espèces et un versement Wave à valider.
+     * Le Magal en cours (Jàyante, comité dédié) : des Jàyante fixés, des versements en espèces et un versement Wave à valider.
      *
      * @param  list<Membre>  $membres
      */
-    private function programme(array $membres): void
+    private function programme(array $membres): Collecte
     {
-        $collecte = Collecte::query()->create([
-            'titre' => 'Grand Magal de Touba '.now()->year, 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
-            'ouverture' => now()->subMonth(), 'date_limite' => now()->addMonths(2), 'statut' => StatutCollecte::Ouverte,
+        $collecte = app(ProgrammeService::class)->enregistrer([
+            'titre' => 'Grand Magal de Touba '.now()->year, 'type_programme_id' => TypeProgramme::parCode(TypeProgramme::MAGAL)->id, 'mode' => ModeCollecte::Jayante->value,
+            'debut' => now()->addMonths(3)->setTime(8, 0), 'fin' => now()->addMonths(3)->addDays(2)->setTime(20, 0), 'lieu' => 'Touba', 'avec_jour_j' => true,
+            'itineraire_transport' => true, 'objectif' => 5000000, 'budget' => 3500000, 'organisation' => Collecte::COMITE,
+            'president_id' => Instance::comiteDirecteur()->membres()->orderBy('membres.id')->value('membres.id'),
+            'ouverture' => now()->subMonth(), 'date_limite' => now()->addMonths(2), 'statut' => StatutCollecte::Ouverte->value,
             'description' => 'Participation de la Daara au Grand Magal : hébergement, repas et transport des pèlerins.',
-        ]);
+        ], null, $this->super);
         $service = app(CollecteService::class);
 
         foreach (array_slice($membres, 0, 7) as $index => $membre) {
@@ -278,18 +283,39 @@ class RecetteSeeder extends Seeder
         }
 
         $service->declarer($collecte, $membres[3], 25000, 'T_RECETTE0MAGAL1', $membres[3]->telephone, $membres[3]->user);
+
+        return $collecte;
     }
 
-    /** Le CDGMT : président, commissions et chefs, une réunion convoquée, tenue et son PV publié. */
-    private function cdgmt(): void
+    /** Un Prokhane en Sass de 5 000 FCFA, organisé par deux commissions permanentes, avec une tâche confiée. */
+    private function prokhane(): void
+    {
+        $culturelle = Commission::query()->where('code', Commission::CULTURELLE)->firstOrFail();
+        $organisation = Commission::query()->where('nom', 'Organisation')->first();
+        $programmes = app(ProgrammeService::class);
+
+        $prokhane = $programmes->enregistrer([
+            'titre' => 'Prokhane '.now()->year, 'type_programme_id' => TypeProgramme::parCode(TypeProgramme::PROKHANE)->id, 'mode' => ModeCollecte::Sass->value, 'montant' => 5000,
+            'debut' => now()->addMonths(5)->setTime(17, 0), 'lieu' => 'Kaolack', 'avec_jour_j' => true, 'objectif' => 1500000, 'budget' => 600000,
+            'organisation' => Collecte::COMMISSIONS, 'commissions' => array_values(array_filter([
+                ['commission_id' => $culturelle->id, 'budget' => 350000], $organisation !== null ? ['commission_id' => $organisation->id, 'budget' => 250000] : null,
+            ])),
+            'ouverture' => now()->subWeek(), 'date_limite' => now()->addMonths(4), 'statut' => StatutCollecte::Ouverte->value,
+            'description' => 'Le Prokhane de la Daara : chaque membre verse au moins le Sass de 5 000 FCFA.',
+        ], null, $this->super);
+
+        $programmes->confierTache($prokhane, $culturelle, 'Préparer le programme des khassaides de la nuit', now()->addMonths(4)->toDateString(), $this->super);
+    }
+
+    /** Le CDGMT, créé avec le Magal : commissions et chefs, une réunion convoquée, tenue et son PV publié. */
+    private function cdgmt(Collecte $magal): void
     {
         $comiteDirecteur = Instance::comiteDirecteur()->membres()->orderBy('membres.id')->get();
         $president = $comiteDirecteur->firstOrFail();
         $secretaire = $comiteDirecteur->last() ?? $president;
 
-        $cdgmt = Instance::query()->create(['type' => Instance::CDGMT, 'nom' => 'CDGMT – Grand Magal '.now()->year, 'code' => 'CDGMT', 'annee' => now()->year, 'president_id' => $president->id]);
+        $cdgmt = $magal->comite ?? throw new RuntimeException('Le Magal n\'a pas son comité.');
         $comites = app(ComiteService::class);
-        $comites->preparerCdgmt($cdgmt);
 
         $chefs = Membre::query()->whereIn('telephone', ['+221770100101', '+221770100104', '+221770100107'])->orderBy('telephone')->get();
         $commissions = [];

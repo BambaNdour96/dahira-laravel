@@ -1,7 +1,10 @@
 <?php
 
+use App\Enums\ModeCollecte;
 use App\Enums\MoyenPaiement;
+use App\Models\ActionComite;
 use App\Models\Cellule;
+use App\Models\Collecte;
 use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Exercice;
@@ -15,6 +18,7 @@ use App\Notifications\NotificationMembre;
 use App\Services\CarteService;
 use App\Services\ComiteService;
 use App\Services\CommissionService;
+use App\Services\ProgrammeService;
 use App\Services\RenouvellementService;
 use Database\Seeders\CommissionsSeeder;
 use Database\Seeders\ParametresSeeder;
@@ -159,7 +163,7 @@ it('ouvre les écrans du panneau sans erreur dans la console', function () {
 
     visit([
         '/admin', '/admin/membres', '/admin/paiements', '/admin/relances', '/admin/evenements',
-        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte', '/admin/recensement-arabe-coran', '/admin/caisses', '/admin/dispenses', '/admin/ordres-depense', '/admin/libelles-depense', '/admin/avoirs', '/admin/reaffectations', '/admin/rapports-financiers', '/admin/exercices',
+        '/admin/validation-bureau', '/admin/connectes', '/admin/demandes-suppression', '/admin/competences', '/admin/changements-cellule', '/admin/campagnes-renouvellement', '/admin/lots-cartes', '/admin/reprise-des-donnees', '/admin/activations-compte', '/admin/recensement-arabe-coran', '/admin/caisses', '/admin/dispenses', '/admin/ordres-depense', '/admin/libelles-depense', '/admin/avoirs', '/admin/reaffectations', '/admin/rapports-financiers', '/admin/exercices', '/admin/types-evenement', '/admin/collectes/create',
     ])->assertNoJavascriptErrors();
 });
 
@@ -395,4 +399,39 @@ it('laisse déclarer un paiement Orange Money, avec le contrôle de la référen
         ->assertNoJavascriptErrors();
 
     expect(Paiement::query()->where('reference', 'MP261020.1530.C12345')->value('moyen'))->toBe(MoyenPaiement::OrangeMoney);
+});
+
+it('montre le Sass d\'office et laisse l\'augmenter, puis le Jewrine répartit une tâche d\'événement, sur le téléphone', function () {
+    $culturelle = Commission::factory()->create(['nom' => 'Culturelle', 'code' => Commission::CULTURELLE]);
+    $jewrine = nommerPourLeTest(Membre::factory()->for(User::factory()->create())->valide()->create()->user, 'jewrine_commission', null, $culturelle);
+    app(CommissionService::class)->ajouter($culturelle, $this->membre, $jewrine);
+
+    $programmes = app(ProgrammeService::class);
+    $prokhane = $programmes->enregistrer([
+        'titre' => 'Prokhane 2026', 'type_programme_id' => typeProgramme('prokhane'), 'debut' => now()->addMonth()->format('Y-m-d 17:00'), 'lieu' => 'Kaolack',
+        'mode' => ModeCollecte::Sass->value, 'montant' => 5000, 'organisation' => Collecte::COMMISSIONS, 'commissions' => [['commission_id' => $culturelle->id, 'budget' => 300000]],
+        'ouverture' => now()->subDay()->toDateString(), 'statut' => 'ouverte', 'rappels_actifs' => false,
+    ], null, $this->super);
+    $programmes->confierTache($prokhane, $culturelle, 'Programme des khassaides', null, $this->super);
+
+    $this->actingAs($this->compte);
+    visit('/mes-engagements')->on()->mobile()
+        ->assertSee('Prokhane 2026')
+        ->assertSee('sur 5 000 FCFA · Sass')
+        ->click('[data-test="augmenter-sass"] summary')
+        ->fill('[data-test="augmenter-sass"] input[name="montant"]', '7500')
+        ->press('Augmenter')
+        ->assertSee('passe à 7 500 FCFA')
+        ->assertNoJavascriptErrors();
+
+    $this->actingAs($jewrine);
+    visit('/mes-comites')->on()->mobile()
+        ->assertSee('Événements que nous organisons')
+        ->assertSee('À répartir')
+        ->select('[data-test="taches-evenements"] select[name="membre_id"]', (string) $this->membre->id)
+        ->press('Confier')
+        ->assertSee('est confiée à')
+        ->assertNoJavascriptErrors();
+
+    expect(ActionComite::query()->where('collecte_id', $prokhane->id)->value('responsable_id'))->toBe($this->membre->id);
 });

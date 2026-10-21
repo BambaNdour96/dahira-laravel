@@ -27,13 +27,14 @@ class CollectesEnCours extends StatsOverviewWidget
 
         return $utilisateur instanceof User
             && app(CasquettesService::class)->peutQuelquePart($utilisateur, 'programmes.voir')
-            && Collecte::query()->where('statut', StatutCollecte::Ouverte->value)->exists();
+            && Collecte::query()->evenements()->where('statut', StatutCollecte::Ouverte->value)->exists();
     }
 
     /** @return array<Stat> */
     protected function getStats(): array
     {
         return Collecte::query()
+            ->evenements()
             ->where('statut', StatutCollecte::Ouverte->value)
             ->orderByRaw('date_limite is null')
             ->orderBy('date_limite')

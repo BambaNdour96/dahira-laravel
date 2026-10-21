@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\Pages\CreateCollecte;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
@@ -35,8 +34,9 @@ beforeEach(function () {
 
     $this->collecte = Collecte::query()->create([
         'titre' => 'Ziar annuelle 2026',
-        'programme' => ProgrammeCollecte::Ziar,
-        'mode' => ModeCollecte::Attribue,
+        'type_programme_id' => typeProgramme('ziar'),
+        'mode' => ModeCollecte::Sass,
+        'montant' => 20000,
         'objectif' => 300000,
         'ouverture' => now()->subDays(5),
         'date_limite' => now()->addMonth(),
@@ -44,22 +44,27 @@ beforeEach(function () {
     ]);
 });
 
-it('crée une collecte depuis le panneau, avec son auteur', function () {
+it('crée un événement depuis le panneau, avec son auteur, et engage d\'office au Sass', function () {
     $this->actingAs($this->super);
 
     Livewire::test(CreateCollecte::class)
         ->fillForm([
-            'programme' => ProgrammeCollecte::Prokhane->value,
+            'type_programme_id' => typeProgramme('prokhane'),
             'titre' => 'Prokhane 2026',
-            'mode' => ModeCollecte::Minimum->value,
+            'debut' => now()->addMonth()->format('Y-m-d H:i'),
+            'lieu' => 'Kaolack',
+            'mode' => ModeCollecte::Sass->value,
             'montant' => 5000,
+            'organisation' => Collecte::COMMISSIONS,
             'ouverture' => now()->format('Y-m-d'),
             'statut' => StatutCollecte::Ouverte->value,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    expect(Collecte::query()->where('titre', 'Prokhane 2026')->value('cree_par'))->toBe($this->super->id);
+    $prokhane = Collecte::query()->where('titre', 'Prokhane 2026')->firstOrFail();
+    expect($prokhane->cree_par)->toBe($this->super->id)
+        ->and($prokhane->engagements()->where('membre_id', $this->membre->id)->value('montant'))->toBe(5000);
 });
 
 it('clôture puis rouvre une collecte', function () {
@@ -72,20 +77,13 @@ it('clôture puis rouvre une collecte', function () {
     expect($this->collecte->fresh()->statut)->toBe(StatutCollecte::Ouverte);
 });
 
-it('attribue, modifie, encaisse et retrace un engagement depuis le panneau', function () {
+it('modifie, encaisse et retrace un engagement depuis le panneau', function () {
     $this->actingAs($this->super);
     $page = ['record' => $this->collecte];
 
-    Livewire::test(EngagementsDesMembres::class, $page)
-        ->callAction(TestAction::make('attribuer')->table(), data: [
-            'membres' => [$this->membre->id],
-            'montant' => 50000,
-            'motif' => 'Décision du bureau',
-        ])
-        ->assertHasNoActionErrors();
-
-    $engagement = $this->collecte->engagements()->firstOrFail();
-    expect($engagement->montant)->toBe(50000);
+    $engagement = app(CollecteService::class)->engagementDe($this->collecte, $this->membre);
+    app(CollecteService::class)->modifier($engagement, 50000, 'Décision du bureau', $this->super);
+    expect($engagement->fresh()->montant)->toBe(50000);
 
     Livewire::test(EngagementsDesMembres::class, $page)
         ->callAction(TestAction::make('modifier')->table($engagement), data: ['montant' => 40000, 'motif' => 'Demande du membre'])
@@ -104,7 +102,7 @@ it('attribue, modifie, encaisse et retrace un engagement depuis le panneau', fun
 });
 
 it('affiche les graphiques et les chiffres d\'une collecte', function () {
-    app(CollecteService::class)->attribuer($this->collecte, $this->membre, 20000, $this->super);
+    app(CollecteService::class)->engagementDe($this->collecte, $this->membre);
     app(CollecteService::class)->enregistrerEspeces($this->collecte, $this->membre, 5000, $this->super);
     $this->actingAs($this->super);
 
@@ -114,7 +112,7 @@ it('affiche les graphiques et les chiffres d\'une collecte', function () {
 });
 
 it('déclare un versement depuis « Mes engagements », et refuse une erreur de saisie', function () {
-    app(CollecteService::class)->attribuer($this->collecte, $this->membre, 20000, $this->super);
+    app(CollecteService::class)->engagementDe($this->collecte, $this->membre);
 
     $this->actingAs($this->compte)->post(route('engagements.versement', $this->collecte), [
         'montant' => 10000,

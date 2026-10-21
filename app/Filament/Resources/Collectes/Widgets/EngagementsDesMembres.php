@@ -14,7 +14,6 @@ use App\Services\CollecteService;
 use App\Support\MessagesRelance;
 use DomainException;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -90,7 +89,7 @@ class EngagementsDesMembres extends TableWidget
                         ['confirme'],
                     )),
             ])
-            ->headerActions([$this->messageGroupe(), $this->attribuer()])
+            ->headerActions([$this->messageGroupe()])
             ->recordActions([$this->relancer(), $this->modifier(), $this->especes(), $this->historique()])
             ->defaultSort('montant', 'desc');
     }
@@ -108,41 +107,6 @@ class EngagementsDesMembres extends TableWidget
         abort_unless($auteur instanceof User, 403);
 
         return $auteur;
-    }
-
-    private function attribuer(): Action
-    {
-        return Action::make('attribuer')
-            ->label('Attribuer un montant')
-            ->icon('heroicon-o-user-plus')
-            ->visible(fn (): bool => Gate::allows('attribuer', $this->collecte()))
-            ->schema([
-                Select::make('membres')
-                    ->label('Membres')
-                    ->multiple()
-                    ->searchable()
-                    ->required()
-                    ->options(fn (): array => $this->collecte()->membresConcernes()->with('cellule')->orderBy('nom')->get()
-                        ->mapWithKeys(fn (Membre $membre): array => [$membre->id => $membre->prenom.' '.$membre->nom.' — '.$membre->cellule->nom])
-                        ->all()),
-                TextInput::make('montant')->label('Montant')->numeric()->minValue(1)->required()->suffix('FCFA'),
-                Textarea::make('motif')->label('Motif')->default('Montant attribué par le bureau')->required()->maxLength(255),
-            ])
-            ->action(function (array $data): void {
-                $service = app(CollecteService::class);
-                $nombre = 0;
-
-                foreach ((array) $data['membres'] as $id) {
-                    $membre = Membre::query()->whereKey((int) $id)->first();
-
-                    if ($membre !== null) {
-                        $service->attribuer($this->collecte(), $membre, (int) $data['montant'], self::auteur(), (string) $data['motif']);
-                        $nombre++;
-                    }
-                }
-
-                Notification::make()->title($nombre.' engagement(s) attribué(s). Les membres sont prévenus.')->success()->send();
-            });
     }
 
     private function messageGroupe(): Action

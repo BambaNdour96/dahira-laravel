@@ -18,7 +18,7 @@
         <section id="collecte-{{ $collecte->id }}" class="mt-6 scroll-mt-24 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $collecte->programme->getLabel() }}</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $collecte->libelleType() }}</p>
                     <h2 class="text-lg font-semibold text-emerald-950">{{ $collecte->titre }}</h2>
                     @if ($collecte->date_limite)
                         <p class="text-sm {{ $collecte->estEnRetard() && $fiche['reste'] > 0 ? 'font-semibold text-red-800' : 'text-stone-500' }}">
@@ -63,10 +63,7 @@
                         @csrf
                         <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
                         <label for="montant-{{ $collecte->id }}" class="block text-sm font-semibold text-emerald-900">{{ $proche ? 'Fixez son Jàyante' : 'Fixez votre Jàyante' }}</label>
-                        <p class="text-xs text-stone-500">
-                            {{ $collecte->mode->getDescription() }}
-                            @if ($fiche['minimum'] > 1) Minimum : {{ $fcfa($fiche['minimum']) }}. @endif
-                        </p>
+                        <p class="text-xs text-stone-500">{{ $collecte->mode?->getDescription() }}</p>
                         <div class="flex gap-2">
                             <input id="montant-{{ $collecte->id }}" type="number" name="montant" min="{{ $fiche['minimum'] }}" step="500" inputmode="numeric" required
                                    value="{{ $actif ? old('montant') : '' }}" placeholder="Montant en FCFA"
@@ -79,7 +76,7 @@
                         @endif
                     </form>
                 @else
-                    <p class="mt-4 rounded-lg bg-stone-50 p-3 text-sm text-stone-600">Votre Sass sera fixé par le bureau.</p>
+                    <p class="mt-4 rounded-lg bg-stone-50 p-3 text-sm text-stone-600">Ce programme ne concerne pas votre cellule.</p>
                 @endif
             @else
                 @php
@@ -109,6 +106,25 @@
                         <p class="mt-2 text-sm text-stone-700">Reste à verser : <span class="font-semibold">{{ $fcfa($fiche['reste']) }}</span></p>
                     @endif
                 </div>
+
+                @if ($fiche['peutAugmenter'])
+                    <details class="mt-3" data-test="augmenter-sass">
+                        <summary class="cursor-pointer text-sm font-semibold text-emerald-800">Le Sass est de {{ $fcfa($fiche['minimum']) }} : {{ $proche ? 'augmenter son engagement' : 'augmenter mon engagement' }}</summary>
+                        <form method="POST" action="{{ $proche ? route('famille.engagements.augmenter', [$proche, $collecte]) : route('engagements.augmenter', $collecte) }}" class="mt-2 flex gap-2">
+                            @csrf
+                            <input type="hidden" name="collecte_id" value="{{ $collecte->id }}">
+                            <input type="number" name="montant" min="{{ $engagement->montant + 1 }}" step="1" inputmode="numeric" required
+                                   placeholder="Plus de {{ $fcfa($engagement->montant) }}" aria-label="Nouveau montant"
+                                   class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                            <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white">Augmenter</button>
+                        </form>
+                        @if ($actif)
+                            @error('augmenter')
+                                <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </details>
+                @endif
 
                 @if ($fiche['disponible'] > 0 && $collecte->estOuverte())
                     @php

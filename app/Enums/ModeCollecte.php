@@ -5,31 +5,25 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasLabel;
 
-/** Comment est fixé l'engagement de chaque membre. */
+/** La contribution des membres à un événement, choisie par le super administrateur. */
 enum ModeCollecte: string implements HasDescription, HasLabel
 {
-    case EngagementLibre = 'libre';
-    case Minimum = 'minimum';
-    case Attribue = 'attribue';
-    case Identique = 'identique';
+    case Jayante = 'jayante';
+    case Sass = 'sass';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::EngagementLibre => 'Jàyante libre',
-            self::Minimum => 'Jàyante avec un minimum fixé par le bureau',
-            self::Attribue => 'Sass fixé par le bureau (certains membres)',
-            self::Identique => 'Sass identique pour tous',
+            self::Jayante => 'Jàyante',
+            self::Sass => 'Sass',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::EngagementLibre => 'Chaque membre fixe lui-même son Jàyante. Seul le bureau peut ensuite le modifier.',
-            self::Minimum => 'Le bureau fixe un minimum ; chaque membre fixe son Jàyante, égal ou supérieur.',
-            self::Attribue => 'Le bureau fixe le Sass de certains membres ; les autres fixent eux-mêmes leur Jàyante.',
-            self::Identique => 'Le même Sass pour chaque membre, fixé par le bureau.',
+            self::Jayante => 'Chaque membre fixe librement son montant, sans minimum.',
+            self::Sass => 'Un minimum imposé, le même pour toute la Daara, fixé par le Jewrine national : chaque membre concerné y est engagé d\'office et peut l\'augmenter.',
         };
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\Pages\CreateCollecte;
 use App\Filament\Resources\Collectes\Pages\EditCollecte;
@@ -9,6 +8,7 @@ use App\Filament\Resources\Collectes\Pages\ViewCollecte;
 use App\Filament\Resources\Collectes\Widgets\JourJDuProgramme;
 use App\Models\Collecte;
 use App\Models\Evenement;
+use App\Models\Instance;
 use App\Models\Membre;
 use App\Models\Presence;
 use App\Models\User;
@@ -33,14 +33,18 @@ it('crée un programme avec son jour J, en un seul formulaire', function () {
 
     Livewire::test(CreateCollecte::class)
         ->fillForm([
-            'programme' => ProgrammeCollecte::Magal->value,
+            'type_programme_id' => typeProgramme('magal'),
             'titre' => 'Magal de Touba 2026',
-            'mode' => ModeCollecte::EngagementLibre->value,
+            'mode' => ModeCollecte::Jayante->value,
             'ouverture' => now()->format('Y-m-d'),
             'statut' => StatutCollecte::Ouverte->value,
+            'organisation' => Collecte::COMITE,
             'avec_jour_j' => true,
-            'jour_j_debut' => now()->addMonth()->format('Y-m-d 10:00:00'),
-            'jour_j_lieu' => 'Touba',
+            'itineraire_transport' => true,
+            'debut' => now()->addMonth()->format('Y-m-d 10:00:00'),
+            'lieu' => 'Touba',
+            'objectif' => 5000000,
+            'budget' => 3000000,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -49,7 +53,10 @@ it('crée un programme avec son jour J, en un seul formulaire', function () {
 
     expect($collecte->evenement)->not->toBeNull()
         ->and($collecte->evenement?->titre)->toBe('Magal de Touba 2026')
-        ->and($collecte->evenement?->lieu)->toBe('Touba');
+        ->and($collecte->evenement?->lieu)->toBe('Touba')
+        ->and($collecte->itineraire_transport)->toBeTrue()
+        ->and($collecte->comite?->type)->toBe(Instance::CDGMT)
+        ->and($collecte->budget)->toBe(3000000);
 
     Livewire::test(ViewCollecte::class, ['record' => $collecte->getRouteKey()])->assertOk();
     Livewire::test(JourJDuProgramme::class, ['record' => $collecte])->assertSee('Touba')->assertSee('Taux de présence');
@@ -60,13 +67,14 @@ it('met à jour le jour J, puis le détache sans perdre les présences', functio
 
     $evenement = Evenement::query()->create(['titre' => 'Prokhane 2026', 'lieu' => 'Kaolack', 'debut' => now()->addWeek()]);
     $collecte = Collecte::query()->create([
-        'titre' => 'Prokhane 2026', 'programme' => ProgrammeCollecte::Prokhane, 'mode' => ModeCollecte::Minimum,
+        'titre' => 'Prokhane 2026', 'type_programme_id' => typeProgramme('prokhane'), 'mode' => ModeCollecte::Sass, 'organisation' => Collecte::COMMISSIONS,
         'montant' => 5000, 'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte, 'evenement_id' => $evenement->id,
+        'debut' => $evenement->debut, 'lieu' => 'Kaolack',
     ]);
 
     Livewire::test(EditCollecte::class, ['record' => $collecte->getRouteKey()])
-        ->assertSchemaStateSet(['avec_jour_j' => true, 'jour_j_lieu' => 'Kaolack'])
-        ->fillForm(['jour_j_lieu' => 'Mosquée de Kaolack'])
+        ->assertSchemaStateSet(['avec_jour_j' => true, 'lieu' => 'Kaolack'])
+        ->fillForm(['lieu' => 'Mosquée de Kaolack'])
         ->call('save')
         ->assertHasNoFormErrors();
 
@@ -90,7 +98,7 @@ it('montre le jour J au membre, puis sa présence', function () {
 
     $evenement = Evenement::query()->create(['titre' => 'Ziar 2026', 'lieu' => 'Médina Baye', 'debut' => now()->addDays(3)]);
     $collecte = Collecte::query()->create([
-        'titre' => 'Ziar 2026', 'programme' => ProgrammeCollecte::Ziar, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Ziar 2026', 'type_programme_id' => typeProgramme('ziar'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte, 'evenement_id' => $evenement->id,
     ]);
     app(CollecteService::class)->fixerParMembre($collecte, $membre, 5000);

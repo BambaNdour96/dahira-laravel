@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Enums\TypeRapport;
 use App\Filament\Resources\Collectes\Pages\ListCollectes;
@@ -49,8 +48,8 @@ beforeEach(function () {
 
     $this->collecte = Collecte::query()->create([
         'titre' => 'Magal de Touba 2026',
-        'programme' => ProgrammeCollecte::Magal,
-        'mode' => ModeCollecte::EngagementLibre,
+        'type_programme_id' => typeProgramme('magal'),
+        'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(),
         'statut' => StatutCollecte::Ouverte,
     ]);
@@ -68,7 +67,6 @@ it('donne à Suivi et Évaluation une vision complète, en lecture seule', funct
     Livewire::test(EngagementsDesMembres::class, ['record' => $this->collecte])
         ->assertSee('Awa')
         ->assertSee('Moussa')
-        ->assertActionHidden(TestAction::make('attribuer')->table())
         ->assertActionHidden(TestAction::make('modifier')->table($this->engagementA))
         ->assertActionHidden(TestAction::make('especes')->table($this->engagementA))
         ->assertActionHidden(TestAction::make('relancer')->table($this->engagementA));

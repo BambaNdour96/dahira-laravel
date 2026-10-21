@@ -106,6 +106,48 @@
                        class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                 <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Ajouter</button>
             </form>
+
+            @php
+                $organises = $evenementsOrganises->get($permanente->id, collect());
+                $tachesRecues = $permanente->comite ? $tachesEvenements->get($permanente->comite->id, collect()) : collect();
+            @endphp
+            @if ($organises->isNotEmpty())
+                <h3 class="mt-5 font-semibold text-emerald-900">Événements que nous organisons</h3>
+                <ul class="mt-2 space-y-1 text-sm">
+                    @foreach ($organises as $choix)
+                        <li class="flex justify-between gap-2">
+                            <span>{{ $choix->collecte->titre }}{{ $choix->collecte->debut ? ' · '.$choix->collecte->debut->format('d/m/Y') : '' }}</span>
+                            <span class="whitespace-nowrap text-xs text-stone-600">{{ $choix->budget !== null ? 'Budget '.number_format($choix->budget, 0, ',', ' ').' FCFA' : 'Sans part de budget' }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+            @if ($tachesRecues->isNotEmpty())
+                <h3 class="mt-4 font-semibold text-emerald-900">Tâches des événements ({{ $tachesRecues->count() }})</h3>
+                <ul class="mt-2 space-y-2 text-sm" data-test="taches-evenements">
+                    @foreach ($tachesRecues as $tache)
+                        <li class="rounded-lg bg-stone-50 p-3">
+                            <p class="font-medium text-stone-900">{{ $tache->description }}</p>
+                            <p class="text-xs text-stone-600">
+                                {{ $tache->collecte?->titre }}{{ $tache->echeance ? ' · pour le '.$tache->echeance->format('d/m/Y') : '' }}
+                                · {{ $tache->responsable ? 'Confiée à '.$tache->responsable->prenom.' '.$tache->responsable->nom : 'À répartir' }}
+                            </p>
+                            <form method="POST" action="{{ route('comites.taches.repartir', $tache) }}" class="mt-2 flex gap-2">
+                                @csrf
+                                <select name="membre_id" required aria-label="Membre" class="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 text-base">
+                                    @if (auth()->user()?->membre)
+                                        <option value="{{ auth()->user()->membre->id }}">Moi-même</option>
+                                    @endif
+                                    @foreach ($membresPermanents as $appartenance)
+                                        <option value="{{ $appartenance->membre->id }}" @selected($tache->responsable_id === $appartenance->membre->id)>{{ $appartenance->membre->prenom }} {{ $appartenance->membre->nom }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">{{ $tache->responsable ? 'Changer' : 'Confier' }}</button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </section>
     @endforeach
 

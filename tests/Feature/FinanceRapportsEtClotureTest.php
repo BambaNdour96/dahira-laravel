@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutProjet;
 use App\Enums\TypeCaisse;
@@ -65,7 +64,7 @@ beforeEach(function () {
     $this->tresorier = nommerPourLeTest(membreBilan($this->kaolack)->user, 'jewrine_finance');
     $this->awa = membreBilan($this->kaolack, ['prenom' => 'Awa', 'nom' => 'Diop']);
     $this->modou = membreBilan($this->dakar, ['prenom' => 'Modou', 'nom' => 'Fall']);
-    $this->magal = Collecte::query()->create(['titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre, 'ouverture' => now()->subMonth(), 'statut' => StatutCollecte::Ouverte]);
+    $this->magal = Collecte::query()->create(['titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante, 'ouverture' => now()->subMonth(), 'statut' => StatutCollecte::Ouverte]);
     $this->projet = Projet::query()->create(['titre' => 'Daara de Médina', 'objectif' => 'Construire', 'responsable_id' => $this->awa->id, 'date_debut' => now(), 'date_fin' => now()->addYear(), 'statut' => StatutProjet::cases()[0]]);
     $this->rapports = app(FinanceRapportService::class);
     $this->generale = app(TresorerieService::class)->caisse(TypeCaisse::Especes);

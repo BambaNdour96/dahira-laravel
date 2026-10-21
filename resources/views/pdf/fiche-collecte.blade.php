@@ -27,27 +27,31 @@
         @if ($logo)<img src="{{ $logo }}" alt="">@endif
         <div class="titre">
             <div class="daara">Daara Nouroud Daareyni Kaolack</div>
-            <h1>Fiche de paramétrage d'une collecte</h1>
+            <h1>Fiche de paramétrage d'un événement</h1>
         </div>
     </div>
-    <p class="aide">À remplir par le bureau : cochez les choix et complétez les montants. Le super administrateur crée ensuite la collecte dans la plateforme à partir de cette fiche.</p>
+    <p class="aide">À remplir par le bureau : cochez les choix et complétez les montants. Le super administrateur ou le Jewrine national crée ensuite l'événement dans la plateforme à partir de cette fiche.</p>
 
-    <h2>1. Identité de la collecte</h2>
+    <h2>1. L'événement</h2>
     <table>
-        <tr><td class="libelle">Titre</td><td><div class="ligne-longue"></div></td></tr>
+        <tr><td class="libelle">Nom</td><td><div class="ligne-longue"></div></td></tr>
         <tr>
-            <td class="libelle">Programme</td>
+            <td class="libelle">Type</td>
             <td>
-                @foreach ($programmes as $programme)
-                    <span class="case">☐</span> {{ $programme->getLabel() }}&nbsp;&nbsp;
+                @foreach ($types as $type)
+                    <span class="case">☐</span> {{ $type }}&nbsp;&nbsp;
                 @endforeach
+                <span class="case">☐</span> Autre : <span class="ligne"></span>
             </td>
         </tr>
+        <tr><td class="libelle">Dates</td><td>du <span class="ligne"></span> au <span class="ligne"></span></td></tr>
+        <tr><td class="libelle">Lieu</td><td><div class="ligne-longue"></div></td></tr>
         <tr><td class="libelle">Description (visible par les membres)</td><td><div class="ligne-longue"></div><div class="ligne-longue"></div></td></tr>
-        <tr><td class="libelle">Événement lié (pour le scan des présences)</td><td><span class="case">☐</span> Aucun &nbsp; <span class="case">☐</span> Oui : <span class="ligne"></span></td></tr>
+        <tr><td class="libelle">Jour J avec scan des cartes</td><td><span class="case">☐</span> Oui &nbsp; <span class="case">☐</span> Non</td></tr>
+        <tr><td class="libelle">Grand déplacement (itinéraire et transport)</td><td><span class="case">☐</span> Oui &nbsp; <span class="case">☐</span> Non</td></tr>
     </table>
 
-    <h2>2. Engagement des membres</h2>
+    <h2>2. Contribution, objectif et budget</h2>
     <table>
         @foreach ($modes as $mode)
             <tr>
@@ -55,12 +59,22 @@
                 <td class="petit">{{ $mode->getDescription() }}</td>
             </tr>
         @endforeach
-        <tr><td class="libelle">Minimum ou montant identique</td><td><span class="ligne"></span> FCFA</td></tr>
-        <tr><td class="libelle">Membres à qui le bureau attribue un montant</td><td><div class="ligne-longue"></div><div class="ligne-longue"></div></td></tr>
-        <tr><td class="libelle">Objectif total de la collecte</td><td><span class="ligne"></span> FCFA &nbsp; <span class="case">☐</span> Pas d'objectif</td></tr>
+        <tr><td class="libelle">Montant du Sass (le même pour toute la Daara)</td><td><span class="ligne"></span> FCFA</td></tr>
+        <tr><td class="libelle">Objectif de recettes</td><td><span class="ligne"></span> FCFA &nbsp; <span class="case">☐</span> Pas d'objectif</td></tr>
+        <tr><td class="libelle">Budget de dépenses</td><td><span class="ligne"></span> FCFA</td></tr>
     </table>
 
-    <h2>3. Dates et règles</h2>
+    <h2>3. L'organisation</h2>
+    <table>
+        <tr><td class="libelle"><span class="case">☐</span> Comité d'organisation dédié</td><td>Président : <span class="ligne"></span></td></tr>
+        <tr><td class="libelle"><span class="case">☐</span> Commissions permanentes choisies</td><td>
+            @foreach ($commissions as $commission)
+                <span class="case">☐</span> {{ $commission }} (part : ………… FCFA)&nbsp;
+            @endforeach
+        </td></tr>
+    </table>
+
+    <h2>4. La collecte : dates et règles</h2>
     <table>
         <tr><td class="libelle">Ouverture</td><td><span class="ligne"></span></td></tr>
         <tr><td class="libelle">Date limite</td><td><span class="ligne"></span> &nbsp; <span class="case">☐</span> Pas de date limite</td></tr>
@@ -77,14 +91,14 @@
         </tr>
     </table>
 
-    <h2>4. Visibilité</h2>
+    <h2>5. Visibilité et rappels</h2>
     <table>
         <tr><td class="libelle">Avancement de la collecte (jauge)</td><td><span class="case">☐</span> Bureau seulement &nbsp; <span class="case">☐</span> Bureau et membres (sans les noms)</td></tr>
         <tr><td class="libelle">Jauge visible par les membres à partir du</td><td><span class="ligne"></span> &nbsp; <span class="case">☐</span> Dès l'ouverture</td></tr>
         <tr><td class="libelle">Remarques du bureau</td><td><div class="ligne-longue"></div><div class="ligne-longue"></div></td></tr>
     </table>
 
-    <h2>5. Validation</h2>
+    <h2>6. Validation</h2>
     <table class="signatures">
         <tr>
             <td>Jewrine national</td>

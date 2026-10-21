@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Enums\StatutMembre;
 use App\Models\Collecte;
@@ -48,7 +47,7 @@ beforeEach(function () {
     $this->epouse->forceFill(['matricule' => 'NDK-0042'])->save();
 
     $this->collecte = Collecte::query()->create([
-        'titre' => 'Magal de Touba 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Magal de Touba 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
 });

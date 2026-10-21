@@ -75,7 +75,8 @@ final class RappelService
             ->where('rappels_actifs', true)
             ->whereDate('ouverture', '<=', $maintenant)
             ->with('evenement')
-            ->get();
+            ->get()
+            ->filter(fn (Collecte $collecte): bool => $collecte->contributionReglee());
 
         foreach ($collectes as $collecte) {
             foreach ($collecte->membresConcernes()->whereNotNull('user_id')->get() as $membre) {

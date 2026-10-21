@@ -4,17 +4,21 @@ namespace App\Filament\Resources\Collectes\Pages;
 
 use App\Filament\Resources\Collectes\CollecteResource;
 use App\Models\Collecte;
+use App\Models\User;
 use App\Services\JourJService;
+use App\Services\ProgrammeService;
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Exceptions\Halt;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class EditCollecte extends EditRecord
 {
     protected static string $resource = CollecteResource::class;
-
-    /** @var array{avec: bool, debut: mixed, fin: mixed, lieu: string|null} */
-    protected array $jourJ = ['avec' => false, 'debut' => null, 'fin' => null, 'lieu' => null];
 
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
@@ -36,23 +40,17 @@ class EditCollecte extends EditRecord
         return $collecte instanceof Collecte ? JourJService::remplir($collecte, $data) : $data;
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    protected function mutateFormDataBeforeSave(array $data): array
+    /** @param  array<string, mixed>  $data */
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $this->jourJ = JourJService::extraire($data);
+        $auteur = Auth::user();
+        abort_unless($auteur instanceof User && $record instanceof Collecte, 403);
 
-        return $data;
-    }
-
-    protected function afterSave(): void
-    {
-        $collecte = $this->getRecord();
-
-        if ($collecte instanceof Collecte) {
-            app(JourJService::class)->synchroniser($collecte->refresh(), $this->jourJ, is_numeric(auth()->id()) ? (int) auth()->id() : null);
+        try {
+            return app(ProgrammeService::class)->enregistrer($data, $record, $auteur);
+        } catch (DomainException $e) {
+            Notification::make()->title($e->getMessage())->danger()->send();
+            throw new Halt;
         }
     }
 }

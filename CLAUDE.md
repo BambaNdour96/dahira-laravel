@@ -79,6 +79,9 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 11. **Tests Browser** : à la fin, Pest laisse tourner le serveur Playwright, qui garde la sortie ouverte. Une commande
     `pest --testsuite=Browser | tail` semble alors bloquée alors que les tests sont finis. Envoyer la sortie dans un
     fichier, attendre la fin de Pest, puis arrêter le serveur : `pkill -f "[p]laywright run-server"`.
+12. **Tests Browser, fenêtre de rappel** : un programme ouvert, avec rappels, affiche sa fenêtre sur toutes les pages
+    sauf « Mes engagements » ; elle couvre les boutons et un `press()` ou un `click()` attend alors sans fin (le test
+    semble bloqué, sans erreur). Dans un test Browser, créer le programme avec `'rappels_actifs' => false`.
 
 ## Commandes utiles
 

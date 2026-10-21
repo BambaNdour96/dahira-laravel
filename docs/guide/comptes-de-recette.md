@@ -70,9 +70,12 @@ Pour voir des **cotisations en retard**, le mois de démarrage des cotisations (
 
 ## Ce que contient aussi le jeu
 
-- **Programme en cours** : Grand Magal de Touba, Jàyante libre, sept engagements, trois versements en espèces et un
-  versement Wave à valider.
-- **CDGMT** : présidé par le premier membre du Comité directeur (Serigne Ndiaye), trois commissions (Cuisine,
+- **Grand Magal de Touba** (Jàyante, comité dédié, itinéraire et transport, objectif 5 000 000 FCFA, budget
+  3 500 000 FCFA) : sept engagements, trois versements en espèces et un versement Wave à valider.
+- **Prokhane** (Sass de 5 000 FCFA, organisé par les commissions Culturelle et Organisation, chacune avec sa part du
+  budget) : tous les membres validés y sont engagés d'office ; une tâche est confiée à la commission Culturelle,
+  à répartir par son Jewrine.
+- **CDGMT**, créé avec le Magal : présidé par le premier membre du Comité directeur (Serigne Ndiaye), trois commissions (Cuisine,
   Hygiène et environnement, Transport) avec leurs chefs, une réunion de lancement convoquée, tenue (présences,
   décisions, une action) et son **PV publié** par le secrétaire de séance (El Hadji Mbaye).
 - **Renouvellement** : la campagne de l'exercice suivant est ouverte (date limite dans deux mois) ; les membres validés

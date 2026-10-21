@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Collectes\Pages;
 
 use App\Filament\Resources\Collectes\CollecteResource;
+use App\Filament\Resources\Collectes\Widgets\BilanDuProgramme;
 use App\Filament\Resources\Collectes\Widgets\CollecteAnalyse;
 use App\Filament\Resources\Collectes\Widgets\CollecteChiffres;
 use App\Filament\Resources\Collectes\Widgets\CollecteEvolution;
@@ -67,7 +68,9 @@ class ViewCollecte extends ViewRecord
                 ->modalDescription(Confidentiel::AVERTISSEMENT)
                 ->modalSubmitActionLabel('Télécharger')
                 ->action(fn (Collecte $record, Component $livewire) => $livewire->redirect(route('programmes.rapport', $record))),
+            CollecteResource::confierTache(),
             CollecteResource::cloturer(),
+            CollecteResource::verserLeSolde(),
             CollecteResource::rouvrir(),
             EditAction::make()->label('Paramètres'),
             CollecteResource::annuler(),
@@ -88,7 +91,7 @@ class ViewCollecte extends ViewRecord
     /** @return array<int, class-string> */
     protected function getHeaderWidgets(): array
     {
-        return [CollecteChiffres::class, CollecteAnalyse::class, JourJDuProgramme::class, CollecteEvolution::class, CollecteParCellule::class];
+        return [CollecteChiffres::class, BilanDuProgramme::class, CollecteAnalyse::class, JourJDuProgramme::class, CollecteEvolution::class, CollecteParCellule::class];
     }
 
     public function getHeaderWidgetsColumns(): int|array

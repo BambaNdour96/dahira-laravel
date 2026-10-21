@@ -10,11 +10,13 @@ use App\Models\Instance;
 use App\Models\LibelleDepense;
 use App\Models\Membre;
 use App\Models\OrdreDepense;
+use App\Models\ProgrammeCommission;
 use App\Models\User;
 use App\Models\Volontariat;
 use App\Services\ArabeCoranService;
 use App\Services\ComiteService;
 use App\Services\CompetencesService;
+use App\Services\ProgrammeService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,9 +62,17 @@ class ComitesController extends Controller
             ->dirigeesPar($utilisateur)
             ->with([
                 'appartenances' => fn ($query) => $query->whereNull('refuse_le')->whereNull('fin_le')->with('membre')->orderBy('created_at'),
+                'comite',
             ])
             ->orderBy('nom')
             ->get();
+
+        // Les événements que ces commissions organisent, et les tâches qu'on leur a confiées.
+        $evenementsOrganises = ProgrammeCommission::query()->with('collecte')->whereIn('commission_id', $commissionsDirigees->modelKeys())
+            ->whereNull('retiree_le')->whereHas('collecte', fn ($query) => $query->where('statut', '!=', 'annulee'))->get()->groupBy('commission_id');
+        $tachesEvenements = ActionComite::query()->with(['collecte', 'responsable'])->whereNotNull('collecte_id')
+            ->whereIn('instance_id', $commissionsDirigees->pluck('comite.id')->filter()->all())
+            ->whereNotIn('statut', ActionComite::TERMINEES)->orderBy('echeance')->get()->groupBy('instance_id');
 
         // Le chef cherche des membres par savoir-faire, dans toute la Daara (nom et cellule seulement).
         $competence = $mesCommissions->isNotEmpty() && $request->filled('competence')
@@ -80,6 +90,8 @@ class ComitesController extends Controller
             'actions' => $actions,
             'mesCommissions' => $mesCommissions,
             'commissionsDirigees' => $commissionsDirigees,
+            'evenementsOrganises' => $evenementsOrganises,
+            'tachesEvenements' => $tachesEvenements,
         ]);
     }
 
@@ -147,6 +159,24 @@ class ComitesController extends Controller
         }
 
         return back()->with('comite_succes', 'Tâche confiée à '.$membre->prenom.' '.$membre->nom.' : il est prévenu.');
+    }
+
+    /** Le Jewrine d'une commission permanente répartit une tâche d'événement entre ses membres. */
+    public function repartir(Request $request, ActionComite $action, ProgrammeService $programmes): RedirectResponse
+    {
+        $membre = Membre::query()->whereKey($request->integer('membre_id'))->first();
+
+        if ($membre === null) {
+            return back()->with('comite_erreur', 'Choisissez le membre.');
+        }
+
+        try {
+            $programmes->repartirTache($action, $membre, $this->utilisateur($request));
+        } catch (DomainException $e) {
+            return back()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', '« '.$action->description.' » est confiée à '.$membre->prenom.' '.$membre->nom.' : il est prévenu.');
     }
 
     private function utilisateur(Request $request): User

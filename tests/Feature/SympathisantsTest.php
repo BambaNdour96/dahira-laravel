@@ -2,7 +2,6 @@
 
 use App\Enums\ModeCollecte;
 use App\Enums\MoyenPaiement;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\Sexe;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Sympathisants\Pages\ManageSympathisants;
@@ -102,7 +101,7 @@ it('repère les fidèles à inviter et relie le sympathisant qui devient membre'
 it('enregistre la participation d\'un sympathisant, avec reçu, comptée à part dans la collecte', function () {
     $sympathisant = $this->service->accueillir($this->dahira, ['prenom' => 'Ousmane', 'nom' => 'Sarr', 'sexe' => 'H', 'accord' => true], $this->jewrine);
     $collecte = Collecte::query()->create([
-        'titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte,
     ]);
     $tresorier = User::factory()->create();

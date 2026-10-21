@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Models\Collecte;
 use App\Models\Membre;
@@ -24,8 +23,8 @@ beforeEach(function () {
 
     $this->collecte = Collecte::query()->create([
         'titre' => 'Magal de Touba 2026',
-        'programme' => ProgrammeCollecte::Magal,
-        'mode' => ModeCollecte::EngagementLibre,
+        'type_programme_id' => typeProgramme('magal'),
+        'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(),
         'statut' => StatutCollecte::Ouverte,
     ]);

@@ -130,7 +130,9 @@ class OrdreDepenseResource extends Resource
                     Select::make('commission_comite_id')->label('Commission du comité')->options($choix['commissions_comite'])->visible(fn (Get $get): bool => $get('rattachement') === 'programme'),
                     Select::make('projet_id')->label('Projet')->options($choix['projets'])->visible(fn (Get $get): bool => $get('rattachement') === 'projet'),
                     Select::make('cellule_id')->label('Cellule (facultatif)')->options($choix['cellules'])->visible(fn (Get $get): bool => $get('rattachement') === 'fonctionnement'),
-                    Select::make('commission_id')->label('Commission permanente (facultatif)')->options($choix['commissions'])->visible(fn (Get $get): bool => $get('rattachement') === 'fonctionnement'),
+                    Select::make('commission_id')->label('Commission permanente (facultatif)')->options($choix['commissions'])
+                        ->helperText(fn (Get $get): ?string => $get('rattachement') === 'programme' ? 'Pour une commission choisie pour organiser ce programme.' : null)
+                        ->visible(fn (Get $get): bool => in_array($get('rattachement'), ['fonctionnement', 'programme'], true)),
                     FileUpload::make('devis')->label('Devis ou facture pro forma (facultatif)')->disk('local')->directory('depenses')->visibility('private')->maxSize(5120)->storeFiles(false),
                 ];
             })

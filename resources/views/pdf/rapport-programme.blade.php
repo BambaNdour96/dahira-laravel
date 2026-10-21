@@ -35,7 +35,7 @@
         <div class="titre">
             <div class="daara">Daara Nouroud Daareyni Kaolack · Rapport de programme</div>
             <h1>{{ $collecte->titre }}</h1>
-            <div class="petit">{{ $collecte->programme->getLabel() }} · {{ $collecte->mode->getLabel() }} · {{ $collecte->statut->getLabel() }} · édité le {{ now()->format('d/m/Y à H:i') }}</div>
+            <div class="petit">{{ $collecte->libelleType() }} · {{ ($collecte->mode?->getLabel() ?? "Contribution à choisir") }} · {{ $collecte->statut->getLabel() }} · édité le {{ now()->format('d/m/Y à H:i') }}</div>
         </div>
     </div>
 

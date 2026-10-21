@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\ModeCollecte;
-use App\Enums\ProgrammeCollecte;
 use App\Enums\StatutCollecte;
 use App\Filament\Resources\Collectes\Pages\ViewCollecte;
 use App\Filament\Resources\Collectes\Widgets\CollecteAnalyse;
@@ -33,7 +32,7 @@ beforeEach(function () {
 
     $evenement = Evenement::query()->create(['titre' => 'Magal 2026', 'lieu' => 'Touba', 'debut' => now()->addWeek()]);
     $this->collecte = Collecte::query()->create([
-        'titre' => 'Magal 2026', 'programme' => ProgrammeCollecte::Magal, 'mode' => ModeCollecte::EngagementLibre,
+        'titre' => 'Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'mode' => ModeCollecte::Jayante,
         'ouverture' => now()->subDay(), 'statut' => StatutCollecte::Ouverte, 'evenement_id' => $evenement->id,
     ]);
 

@@ -127,6 +127,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/ma-famille/{proche}/carte/plastique', [CarteController::class, 'commander'])->middleware('throttle:inscription')->name('famille.carte.plastique');
     Route::get('/ma-famille/{proche}/engagements', [EngagementController::class, 'index'])->name('famille.engagements');
     Route::post('/ma-famille/{proche}/engagements/{collecte}', [EngagementController::class, 'fixerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.fixer');
+    Route::post('/ma-famille/{proche}/engagements/{collecte}/augmenter', [EngagementController::class, 'augmenterPourProche'])->middleware('throttle:inscription')->name('famille.engagements.augmenter');
     Route::post('/ma-famille/{proche}/engagements/{collecte}/versement', [EngagementController::class, 'declarerPourProche'])->middleware('throttle:inscription')->name('famille.engagements.versement');
     Route::get('/payer-pour-un-membre', [PaiementPourAutruiController::class, 'show'])->name('autrui.show');
     Route::post('/payer-pour-un-membre/{beneficiaire}/cotisation', [PaiementPourAutruiController::class, 'cotisation'])->middleware('throttle:inscription')->name('autrui.cotisation');
@@ -144,6 +145,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/mes-engagements/{collecte}', [EngagementController::class, 'fixer'])
         ->middleware('throttle:inscription')
         ->name('engagements.fixer');
+    Route::post('/mes-engagements/{collecte}/augmenter', [EngagementController::class, 'augmenter'])->middleware('throttle:inscription')->name('engagements.augmenter');
     Route::post('/mes-engagements/{collecte}/versement', [EngagementController::class, 'declarer'])
         ->middleware('throttle:inscription')
         ->name('engagements.versement');
@@ -160,6 +162,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/comites/commissions/{commission}/ordres-depense', [OrdreDepenseController::class, 'pourCommission'])->middleware('throttle:inscription')->name('comites.ordres.store');
     Route::get('/justificatifs/{depense}', [BudgetComiteController::class, 'justificatif'])->name('justificatifs.show');
     Route::get('/comites/{instance}/bilan', [BudgetComiteController::class, 'bilan'])->name('comites.bilan');
+    Route::post('/comites/taches/{action}/repartir', [ComitesController::class, 'repartir'])->name('comites.taches.repartir');
     Route::post('/comites/actions/{action}/statut', [ComitesController::class, 'statut'])->name('comites.actions.statut');
     Route::get('/mes-comites', ComitesController::class.'@index')->name('comites.index');
     Route::get('/renouvellement', [RenouvellementController::class, 'show'])->name('renouvellement.show');
