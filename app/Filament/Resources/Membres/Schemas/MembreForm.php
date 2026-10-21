@@ -129,7 +129,7 @@ class MembreForm
                 ]),
 
             Section::make('Famille')
-                ->description('Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara, qui gère sa fiche depuis son téléphone. Le proche prend sa cellule.')
+                ->description(fn (): string => 'Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara, qui gère sa fiche depuis son téléphone ; à partir de '.Membre::ageMinimumInscription().' ans, un jeune qui a son propre téléphone peut avoir son compte. Le proche prend la cellule de son parent.')
                 ->columns(2)
                 ->columnSpanFull()
                 ->collapsible()

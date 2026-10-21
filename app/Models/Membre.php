@@ -105,8 +105,15 @@ class Membre extends Model
     /** Origine d'une fiche reprise des listes existantes. */
     public const ORIGINE_REPRISE = 'reprise';
 
-    /** Âge de la majorité : en dessous, le membre est un enfant, sans compte de connexion. */
+    /**
+     * Âge de la majorité. En dessous, le membre est un enfant : il paie les frais de carte et la cotisation, et un
+     * parent gère sa fiche ; à partir de l'âge minimum d'inscription, il peut avoir son propre compte s'il a son
+     * propre téléphone. À 18 ans, la plateforme propose au parent de lui donner son compte.
+     */
     public const AGE_MAJORITE = 18;
+
+    /** L'âge minimum pour s'inscrire soi-même, par défaut ; le super administrateur le règle (paramètre « age_minimum_inscription »). */
+    public const AGE_MINIMUM_INSCRIPTION = 12;
 
     protected static function booted(): void
     {
@@ -195,6 +202,22 @@ class Membre extends Model
             'profession' => ! in_array($this->situation_professionnelle, [SituationProfessionnelle::Retraite, SituationProfessionnelle::EleveEtudiant], true),
             default => true,
         };
+    }
+
+    /** L'âge minimum pour s'inscrire soi-même et avoir son propre compte : le paramètre, sinon 12 ans. */
+    public static function ageMinimumInscription(): int
+    {
+        $valeur = Parametre::valeur('age_minimum_inscription');
+
+        return $valeur !== null && ctype_digit(trim($valeur)) && (int) $valeur >= 1 && (int) $valeur <= self::AGE_MAJORITE
+            ? (int) $valeur
+            : self::AGE_MINIMUM_INSCRIPTION;
+    }
+
+    /** Assez âgé pour avoir son propre compte (sans date de naissance, on ne suppose rien). */
+    public function peutAvoirSonCompte(): bool
+    {
+        return $this->date_naissance === null || ! $this->date_naissance->copy()->addYears(self::ageMinimumInscription())->isFuture();
     }
 
     /** Un enfant : moins de 18 ans. Sans date de naissance, on ne le suppose pas enfant. */

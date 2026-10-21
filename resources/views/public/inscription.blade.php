@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            <x-date-naissance />
+            <x-date-naissance aide="Il faut avoir au moins {{ \App\Models\Membre::ageMinimumInscription() }} ans pour s'inscrire soi-même. Un enfant plus jeune est inscrit par son parent, depuis « Ma famille »." />
             <x-champ nom="lieu_naissance" libelle="Lieu de naissance" aide="Facultatif." />
 
             <div>

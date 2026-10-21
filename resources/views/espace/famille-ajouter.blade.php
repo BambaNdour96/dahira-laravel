@@ -49,7 +49,7 @@
         </div>
 
         <x-champ nom="telephone" libelle="Son téléphone (facultatif)" type="tel" inputmode="tel"
-                 aide="À laisser vide pour un enfant de moins de 18 ans." />
+                 aide="Son propre numéro, s'il en a un (à partir de {{ \App\Models\Membre::ageMinimumInscription() }} ans). À laisser vide pour un enfant plus jeune : vous gérez sa fiche." />
 
         <div>
             <label for="photo" class="block text-sm font-medium">Photo <span class="text-red-700">*</span></label>

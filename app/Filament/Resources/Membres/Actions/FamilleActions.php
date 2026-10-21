@@ -57,7 +57,7 @@ final class FamilleActions
             ->icon('heroicon-o-key')
             ->color('gray')
             ->visible(fn (Membre $record): bool => ($utilisateur = Auth::user()) instanceof User
-                && ! $record->estEnfant()
+                && $record->peutAvoirSonCompte()
                 && app(FamilleService::class)->peutDonnerSonCompte($utilisateur, $record))
             ->modalDescription('Le proche se connectera avec son propre numéro et gardera sa fiche, sa carte et tout son historique. Le membre qui gérait sa fiche est prévenu.')
             ->fillForm(fn (Membre $record): array => ['telephone' => $record->telephone])

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Sexe;
 use App\Models\Commission;
+use App\Models\Membre;
 use App\Rules\EmailFiable;
 use App\Services\TelephoneNormalizer;
 use App\Support\MessagesValidation;
@@ -40,7 +41,9 @@ class InscriptionRequest extends FormRequest
             'prenom' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:100'],
             'sexe' => ['required', Rule::enum(Sexe::class)],
-            'date_naissance' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today'],
+            // L'âge minimum pour s'inscrire soi-même (12 ans par défaut, réglé par le super administrateur).
+            'date_naissance' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}$/', 'after:1900-01-01', 'before:today',
+                'before_or_equal:'.now()->subYears(Membre::ageMinimumInscription())->toDateString()],
             'lieu_naissance' => ['nullable', 'string', 'max:100'],
             'photo' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120'],
 
@@ -61,6 +64,9 @@ class InscriptionRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return MessagesValidation::tous();
+        return [
+            ...MessagesValidation::tous(),
+            'date_naissance.before_or_equal' => 'Il faut avoir au moins '.Membre::ageMinimumInscription().' ans pour s\'inscrire soi-même. Un enfant plus jeune est inscrit par son parent, depuis « Ma famille ».',
+        ];
     }
 }

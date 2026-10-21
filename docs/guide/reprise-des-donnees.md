@@ -10,11 +10,11 @@ Registre → **Reprise des données** → « Télécharger le modèle ». Le rem
 | Matricule | Facultatif ; de la forme NDK-AAAA-NNNN. Sans matricule, la plateforme en attribue un (année d'adhésion) |
 | Prénom, Nom | Obligatoires |
 | Sexe | H ou F (Goor Yalla, Sokhna, Homme, Femme sont aussi compris) |
-| Téléphone | Facultatif ; jamais pour un enfant de moins de 18 ans |
+| Téléphone | Facultatif ; celui du membre lui-même ; jamais pour un enfant de moins de 12 ans (l'âge minimum d'inscription) |
 | Cellule | Son nom tel qu'il figure dans Registre → Cellules (les majuscules et les accents n'importent pas). Une cellule inconnue est refusée : créez-la d'abord |
 | Dates | Naissance et adhésion : 15/03/1990 (ou 1990-03-15) |
 | Savoir-faire | Les noms de la liste, séparés par « ; » ; un nom inconnu est ignoré, et signalé |
-| Responsable, Lien | Pour un proche : le matricule ou le téléphone du membre qui gère sa fiche (déjà dans la Daara, ou plus haut dans le même fichier), et le lien (enfant, pupille, conjoint, parent, frère ou sœur, autre). Un enfant de moins de 18 ans a toujours un responsable ; il prend sa cellule |
+| Responsable, Lien | Pour un proche : le matricule ou le téléphone du membre qui gère sa fiche (déjà dans la Daara, ou plus haut dans le même fichier), et le lien (enfant, pupille, conjoint, parent, frère ou sœur, autre). Un enfant de moins de 12 ans, ou un jeune de moins de 18 ans sans son propre téléphone, a toujours un responsable ; il prend sa cellule |
 | Cotisations à jour jusqu'à | Facultatif : le dernier mois déjà réglé avant la plateforme (12/2026) |
 
 ## Analyser, puis importer

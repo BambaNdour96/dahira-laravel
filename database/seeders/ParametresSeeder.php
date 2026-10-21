@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Membre;
 use App\Models\Parametre;
 use Illuminate\Database\Seeder;
 
@@ -24,5 +25,9 @@ class ParametresSeeder extends Seeder
         }
 
         Parametre::firstOrCreate(['cle' => 'maintenance'], ['libelle' => 'Mode maintenance', 'valeur' => '0']);
+        Parametre::firstOrCreate(['cle' => 'age_minimum_inscription'], [
+            'libelle' => 'Âge minimum pour s\'inscrire soi-même (en années ; plus jeune, un parent inscrit l\'enfant depuis « Ma famille »)',
+            'valeur' => (string) Membre::AGE_MINIMUM_INSCRIPTION,
+        ]);
     }
 }

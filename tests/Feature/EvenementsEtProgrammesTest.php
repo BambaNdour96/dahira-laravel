@@ -132,6 +132,24 @@ it('laisse le Jewrine national créer un événement ; le super administrateur c
         ->and(fn () => $this->service->enregistrer([...evenement(), 'mode' => ModeCollecte::Jayante->value], $prokhane, $this->super))->toThrow(DomainException::class, 'ne change plus');
 });
 
+it('prévient chaque membre engagé quand le Sass change, avec l\'ancien et le nouveau montant', function () {
+    Notification::fake();
+    $prokhane = $this->service->enregistrer(evenement(['mode' => ModeCollecte::Sass->value, 'montant' => 5000]), null, $this->super);
+    app(CollecteService::class)->augmenter(app(CollecteService::class)->engagementDe($prokhane, $this->awa), 10000, $this->awa->user);
+    $enfant = Membre::factory()->valide()->create(['cellule_id' => $this->kaolack->id, 'telephone' => null, 'responsable_id' => $this->awa->id, 'lien_famille' => 'enfant']);
+    app(CollecteService::class)->engagerAuSass($prokhane, $this->super);
+
+    // Rien n'est envoyé si le montant ne change pas.
+    $this->service->enregistrer(evenement(['mode' => ModeCollecte::Sass->value, 'montant' => 5000]), $prokhane, $this->national);
+    Notification::assertNotSentTo($this->awa->user, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_starts_with($avis->toArray($this->awa->user)['titre'], 'Le Sass change'));
+
+    $this->service->enregistrer(evenement(['mode' => ModeCollecte::Sass->value, 'montant' => 6000]), $prokhane, $this->national);
+    Notification::assertSentTo($this->awa->user, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_starts_with($avis->toArray($this->awa->user)['titre'], 'Le Sass change')
+        && str_contains($avis->toArray($this->awa->user)['message'], 'passe de 5 000 FCFA à 6 000 FCFA. Votre engagement : 10 000 FCFA.'));
+    Notification::assertSentTo($this->awa->user, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_contains($avis->toArray($this->awa->user)['titre'], $enfant->prenom.' : Le Sass change')
+        && str_contains($avis->toArray($this->awa->user)['message'], 'Votre engagement : 6 000 FCFA.'));
+});
+
 it('vérifie le formulaire : type en activité, date et lieu, organisation, parts dans le budget', function () {
     $type = TypeProgramme::query()->create(['nom' => 'Kazu Rajab', 'ordre' => 9]);
     expect($type->code)->toBe('kazu_rajab');

@@ -38,6 +38,10 @@ final class ActivationCompteService
             throw new DomainException(self::INTROUVABLE);
         }
 
+        if (! $membre->peutAvoirSonCompte()) {
+            throw new DomainException('Il faut avoir au moins '.Membre::ageMinimumInscription().' ans pour avoir son propre compte : votre parent gère votre fiche depuis « Ma famille ».');
+        }
+
         if (filled($matricule)) {
             if (mb_strtoupper(trim((string) $matricule)) !== $membre->matricule) {
                 throw new DomainException(self::INTROUVABLE);

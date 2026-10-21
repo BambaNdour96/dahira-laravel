@@ -6,8 +6,8 @@ Un membre validé gère depuis son téléphone les fiches de ses proches : ses *
 (un parent âgé, par exemple). Menu → **Ma famille**, ou le raccourci de l'accueil.
 
 1. **Ajouter un proche** : prénom, nom, sexe, date de naissance, photo, et ce qu'il est pour vous (enfant, enfant dont
-   vous êtes le tuteur, époux ou épouse, père ou mère, frère ou sœur, autre proche). Le téléphone est facultatif, et
-   toujours vide pour un enfant de moins de 18 ans.
+   vous êtes le tuteur, époux ou épouse, père ou mère, frère ou sœur, autre proche). Le téléphone est facultatif : celui
+   du proche lui-même, s'il en a un (à partir de 12 ans) ; toujours vide pour un enfant plus jeune.
 2. Le proche est dans **votre cellule**. Sa fiche part à votre **Jewrine de cellule**, qui la valide comme toute
    inscription.
 3. Une fois la fiche acceptée, vous **payez ses frais de carte** (Wave, ou espèces auprès du représentant finance).
@@ -34,13 +34,21 @@ finance ne confirme pas son paiement ; un autre responsable le fait.
 - Un membre sans compte (un enfant) se paie seulement depuis « Ma famille », par le membre qui gère sa fiche.
 - **Personne ne valide un paiement qu'il a déclaré** pour un autre membre : un autre responsable le fait.
 
-## Le compte enfant
+## Le compte enfant, et l'âge
 
-Un enfant est un membre de **moins de 18 ans**. Il n'a pas de compte de connexion : c'est son parent ou tuteur qui gère
-sa fiche. Il est dans la cellule de son parent.
+Un enfant est un membre de **moins de 18 ans**. Il paie les frais de carte et la cotisation comme tout membre.
 
-**À 18 ans**, la plateforme propose au parent et au Jewrine de cellule de lui donner **son propre compte**. Ce n'est
-jamais imposé. Sur la fiche du proche (Ma famille), ou dans le panneau (fiche du membre → « Lui donner son propre
+| Âge | Ce qui est possible |
+| --- | --- |
+| **Moins de 12 ans** | Pas de compte : son parent ou tuteur l'inscrit depuis « Ma famille » et gère sa fiche. Il est dans la cellule de son parent |
+| **De 12 à 17 ans** | **Son propre compte s'il a son propre téléphone** : il s'inscrit lui-même sur le téléphone, ou son parent lui donne son compte (« Lui donner son propre compte »). Sinon, sa fiche reste gérée par son parent |
+| **18 ans** | La plateforme propose au parent et au Jewrine de cellule de lui donner son propre compte (s'il ne l'a pas déjà) |
+
+**12 ans** est l'âge minimum pour s'inscrire soi-même. Le super administrateur le règle dans Paramètres → **Âge
+minimum pour s'inscrire soi-même**, sans toucher au code. Un plus jeune qui tente de s'inscrire lit : « Il faut avoir
+au moins 12 ans pour s'inscrire soi-même. Un enfant plus jeune est inscrit par son parent, depuis « Ma famille ». »
+
+**Donner son compte** n'est jamais imposé. Sur la fiche du proche (Ma famille), ou dans le panneau (fiche du membre → « Lui donner son propre
 compte »), on indique son numéro : il se connecte alors avec ce numéro et un mot de passe provisoire, qu'il change à la
 première connexion. Il garde sa fiche, son matricule, sa carte et tout son historique ; le parent ne gère plus sa fiche
 et en est prévenu. Un adulte sans téléphone peut, de la même façon, recevoir son compte quand il en a un.

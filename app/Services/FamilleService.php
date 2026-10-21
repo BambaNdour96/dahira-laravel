@@ -84,8 +84,8 @@ final class FamilleService
             'consentement_version' => config('dahira.consentement_version'),
         ]);
 
-        if ($proche->estEnfant() && $telephone !== null) {
-            throw new DomainException('Un enfant de moins de 18 ans n\'a pas de compte : laissez son téléphone vide.');
+        if ($telephone !== null && ! $proche->peutAvoirSonCompte()) {
+            throw new DomainException('Un enfant de moins de '.Membre::ageMinimumInscription().' ans n\'a pas de téléphone à lui : laissez ce champ vide.');
         }
 
         $proche->save();
@@ -127,8 +127,9 @@ final class FamilleService
 
     /**
      * Les règles de la famille, à la création comme à la modification d'une fiche dans le panneau : le proche prend
-     * la cellule du membre qui gère sa fiche ; un enfant de moins de 18 ans est toujours rattaché à un parent ou
-     * tuteur ; un membre qui a son propre compte ne se rattache plus à personne.
+     * la cellule du membre qui gère sa fiche ; un enfant de moins de 18 ans est rattaché à un parent ou tuteur, sauf un
+     * jeune d'au moins 12 ans (l'âge minimum d'inscription) qui a son propre téléphone ; un membre qui a son propre compte
+     * ne se rattache plus à personne.
      *
      * @param  array<string, mixed>  $donnees
      * @return array<string, mixed>
@@ -144,8 +145,11 @@ final class FamilleService
             $donnees['lien_famille'] = null;
             $naissance = filled($donnees['date_naissance'] ?? null) ? (string) $donnees['date_naissance'] : null;
 
-            if ($naissance !== null && (new Membre(['date_naissance' => $naissance]))->estEnfant()) {
-                throw new DomainException('Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara.');
+            $jeune = new Membre(['date_naissance' => $naissance]);
+            $sonTelephone = filled($donnees['telephone'] ?? null) || $membre?->user_id !== null;
+
+            if ($naissance !== null && $jeune->estEnfant() && ! ($jeune->peutAvoirSonCompte() && $sonTelephone)) {
+                throw new DomainException('Un enfant de moins de '.Membre::ageMinimumInscription().' ans, ou un jeune de moins de 18 ans sans son propre téléphone, est rattaché à un parent ou tuteur, membre de la Daara.');
             }
 
             return $donnees;
@@ -184,8 +188,8 @@ final class FamilleService
             throw new DomainException('Seuls le membre qui gère cette fiche et le Jewrine de la cellule donnent son compte à un proche.');
         }
 
-        if ($proche->estEnfant()) {
-            throw new DomainException('Un enfant de moins de 18 ans n\'a pas de compte de connexion.');
+        if (! $proche->peutAvoirSonCompte()) {
+            throw new DomainException('Un enfant de moins de '.Membre::ageMinimumInscription().' ans n\'a pas de compte de connexion : vous continuez de gérer sa fiche.');
         }
 
         $numero = $this->telephoneLibre($telephone, $proche);

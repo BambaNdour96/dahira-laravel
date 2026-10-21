@@ -118,6 +118,6 @@ Après une migration : `php artisan migrate`. Après une vue : `php artisan view
 | Lot | Correction |
 | --- | --- |
 | R3 | Dispense de cotisation : demandée par le Jewrine de cellule, validée par le Jewrine national (fait : R3e) |
-| R4 | `programmes.parametrer` ouvert au Jewrine national ; suppression de `programmes.attribuer` |
+| R4 | `programmes.parametrer` ouvert au Jewrine national ; suppression de `programmes.attribuer` (fait : R4) |
 | R5 | Ordres de dépense du Magal signés par le comité de suivi des dépenses |
 | R7 | Tableau de bord du Comité directeur ; responsable de projet (`projets.gerer` aujourd'hui : SA et JN) |

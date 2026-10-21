@@ -18,6 +18,7 @@ use App\Models\ReaffectationFonds;
 use App\Models\TypeProgramme;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
+use App\Observers\AvisMembreObserver;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,7 @@ final class ProgrammeService
         $commissions = $this->commissionsChoisies($donnees['commissions'] ?? []);
         $valeurs = array_diff_key($donnees, array_flip(self::HORS_COLONNES));
         $valeurs = $this->verifier($valeurs, $commissions, $existant, $auteur);
+        $ancienSass = $existant !== null && $existant->estSass() ? $existant->montant : null;
 
         $collecte = DB::transaction(function () use ($valeurs, $existant, $auteur, $avecJourJ, $presidentId, $commissions): Collecte {
             $collecte = $existant ?? new Collecte(['cree_par' => $auteur->id]);
@@ -72,7 +74,26 @@ final class ProgrammeService
         $this->collectes->engagerAuSass($collecte, $auteur);
         $this->prevenirCeQuiReste($collecte, $auteur);
 
+        if ($ancienSass !== null && $collecte->estSass() && $collecte->montant !== null && $collecte->montant !== $ancienSass) {
+            $this->prevenirChangementDeSass($collecte, $ancienSass);
+        }
+
         return $collecte->refresh();
+    }
+
+    /** Le Sass a changé : chaque membre engagé est prévenu, avec l'ancien et le nouveau montant, et son engagement. */
+    private function prevenirChangementDeSass(Collecte $collecte, int $ancien): void
+    {
+        foreach ($collecte->engagements()->with('membre.user', 'membre.responsable.user')->get() as $engagement) {
+            AvisMembreObserver::avertir(
+                $engagement->membre,
+                'Le Sass change : '.$collecte->titre,
+                'Le Sass de « '.$collecte->titre.' » passe de '.CollecteService::fcfa($ancien).' à '.CollecteService::fcfa((int) $collecte->montant)
+                    .'. Votre engagement : '.CollecteService::fcfa($engagement->montant).'.',
+                route('engagements.index'),
+                'Mes Sass et Jàyante',
+            );
+        }
     }
 
     /**

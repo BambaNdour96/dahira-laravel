@@ -251,6 +251,9 @@ final class ImportMembresService
             $naissance = self::date($brut['date_naissance'] ?? '', $erreurs, 'Date de naissance');
             $adhesion = self::date($brut['date_adhesion'] ?? '', $erreurs, 'Date d\'adhésion');
             $enfant = $naissance !== null && Carbon::parse($naissance)->addYears(Membre::AGE_MAJORITE)->isFuture();
+            // Un jeune d'au moins 12 ans (l'âge minimum d'inscription) peut avoir son propre téléphone, et alors son compte.
+            $tropJeune = $naissance !== null && Carbon::parse($naissance)->addYears(Membre::ageMinimumInscription())->isFuture();
+            $avecTelephone = ($brut['telephone'] ?? '') !== '';
 
             $telephone = null;
             if (($brut['telephone'] ?? '') !== '') {
@@ -260,8 +263,8 @@ final class ImportMembresService
 
                 if ($telephone === null) {
                     $erreurs[] = 'Téléphone invalide : « '.$brut['telephone'].' ».';
-                } elseif ($enfant) {
-                    $erreurs[] = 'Un enfant de moins de 18 ans n\'a pas de téléphone : laissez la colonne vide.';
+                } elseif ($tropJeune) {
+                    $erreurs[] = 'Un enfant de moins de '.Membre::ageMinimumInscription().' ans n\'a pas de téléphone : laissez la colonne vide.';
                 } elseif (isset($vus['telephone'][$telephone])) {
                     $erreurs[] = 'Téléphone déjà présent à la ligne '.$vus['telephone'][$telephone].'.';
                 } elseif ($existant !== null) {
@@ -317,8 +320,8 @@ final class ImportMembresService
                         $erreurs[] = 'Responsable introuvable : « '.$saisie.' » (un membre validé, ou une ligne prête plus haut dans le fichier).';
                     }
                 }
-            } elseif ($enfant) {
-                $erreurs[] = 'Un enfant de moins de 18 ans est rattaché à un parent ou tuteur : colonne « Responsable ».';
+            } elseif ($enfant && ($tropJeune || ! $avecTelephone)) {
+                $erreurs[] = 'Un enfant de moins de '.Membre::ageMinimumInscription().' ans, ou un jeune de moins de 18 ans sans téléphone, est rattaché à un parent ou tuteur : colonne « Responsable ».';
             }
 
             $celluleId = null;

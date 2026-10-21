@@ -257,7 +257,7 @@ it('grise « Continuer » et affiche les règles du mot de passe à l\'inscripti
     expect($page->script('document.querySelector("[data-suivant]").dataset.incomplet'))->toBe('oui')
         ->and($page->script('document.querySelector("[data-regles-mdp]") !== null'))->toBeTrue();
 
-    $page->assertNoJavascriptErrors();
+    $page->assertSee('Il faut avoir au moins 12 ans pour s\'inscrire soi-même.')->assertNoJavascriptErrors();
 });
 
 it('ouvre « Modifier la convocation » d\'une réunion convoquée, sans erreur', function () {
@@ -290,7 +290,7 @@ it('ouvre « Ma famille », le formulaire d\'un proche, puis la fiche et la cart
         ->click('Goor Yalla')
         ->select('date_naissance_annee', (string) (now()->year - 5))
         ->select('lien_famille', 'enfant')
-        ->assertSee('À laisser vide pour un enfant de moins de 18 ans.')
+        ->assertSee('À laisser vide pour un enfant plus jeune')
         ->assertNoJavascriptErrors();
 
     visit('/ma-famille')->on()->mobile()->assertSee('Awa')->assertSee('Son enfant')->assertNoJavascriptErrors();

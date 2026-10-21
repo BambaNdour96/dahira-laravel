@@ -93,7 +93,7 @@ class FamilleController extends Controller
             'dernierRefus' => (clone $fraisCarte)->where('statut', StatutPaiement::Refuse->value)->latest('traite_le')->first(),
             'retard' => $proche->statut === StatutMembre::Valide ? count($cotisations->moisEnRetard($proche)) : 0,
             'recus' => $proche->paiements()->where('statut', StatutPaiement::Confirme->value)->whereNotNull('numero_recu')->latest('traite_le')->limit(12)->get(),
-            'peutDonnerSonCompte' => $familles->peutDonnerSonCompte($utilisateur, $proche) && ! $proche->estEnfant(),
+            'peutDonnerSonCompte' => $familles->peutDonnerSonCompte($utilisateur, $proche) && $proche->peutAvoirSonCompte(),
             'renouvellement' => app(RenouvellementService::class)->pour($proche),
             'profilArabeCoran' => $proche->profilArabeCoran,
             'competences' => $proche->estEnfant() ? [] : CompetencesService::liste(),

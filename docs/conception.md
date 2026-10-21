@@ -1,6 +1,6 @@
 # Conception de la plateforme NDK
 
-**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1.2 · octobre 2026
+**Daara Nouroud Daareyni Kaolack** · Document de conception, version 1.3 · octobre 2026
 
 Ce document fixe ce que la plateforme doit faire, pour qui, et comment chaque partie se relie aux autres. Il a été établi domaine par domaine, en séances de travail, et sert de plan pour reconstruire et compléter la plateforme.
 
@@ -220,11 +220,26 @@ Prises pendant la reconstruction (lots R1 et R2), en octobre 2026.
 | Sujet | Décision |
 | --- | --- |
 | **Réunions** | Jusqu'au début de la réunion, l'organisateur peut changer la date, le lieu, l'ordre du jour et le secrétaire de séance ; chaque changement envoie une « convocation modifiée » (l'ancien et le nouveau secrétaire sont prévenus) ; le secrétaire de séance garde seul les présences, la rédaction et le PV |
-| **Familles** | Un enfant est un membre de moins de 18 ans, sans compte ; il paie les frais de carte et la cotisation ; à 18 ans, la plateforme propose au parent et au Jewrine de lui donner son propre compte, sans l'imposer ; le parent verse aussi ses Sass et Jàyante |
+| **Familles** | Un enfant est un membre de moins de 18 ans, sans compte (précisé en version 1.3 : son propre compte possible dès 12 ans s'il a son téléphone) ; il paie les frais de carte et la cotisation ; à 18 ans, la plateforme propose au parent et au Jewrine de lui donner son propre compte, sans l'imposer ; le parent verse aussi ses Sass et Jàyante |
 | **Payer pour un autre membre** | Distinct de la gestion d'une fiche : tout membre paie la cotisation ou le Jàyante d'un membre qui a son compte, trouvé par matricule ou téléphone ; le bénéficiaire est prévenu et reçoit son reçu ; personne ne valide un paiement qu'il a déclaré pour un autre |
 | **Changement de cellule** | Demandé par le membre ou son Jewrine, validé par le super administrateur ; les proches suivent ; les postes de l'ancienne cellule prennent fin (le Jewrine national est prévenu s'il faut nommer un Jewrine) ; chaque versement garde la cellule du moment où il a été fait |
 | **Renouvellement** | Revalidation par le Jewrine seulement si changent le prénom, le nom, la date de naissance, la photo ou le sexe ; renouvellement d'office des membres validés dans les 3 mois avant l'ouverture ou pendant la campagne ; relances à l'ouverture, puis 30, 7 et 1 jour avant la date limite ; un « non renouvelé » qui paie est réactivé et doit les cotisations des mois écoulés ; un nouveau membre cotise à partir du mois qui suit sa validation |
 | **Carte en plastique** | Payante, au tarif « Carte physique » ; tant que le tarif n'est pas fixé, « Bientôt disponible » ; seules les cartes payées entrent dans un lot ; les lots sont préparés par le super administrateur et le Secrétaire général |
+
+## 13 ter. Décisions complémentaires (version 1.3)
+
+Prises pendant le lot R4 (programmes), en octobre 2026, avec la règle de l'âge qui précise la décision « Familles » de la version 1.2.
+
+| Sujet | Décision |
+| --- | --- |
+| **Créer un événement** | Le super administrateur et le Jewrine national créent tout événement, à tout moment, à partir de la liste des types (Magal, Ziar, Prokhane, Gamou, Laylatoul Qadr…) que le super administrateur complète et archive librement ; tout se règle dans un seul formulaire : nom, dates, lieu, jour J avec scan des cartes ou non, mode de contribution, objectif de recettes et budget de dépenses, façon d'organiser (comité dédié, ou commissions permanentes cochées avec leur part du budget), case « itinéraire et transport » pour un grand déplacement |
+| **Contribution** | Choisie par le super administrateur pour chaque événement ; tant qu'elle n'est pas réglée, la collecte reste fermée aux membres. **Jàyante** : chaque membre fixe librement son montant, sans minimum. **Sass** : un seul montant pour toute la Daara, fixé par le Jewrine national ; chaque membre concerné y est engagé d'office et peut l'augmenter ; personne ne s'engage en dessous, pas même par le bureau. Dans les deux cas : versements petit à petit, jauges, validation par la Finance ou un représentant, rappels jusqu'à la date limite. L'ancien « montant attribué par le bureau » disparaît |
+| **Changer la contribution** | Le mode ne change plus dès qu'un membre s'est engagé lui-même. Si le Jewrine national change le Sass, les engagements restés au Sass précédent suivent, ceux qui ont donné davantage gardent leur montant ; chaque membre engagé est prévenu (ancien et nouveau montant, et son engagement) ; tout est tracé |
+| **Organisation** | Comité dédié : créé avec l'événement, son président désigné et prévenu. Commissions choisies : celui qui pilote l'événement leur confie les tâches, le Jewrine de chaque commission les répartit entre ses membres ; le Jewrine demande les dépenses de sa commission pour l'événement ; une commission décochée est retirée, jamais effacée |
+| **Clôture d'un événement** | Bilan : objectif atteint ou non, dépenses face au budget (et par commission), solde ; le solde rejoint la caisse générale par une réaffectation décidée par le Jewrine national et enregistrée par la Finance |
+| **Comité d'organisation** | Le CDGMT n'est qu'un cas du type commun « Comité d'organisation » : le Grand Ziar (et tout grand événement) a exactement le même espace (lot R5) |
+| **Collectes de projet** | Hors de la liste des événements, rattachées à leur projet (lot R7) |
+| **Âge et compte** | L'âge minimum pour s'inscrire soi-même sur le téléphone est de 12 ans, réglable par le super administrateur dans les paramètres ; un parent inscrit toujours un enfant plus jeune depuis « Ma famille ». De 12 à 17 ans, un jeune peut avoir son propre compte s'il a son propre téléphone (en s'inscrivant lui-même, ou quand son parent lui donne son compte) ; sinon sa fiche reste gérée par son parent. À 18 ans, la proposition de donner son compte à un enfant géré par un parent est inchangée. Un enfant (moins de 18 ans) paie toujours les frais de carte et la cotisation |
 
 ## 14. Ce qui reste à décider hors conception
 

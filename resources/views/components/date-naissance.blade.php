@@ -1,4 +1,4 @@
-@props(['value' => null])
+@props(['value' => null, 'aide' => null])
 
 @php
     $date = old('date_naissance', $value);
@@ -34,6 +34,9 @@
             @endfor
         </select>
     </div>
+    @if ($aide)
+        <p class="mt-1 text-xs text-stone-500">{{ $aide }}</p>
+    @endif
     @error('date_naissance')
         <p class="mt-1 text-sm text-red-700">{{ $message }}</p>
     @enderror

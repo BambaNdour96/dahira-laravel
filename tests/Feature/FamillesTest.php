@@ -121,7 +121,7 @@ it('ne montre la fiche d\'un proche qu\'au membre qui la gère', function () {
 
 it('refuse un téléphone pour un enfant, et un proche ajouté par un membre pas encore validé', function () {
     $this->actingAs($this->parent)->post(route('famille.store'), ficheDeProche(['telephone' => '77 999 88 77']))
-        ->assertSessionHasErrors(['telephone' => 'Un enfant de moins de 18 ans n\'a pas de compte : laissez son téléphone vide.']);
+        ->assertSessionHasErrors(['telephone' => 'Un enfant de moins de 12 ans n\'a pas de téléphone à lui : laissez ce champ vide.']);
     $this->actingAs($this->parent)->post(route('famille.store'), ficheDeProche(['telephone' => '77 111 22 33', 'date_naissance_annee' => '1950', 'lien_famille' => 'parent']))
         ->assertSessionHasErrors(['telephone' => 'Ce numéro est déjà utilisé par un autre membre.']);
 
@@ -179,7 +179,7 @@ it('laisse le Jewrine inscrire un membre sans téléphone, et rattacher un enfan
     Livewire::test(CreateMembre::class)
         ->fillForm(['prenom' => 'Cheikh', 'nom' => 'Ndiaye', 'sexe' => 'H', 'date_naissance' => now()->subYears(6)->toDateString(), 'cellule_id' => $this->cellule->id, 'pays_residence' => 'Sénégal'])
         ->call('create')
-        ->assertNotified('Un enfant de moins de 18 ans est rattaché à un parent ou tuteur, membre de la Daara.');
+        ->assertNotified('Un enfant de moins de 12 ans, ou un jeune de moins de 18 ans sans son propre téléphone, est rattaché à un parent ou tuteur, membre de la Daara.');
 
     Livewire::test(CreateMembre::class)
         ->fillForm(['prenom' => 'Cheikh', 'nom' => 'Ndiaye', 'sexe' => 'H', 'date_naissance' => now()->subYears(6)->toDateString(), 'cellule_id' => $this->cellule->id, 'pays_residence' => 'Sénégal', 'responsable_id' => $this->moussa->id])
@@ -210,8 +210,12 @@ it('propose à 18 ans, une seule fois, de donner son propre compte au proche, qu
     app(StatutMembreService::class)->changer($awa, StatutMembre::Accepte, $this->jewrine);
     app(PaiementService::class)->confirmer(app(PaiementService::class)->declarer($awa->fresh(), 'T_AWA123456789AB', null, $this->parent), $this->tresorier);
 
+    // Un enfant de moins de 12 ans ne reçoit pas de compte.
+    $petit = $this->familles->ajouterProche($this->moussa, [
+        'prenom' => 'Fallou', 'nom' => 'Ndiaye', 'sexe' => 'H', 'date_naissance' => now()->subYears(12)->addDays(2)->toDateString(), 'lien_famille' => 'enfant',
+    ], UploadedFile::fake()->image('fallou.jpg'));
     expect($this->familles->proposerComptesAuxMajeurs())->toBe(0)
-        ->and(fn () => $this->familles->donnerSonCompte($awa->fresh(), '77 444 55 66', $this->parent))->toThrow(DomainException::class, 'moins de 18 ans');
+        ->and(fn () => $this->familles->donnerSonCompte($petit, '77 444 55 66', $this->parent))->toThrow(DomainException::class, 'moins de 12 ans');
 
     $this->travel(3)->days();
     expect($this->familles->proposerComptesAuxMajeurs())->toBe(1)

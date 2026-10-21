@@ -40,7 +40,8 @@ membres.
   avec un motif.
 - **Sass** : chaque membre concerné est **engagé d'office** au montant du Sass. Il peut l'**augmenter** ; personne ne
   s'engage en dessous, pas même par le bureau. Si le Jewrine national change le Sass, les engagements au Sass précédent
-  suivent ; ceux qui ont donné davantage gardent leur montant ; tout est tracé.
+  suivent ; ceux qui ont donné davantage gardent leur montant ; tout est tracé. Chaque membre engagé est prévenu, avec
+  l'ancien et le nouveau montant du Sass, et son propre engagement (le parent l'est pour ses proches).
 
 Une fois des membres engagés (autrement que d'office), le mode de contribution ne change plus. Il n'y a plus de
 « montant attribué par le bureau ».
