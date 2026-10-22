@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Instances\RelationManagers;
 
+use App\Filament\Resources\Collectes\CollecteResource;
 use App\Models\BilanComite;
 use App\Models\CommissionComite;
 use App\Models\Reunion;
@@ -121,9 +122,20 @@ class BilansRelationManager extends OngletComite
                     ->visible(fn (): bool => ($utilisateur = self::utilisateur()) !== null && $service->peutCloturer($utilisateur, $this->comite()))
                     ->requiresConfirmation()
                     ->modalDescription(fn (): string => $this->etat().'. Une fois clos, le comité reste en archive, en lecture seule.')
-                    ->action(fn () => self::executer(function (BilanComiteService $bilans, User $auteur): void {
-                        $bilans->cloturer($this->comite(), $auteur);
-                    }, 'Comité clos : il reste en archive, en lecture seule.')),
+                    ->action(function () use ($service): void {
+                        self::executer(function (BilanComiteService $bilans, User $auteur): void {
+                            $bilans->cloturer($this->comite(), $auteur);
+                        }, 'Comité clos : il reste en archive, en lecture seule.');
+
+                        // Aussitôt : proposer de clôturer l'événement lié, et donc de verser son solde.
+                        if ($this->comite()->fresh()?->estClos() === true && ($evenement = $service->evenementAClore($this->comite())) !== null) {
+                            Notification::make()->title('Clôturez maintenant l\'événement « '.$evenement->titre.' »')
+                                ->body('Son solde rejoindra la caisse générale.')
+                                ->warning()->persistent()
+                                ->actions([Action::make('evenement')->label('Clôturer l\'événement')->button()->url(CollecteResource::getUrl('view', ['record' => $evenement]))])
+                                ->send();
+                        }
+                    }),
             ])
             ->recordActions([
                 Action::make('lire')->label('Lire')->icon('heroicon-o-eye')->color('gray')

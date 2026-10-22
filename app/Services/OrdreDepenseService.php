@@ -242,6 +242,15 @@ final class OrdreDepenseService
         $parSuppleant = $this->suppleantSignataire($ordre)?->id === $auteur->id;
         $ordre->update(['statut' => OrdreDepense::SIGNE, 'signe_le' => now(), 'signe_par' => $auteur->id, 'signe_par_suppleant' => $parSuppleant]);
 
+        if ($parSuppleant) {
+            $this->jewrineSignataire($ordre)?->notify(new NotificationMembre(
+                'Signé par votre suppléant : '.$ordre->numero,
+                $auteur->name.' a signé « '.$ordre->objet.' » ('.CollecteService::fcfa($ordre->montant).', '.$ordre->beneficiaire.') à votre place.',
+                route('filament.admin.resources.ordres-depense.index'),
+                'Voir l\'ordre',
+            ));
+        }
+
         $ordre->demandeur->notify(new NotificationMembre('Ordre signé : '.$ordre->numero, '« '.$ordre->objet.' » est signé'.($parSuppleant ? ' par le suppléant' : '').' ; la Finance va l\'exécuter.', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
 
         foreach (User::permission('depenses.executer')->get() as $tresorier) {

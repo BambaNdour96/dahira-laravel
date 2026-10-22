@@ -241,6 +241,7 @@ it('laisse le Jewrine du suivi désigner un suppléant du comité, validé par l
         ->and($this->ordres->peutSigner($jewrine, $sien))->toBeTrue();
     $this->ordres->signer($ordre, $suppleant);
     expect($ordre->fresh()->signe_par_suppleant)->toBeTrue();
+    Notification::assertSentTo($jewrine, NotificationMembre::class, fn (NotificationMembre $avis): bool => $avis->toArray($jewrine)['titre'] === 'Signé par votre suppléant : '.$ordre->numero);
     Notification::assertSentTo($this->tresorier, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_contains($avis->toArray($this->tresorier)['message'], 'signé par le suppléant'));
     $this->ordres->signer($sien, $jewrine);
     expect($sien->fresh()->signe_par_suppleant)->toBeFalse();

@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\StatutCollecte;
 use App\Models\BilanComite;
+use App\Models\Collecte;
 use App\Models\CommissionComite;
 use App\Models\Instance;
 use App\Models\OrdreDepense;
@@ -230,6 +232,23 @@ final class BilanComiteService
         foreach (app(ComiteService::class)->comptesDesMembres($comite) as $membre) {
             $this->prevenir($membre, $auteur, 'Comité clos : '.$comite->nom, $comite, 'Le comité est clos : ses bilans et son archive restent consultables.');
         }
+
+        if ($this->evenementAClore($comite) !== null) {
+            $auteur->notify(new NotificationMembre(
+                'Clôturer l\'événement : '.$comite->collecte?->titre,
+                'Le comité est clos. Clôturez maintenant l\'événement lié : son solde rejoindra la caisse générale.',
+                route('filament.admin.resources.collectes.view', $comite->collecte_id),
+                'Clôturer l\'événement',
+            ));
+        }
+    }
+
+    /** L'événement lié au comité, s'il est encore ouvert : à clôturer à son tour (et son solde à verser). */
+    public function evenementAClore(Instance $comite): ?Collecte
+    {
+        $collecte = $comite->collecte;
+
+        return $collecte !== null && $collecte->statut === StatutCollecte::Ouverte ? $collecte : null;
     }
 
     /**

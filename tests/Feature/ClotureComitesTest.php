@@ -141,7 +141,13 @@ it('fait rendre les bilans, choisir la réunion de bilan, puis clôturer quand t
     $this->actingAs($this->president->user);
     Livewire::test(BilansRelationManager::class, $onglet)
         ->callAction(TestAction::make('cloturerComite')->table())
-        ->assertHasNoActionErrors();
+        ->assertHasNoActionErrors()
+        ->assertNotified('Clôturez maintenant l\'événement « Grand Magal 2026 »');
+    Notification::assertSentTo($this->president->user, NotificationMembre::class, fn (NotificationMembre $avis): bool => $avis->toArray($this->president->user)['titre'] === 'Clôturer l\'événement : Grand Magal 2026'
+        && str_ends_with((string) $avis->toArray($this->president->user)['lien'], '/admin/collectes/'.$this->magal->id));
+    expect($this->service->evenementAClore($this->cdgmt->fresh()))->not->toBeNull();
+    $this->magal->update(['statut' => StatutCollecte::Cloturee]);
+    expect($this->service->evenementAClore($this->cdgmt->fresh()))->toBeNull();
     $clos = $this->cdgmt->fresh();
     expect($clos->estClos())->toBeTrue()
         ->and($clos->cloture_par)->toBe($this->president->user_id);

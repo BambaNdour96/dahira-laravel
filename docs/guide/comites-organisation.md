@@ -59,7 +59,8 @@ Il est nommé ainsi (bouton **Suivi des dépenses**, en haut de l'espace) :
 Le Jewrine du suivi des dépenses peut désigner un **suppléant** parmi les membres de son comité (« Suivi des
 dépenses » → « Désigner mon suppléant ») ; le **Jewrine national** valide ou refuse, comme une proposition du
 président. Le suppléant signe les ordres de l'événement quand le Jewrine est indisponible ; chaque ordre qu'il signe
-porte « **signée par le suppléant** » (liste des ordres de dépense, et message au demandeur). Une seule suppléance est
+porte « **signée par le suppléant** » (liste des ordres de dépense, et message au demandeur), et le Jewrine reçoit
+une notification à chaque ordre signé par son suppléant. Une seule suppléance est
 active à la fois : une nouvelle désignation remplace la précédente. Le Jewrine du suivi ou le Jewrine national y met fin
 (« Mettre fin à la suppléance », avec un motif) ; tout reste dans l'historique des nominations.
 
@@ -102,7 +103,9 @@ comité reste en **archive, en lecture seule** : plus de budget, de besoins, d'o
 consultable, et le bilan PDF reprend les bilans et les ordres payés. Les membres du comité sont prévenus.
 
 La clôture du comité ne clôture pas l'événement : son solde rejoint la caisse générale à la clôture de l'événement (voir
-[Les événements et leurs programmes](programmes.md)).
+[Les événements et leurs programmes](programmes.md)). Aussitôt le comité clos, si l'événement est encore ouvert, la
+plateforme propose à celui qui a clôturé de **clôturer l'événement**, avec un lien direct (à l'écran et en
+notification).
 
 ## Exemple : le Grand Magal
 
