@@ -38,31 +38,7 @@ class BudgetComiteController extends Controller
             return back()->with('comite_erreur', $e->getMessage());
         }
 
-        return back()->with('comite_succes', 'Besoin envoyé au président du comité.');
-    }
-
-    public function depense(Request $request, CommissionComite $commission, BudgetComiteService $budget): RedirectResponse
-    {
-        $donnees = $request->validate([
-            'objet' => ['required', 'string', 'max:150'],
-            'montant' => ['required', 'integer', 'min:1'],
-            'date_depense' => ['required', 'date', 'before_or_equal:today'],
-            'fournisseur' => ['nullable', 'string', 'max:100'],
-            'justificatif' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-        ]);
-
-        try {
-            $budget->declarerDepense($commission, [
-                'objet' => (string) $donnees['objet'],
-                'montant' => (int) $donnees['montant'],
-                'date_depense' => (string) $donnees['date_depense'],
-                'fournisseur' => isset($donnees['fournisseur']) ? (string) $donnees['fournisseur'] : null,
-            ], $request->file('justificatif'), $this->utilisateur($request));
-        } catch (DomainException $e) {
-            return back()->with('comite_erreur', $e->getMessage());
-        }
-
-        return back()->with('comite_succes', 'Dépense déclarée : le Jewrine finance va la valider.');
+        return back()->with('comite_succes', 'Besoin envoyé pour arbitrage.');
     }
 
     public function justificatif(Request $request, DepenseCommission $depense): StreamedResponse

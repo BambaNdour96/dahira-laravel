@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Archivable;
 use App\Models\Concerns\Indelebile;
 use App\Models\Concerns\Journalise;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -83,11 +84,37 @@ class CommissionComite extends Model
         return (int) $this->besoins()->where('statut', 'retenu')->get()->sum(fn (BesoinCommission $besoin): int => $besoin->montant());
     }
 
-    /** Ce qui a été dépensé : les ordres de dépense payés, et les anciennes dépenses validées (avant R5). */
+    /** Ce qui a été dépensé : ce qui est sorti des caisses (restes d'avance rendus déduits), et les anciennes dépenses validées. */
     public function depense(): int
     {
-        return (int) OrdreDepense::query()->where('commission_comite_id', $this->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant')
-            + (int) $this->depenses()->where('statut', 'validee')->sum('montant');
+        return $this->decaisse() + (int) $this->depenses()->where('statut', 'validee')->sum('montant');
+    }
+
+    /**
+     * Les ordres de dépense payés de la commission.
+     *
+     * @return Collection<int, OrdreDepense>
+     */
+    private function ordresPayes(): Collection
+    {
+        return OrdreDepense::query()->where('commission_comite_id', $this->id)->where('statut', OrdreDepense::EXECUTE)->get();
+    }
+
+    /** Décaissé : ce que la commission a reçu ou fait payer, moins les restes d'avance rendus. */
+    public function decaisse(): int
+    {
+        return (int) $this->ordresPayes()->sum(fn (OrdreDepense $ordre): int => $ordre->decaisse());
+    }
+
+    /** Justifié : les pièces des avances, et les paiements et remboursements (justifiés par leur preuve). */
+    public function justifie(): int
+    {
+        return (int) $this->ordresPayes()->sum(fn (OrdreDepense $ordre): int => $ordre->justifie());
+    }
+
+    public function resteAJustifier(): int
+    {
+        return (int) $this->ordresPayes()->sum(fn (OrdreDepense $ordre): int => $ordre->resteAJustifier());
     }
 
     /**

@@ -20,7 +20,6 @@ use Database\Seeders\RolesSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -92,36 +91,22 @@ it('fait exprimer les besoins par le chef, et retenir par l\'arbitre (ici le Jew
     expect(BesoinCommission::query()->whereHas('commission', fn ($query) => $query->where('instance_id', $suivant->id))->pluck('statut')->all())->toBe(['propose']);
 });
 
-it('fait déclarer les dépenses avec justificatif, valider par le Jewrine finance, et alerte en cas de dépassement', function () {
-    BesoinCommission::query()->create(['commission_id' => $this->cuisine->id, 'designation' => 'Riz', 'quantite' => 1, 'prix_unitaire' => 100000, 'statut' => 'retenu']);
-
-    $this->actingAs($this->compteChef)->post(route('comites.depenses.store', $this->cuisine), [
-        'objet' => '10 sacs de riz', 'montant' => 120000, 'date_depense' => now()->format('Y-m-d'), 'fournisseur' => 'Marché central',
-        'justificatif' => UploadedFile::fake()->image('facture.jpg'),
-    ])->assertSessionHas('comite_succes');
-    $this->actingAs($this->compteChef)->post(route('comites.depenses.store', $this->cuisine), [
-        'objet' => 'Bois de cuisson', 'montant' => 15000, 'date_depense' => now()->format('Y-m-d'),
-    ])->assertSessionHas('comite_succes');
-
-    [$riz, $bois] = DepenseCommission::query()->orderBy('id')->get()->all();
-    Storage::disk('local')->assertExists((string) $riz->justificatif_path);
-    expect($this->tresorier->fresh()->notifications()->count())->toBe(2);
-
-    $this->actingAs($this->tresorier)->get(route('justificatifs.show', $riz))->assertOk();
-    $this->actingAs(User::query()->findOrFail(membreBudget('Ibou')->user_id))->get(route('justificatifs.show', $riz))->assertForbidden();
+it('garde les anciennes dépenses déclarées en consultation seulement, avec leur justificatif', function () {
+    Storage::disk('local')->put('justificatifs/riz.jpg', 'photo');
+    $riz = DepenseCommission::query()->create(['commission_id' => $this->cuisine->id, 'objet' => '10 sacs de riz', 'montant' => 120000, 'date_depense' => now(),
+        'statut' => 'validee', 'justificatif_path' => 'justificatifs/riz.jpg']);
+    DepenseCommission::query()->create(['commission_id' => $this->cuisine->id, 'objet' => 'Bois', 'montant' => 15000, 'date_depense' => now(), 'statut' => 'declaree']);
 
     $this->actingAs($this->tresorier);
     Livewire::test(ListDepensesCommission::class)
-        ->callAction(TestAction::make('valider')->table($riz))
-        ->callAction(TestAction::make('refuser')->table($bois), ['motif' => 'Facture manquante'])
-        ->assertHasNoActionErrors();
+        ->assertCanSeeTableRecords([$riz])
+        ->assertActionDoesNotExist(TestAction::make('valider')->table($riz));
+    $this->get(route('justificatifs.show', $riz))->assertOk();
+    $this->actingAs(User::query()->findOrFail(membreBudget('Ibou')->user_id))->get(route('justificatifs.show', $riz))->assertForbidden();
 
-    expect($riz->fresh()->statut)->toBe('validee')
-        ->and($bois->fresh()->statut)->toBe('refusee')
-        ->and($this->cuisine->depense())->toBe(120000)
-        ->and($this->comptePresident->fresh()->notifications()->where('data', 'like', '%Budget d%pass%')->exists())->toBeTrue()
-        ->and($this->compteChef->fresh()->notifications()->count())->toBe(1)
-        ->and(fn () => $this->service->valider($riz->fresh(), $this->tresorier))->toThrow(DomainException::class);
+    expect($this->cuisine->depense())->toBe(120000);
+    $this->actingAs($this->compteChef)->get(route('comites.index'))
+        ->assertSee('Anciennes dépenses déclarées')->assertSee('Consultation seulement')->assertDontSee('Déclarer une dépense');
 });
 
 it('calcule le solde du Magal et produit son bilan', function () {

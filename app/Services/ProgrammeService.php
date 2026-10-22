@@ -340,7 +340,7 @@ final class ProgrammeService
     {
         $encaisse = $collecte->totalVerse();
         $ordres = OrdreDepense::query()->with(['commission', 'commissionComite'])->where('collecte_id', $collecte->id)->where('statut', OrdreDepense::EXECUTE)->get();
-        $depense = (int) $ordres->sum('montant');
+        $depense = (int) $ordres->sum(fn (OrdreDepense $ordre): int => $ordre->decaisse());
         $commissions = [];
 
         foreach ($collecte->commissionsChoisies()->with('commission')->whereNull('retiree_le')->get() as $choix) {
@@ -352,7 +352,7 @@ final class ProgrammeService
 
             if ($nom !== null) {
                 $commissions[$nom] ??= ['nom' => $nom, 'budget' => null, 'depense' => 0];
-                $commissions[$nom]['depense'] += $ordre->montant;
+                $commissions[$nom]['depense'] += $ordre->decaisse();
             }
         }
 

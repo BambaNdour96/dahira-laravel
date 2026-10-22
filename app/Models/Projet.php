@@ -79,7 +79,7 @@ class Projet extends Model
     public function depenses(): int
     {
         return (int) $this->suivis()->where('type', TypeSuivi::Depense->value)->sum('montant')
-            + (int) OrdreDepense::query()->where('projet_id', $this->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant');
+            + OrdreDepense::decaisseNet(OrdreDepense::query()->where('projet_id', $this->id));
     }
 
     public function jalonsEnRetard(): int

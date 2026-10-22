@@ -10,7 +10,7 @@ Panneau → **Comités** → le comité → l'espace s'ouvre, en onglets.
 | Onglet | Ce qu'on y trouve |
 | --- | --- |
 | **Tableau de bord** | Compte à rebours, actions faites et en retard, réunions et décisions ; **l'argent de l'événement** (voir plus bas) ; le **suivi des dépenses** ; l'avancement des commissions ; les membres du comité |
-| **Commissions et budget** | Chaque commission, son chef, ses besoins retenus, son **budget arbitré**, ce qu'elle a dépensé et ce qui lui reste ; l'historique des révisions |
+| **Commissions et budget** | Chaque commission, son chef, ses besoins retenus, son **budget arbitré**, son **décaissé**, ce qui est **justifié** et le **reste à justifier**, ce qui lui reste ; l'historique des révisions |
 | **Réunions et PV** | Les réunions du comité, leur PV publié (PDF) |
 | **Collecte** | Les engagements des membres (montant, versé, reste, situation), par cellule |
 | **Argent** | Les ordres de dépense de l'événement, avec leur commission et leur état |
@@ -19,6 +19,13 @@ Panneau → **Comités** → le comité → l'espace s'ouvre, en onglets.
 
 Le bilan, l'itinéraire et le transport rejoindront l'espace avec la clôture et les bilans, puis l'itinéraire et le
 transport.
+
+## Le circuit de l'argent
+
+Le chef de commission demande, depuis son téléphone, un **paiement direct**, une **avance** ou un **remboursement** ;
+l'ordre est signé par le **Jewrine du comité de suivi des dépenses** (Magal) ou par le **Jewrine national** (Grand Ziar,
+sans comité de suivi) ; la Finance paie ; le chef **justifie** son avance avec les reçus et **rend le reste**, que la
+Finance enregistre ; l'avance est alors soldée. Le détail : [Dépenses et ordres de dépense](ordres-de-depense.md).
 
 ## L'argent de l'événement
 

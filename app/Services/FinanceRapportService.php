@@ -91,7 +91,8 @@ final class FinanceRapportService
             'rattachement' => OrdreDepense::RATTACHEMENTS[$ordre->rattachement] ?? $ordre->rattachement,
             'programme' => $ordre->collecte->titre ?? $ordre->commissionComite?->instance->nom,
             'projet' => $ordre->projet?->titre,
-            'montant' => $mouvement->montant,
+            // Le reste d'une avance rendu à la Finance diminue la dépense, le mois où il est rendu.
+            'montant' => $mouvement->sens === MouvementCaisse::SORTIE ? $mouvement->montant : -$mouvement->montant,
         ];
     }
 
@@ -110,7 +111,7 @@ final class FinanceRapportService
     }
 
     /**
-     * Les dépenses de la période : les ordres exécutés (sorties de caisse).
+     * Les dépenses de la période : les ordres exécutés (sorties de caisse), moins les restes d'avance rendus.
      *
      * @return Collection<int, array{mois: string, libelle: string, rattachement: string, programme: ?string, projet: ?string, montant: int}>
      */
@@ -118,7 +119,7 @@ final class FinanceRapportService
     {
         return MouvementCaisse::query()
             ->with(['ordreDepense.libelle', 'ordreDepense.collecte', 'ordreDepense.projet', 'ordreDepense.commissionComite.instance'])
-            ->where('nature', 'depense')
+            ->whereIn('nature', ['depense', 'retour'])
             ->whereNotNull('ordre_depense_id')
             ->whereBetween('date_operation', [$debut->copy()->startOfDay(), $fin->copy()->endOfDay()])
             ->orderBy('date_operation')
@@ -202,7 +203,7 @@ final class FinanceRapportService
             ->where(fn ($query) => $query->whereHas('paiement', fn ($paiement) => $paiement->where('collecte_id', $collecte->id))
                 ->orWhereIn('participation_id', ParticipationSympathisant::query()->where('collecte_id', $collecte->id)->select('id')))
             ->get()->sum(fn (MouvementCaisse $mouvement): int => $mouvement->sens === MouvementCaisse::ENTREE ? $mouvement->montant : -$mouvement->montant);
-        $depenses = (int) OrdreDepense::query()->where('collecte_id', $collecte->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant');
+        $depenses = OrdreDepense::decaisseNet(OrdreDepense::query()->where('collecte_id', $collecte->id));
 
         return $recettes - $depenses + $this->reaffecte('collecte', $collecte->id);
     }
@@ -211,7 +212,7 @@ final class FinanceRapportService
     public function soldeProjet(Projet $projet): int
     {
         $collecte = $projet->collecte_id !== null ? Collecte::query()->whereKey($projet->collecte_id)->first() : null;
-        $depenses = (int) OrdreDepense::query()->where('projet_id', $projet->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant');
+        $depenses = OrdreDepense::decaisseNet(OrdreDepense::query()->where('projet_id', $projet->id));
 
         return ($collecte !== null ? $this->soldeProgramme($collecte) : 0) - $depenses + $this->reaffecte('projet', $projet->id);
     }

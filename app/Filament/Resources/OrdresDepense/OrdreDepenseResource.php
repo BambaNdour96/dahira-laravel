@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\OrdresDepense;
 
+use App\Filament\Resources\Instances\InstanceResource;
 use App\Filament\Resources\OrdresDepense\Pages\ListOrdresDepense;
 use App\Models\Caisse;
+use App\Models\Instance;
 use App\Models\LibelleDepense;
 use App\Models\OrdreDepense;
 use App\Models\User;
@@ -65,7 +67,8 @@ class OrdreDepenseResource extends Resource
     {
         $utilisateur = self::utilisateur();
 
-        return $utilisateur !== null && (self::voitTout($utilisateur) || app(OrdreDepenseService::class)->peutDemander($utilisateur));
+        return $utilisateur !== null && (self::voitTout($utilisateur) || app(OrdreDepenseService::class)->peutDemander($utilisateur)
+            || $utilisateur->can('depenses.signer_comite'));
     }
 
     public static function canCreate(): bool
@@ -86,8 +89,10 @@ class OrdreDepenseResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         $utilisateur = self::utilisateur();
+        $service = app(OrdreDepenseService::class);
         $attente = match (true) {
-            $utilisateur?->can('depenses.signer') === true => OrdreDepense::query()->where('statut', OrdreDepense::DEMANDE)->count(),
+            $utilisateur !== null && ($utilisateur->can('depenses.signer') || $utilisateur->can('depenses.signer_comite')) => OrdreDepense::query()->where('statut', OrdreDepense::DEMANDE)->get()
+                ->filter(fn (OrdreDepense $ordre): bool => $service->peutSigner($utilisateur, $ordre))->count(),
             $utilisateur?->can('depenses.executer') === true => OrdreDepense::query()->where('statut', OrdreDepense::SIGNE)->count(),
             default => 0,
         };
@@ -103,7 +108,9 @@ class OrdreDepenseResource extends Resource
         $utilisateur = self::utilisateur();
 
         if ($utilisateur !== null && ! self::voitTout($utilisateur)) {
-            $query->where('demande_par', $utilisateur->id);
+            // Le Jewrine du suivi des dépenses voit les ordres de l'événement de son comité ; les autres, les leurs.
+            $collectes = Instance::query()->whereIn('id', InstanceResource::comitesSuivis($utilisateur))->whereNotNull('collecte_id')->pluck('collecte_id')->all();
+            $query->where(fn (Builder $ordres) => $ordres->where('demande_par', $utilisateur->id)->orWhereIn('collecte_id', $collectes));
         }
 
         return $query;
@@ -124,7 +131,8 @@ class OrdreDepenseResource extends Resource
                     TextInput::make('objet')->label('Objet')->required()->maxLength(255)->placeholder('Achat de 40 bols pour la cuisine'),
                     Select::make('libelle_depense_id')->label('Libellé')->required()->options(fn (): array => LibelleDepense::query()->enActivite()->orderBy('ordre')->pluck('nom', 'id')->all()),
                     TextInput::make('montant')->label('Montant (FCFA)')->required()->numeric()->minValue(1),
-                    TextInput::make('beneficiaire')->label('Bénéficiaire (fournisseur ou personne)')->required()->maxLength(150),
+                    Select::make('nature')->label('Nature')->required()->default(OrdreDepense::PAIEMENT)->options(OrdreDepense::NATURES),
+                    TextInput::make('beneficiaire')->label('Bénéficiaire (fournisseur ou personne)')->maxLength(150)->helperText('Pour une avance ou un remboursement : vous, par défaut.'),
                     Select::make('rattachement')->label('Rattachée à')->required()->live()->options(OrdreDepense::RATTACHEMENTS),
                     Select::make('collecte_id')->label('Programme')->options($choix['collectes'])->visible(fn (Get $get): bool => $get('rattachement') === 'programme' && $choix['collectes'] !== []),
                     Select::make('commission_comite_id')->label('Commission du comité')->options($choix['commissions_comite'])->visible(fn (Get $get): bool => $get('rattachement') === 'programme'),
@@ -139,7 +147,7 @@ class OrdreDepenseResource extends Resource
             ->action(function (array $data): void {
                 self::executer(function (OrdreDepenseService $service, User $auteur) use ($data): void {
                     $devis = $data['devis'] ?? null;
-                    $ordre = $service->demander($data, $devis instanceof UploadedFile ? $devis : null, $auteur);
+                    $ordre = $service->demander([...$data, 'beneficiaire' => (string) ($data['beneficiaire'] ?? '')], $devis instanceof UploadedFile ? $devis : null, $auteur);
                     Notification::make()->title('Ordre '.$ordre->numero.' envoyé au Jewrine national.')->success()->send();
                 });
             });
@@ -167,7 +175,15 @@ class OrdreDepenseResource extends Resource
                 TextColumn::make('objet')->label('Objet')->limit(40)->searchable(),
                 TextColumn::make('libelle.nom')->label('Libellé'),
                 TextColumn::make('imputation')->label('Rattachement')->state(fn (OrdreDepense $record): string => $record->imputation())->limit(40),
+                TextColumn::make('nature')->label('Nature')->badge()->color('gray')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        OrdreDepense::AVANCE => 'Avance', OrdreDepense::REMBOURSEMENT => 'Remboursement', default => 'Paiement',
+                    }),
                 TextColumn::make('montant')->label('Montant')->formatStateUsing(fn (int $state): string => number_format($state, 0, ',', ' ').' FCFA')->alignEnd(),
+                TextColumn::make('justification')->label('Avance')->placeholder('—')
+                    ->state(fn (OrdreDepense $record): ?string => $record->estAvance() && $record->statut === OrdreDepense::EXECUTE
+                        ? ($record->soldee_le !== null ? 'Soldée' : 'Reste '.number_format($record->resteAJustifier(), 0, ',', ' ').' FCFA')
+                        : null),
                 TextColumn::make('demandeur.name')->label('Demandé par'),
                 TextColumn::make('statut')->label('État')->badge()
                     ->formatStateUsing(fn (string $state): string => OrdreDepense::LIBELLES[$state] ?? $state)
@@ -211,6 +227,18 @@ class OrdreDepenseResource extends Resource
                         abort_unless($preuve instanceof UploadedFile, 422);
                         $service->executer($record, Caisse::query()->whereKey($data['caisse_id'])->firstOrFail(), $preuve, $auteur);
                         Notification::make()->title('Ordre exécuté : la dépense est sortie de la caisse.')->success()->send();
+                    })),
+                Action::make('retour')->label('Reste rendu')->icon('heroicon-o-arrow-uturn-down')->color('warning')
+                    ->visible(fn (OrdreDepense $record): bool => ($utilisateur = self::utilisateur()) !== null && app(OrdreDepenseService::class)->peutEnregistrerRetour($utilisateur, $record))
+                    ->modalDescription(fn (OrdreDepense $record): string => 'Le chef rend ce qu\'il n\'a pas dépensé. Reste à justifier ou à rendre : '.number_format($record->resteAJustifier(), 0, ',', ' ').' FCFA.')
+                    ->schema(fn (OrdreDepense $record): array => [
+                        TextInput::make('montant')->label('Montant rendu (FCFA)')->required()->numeric()->minValue(1)->maxValue($record->resteAJustifier())->default($record->resteAJustifier()),
+                        Select::make('caisse_id')->label('Reçu dans la caisse')->required()
+                            ->options(fn (): array => Caisse::query()->enActivite()->orderBy('ordre')->pluck('nom', 'id')->all()),
+                    ])
+                    ->action(fn (OrdreDepense $record, array $data) => self::executer(function (OrdreDepenseService $service, User $auteur) use ($record, $data): void {
+                        $service->enregistrerRetour($record, (int) $data['montant'], Caisse::query()->whereKey($data['caisse_id'])->firstOrFail(), $auteur);
+                        Notification::make()->title('Reste enregistré : l\'argent est dans la caisse.')->success()->send();
                     })),
                 Action::make('annuler')->label('Annuler')->icon('heroicon-o-arrow-uturn-left')->color('gray')
                     ->visible(fn (OrdreDepense $record): bool => $record->statut === OrdreDepense::DEMANDE && $record->demande_par === self::utilisateur()?->id)

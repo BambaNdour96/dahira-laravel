@@ -6,13 +6,8 @@ use App\Filament\Resources\DepensesCommission\Pages\ListDepensesCommission;
 use App\Models\DepenseCommission;
 use App\Models\Instance;
 use App\Models\User;
-use App\Services\BudgetComiteService;
 use App\Services\CollecteService;
 use BackedEnum;
-use DomainException;
-use Filament\Actions\Action;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
@@ -22,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
-/** Les dépenses des commissions : déclarées par les chefs, validées ou refusées par le Jewrine finance. */
+/** Les anciennes dépenses des commissions, déclarées après coup (avant les avances et remboursements) : en consultation seulement. */
 class DepenseCommissionResource extends Resource
 {
     protected static ?string $model = DepenseCommission::class;
@@ -35,7 +30,7 @@ class DepenseCommissionResource extends Resource
 
     protected static ?int $navigationSort = 6;
 
-    protected static ?string $navigationLabel = 'Dépenses des commissions';
+    protected static ?string $navigationLabel = 'Anciennes dépenses des commissions';
 
     protected static ?string $modelLabel = 'dépense';
 
@@ -84,47 +79,9 @@ class DepenseCommissionResource extends Resource
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
                         ? $query->whereHas('commission', fn (Builder $commission) => $commission->where('instance_id', $data['value']))
                         : $query),
-                SelectFilter::make('statut')->label('État')->options(DepenseCommission::STATUTS)->default('declaree'),
-            ])
-            ->recordActions([
-                Action::make('valider')
-                    ->label('Valider')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->visible(fn (DepenseCommission $record): bool => $record->statut === 'declaree'
-                        && ($utilisateur = Auth::user()) instanceof User && BudgetComiteService::peutValider($utilisateur, $record))
-                    ->requiresConfirmation()
-                    ->action(function (DepenseCommission $record): void {
-                        self::traiter(fn (User $utilisateur) => app(BudgetComiteService::class)->valider($record, $utilisateur), 'Dépense validée.');
-                    }),
-                Action::make('refuser')
-                    ->label('Refuser')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn (DepenseCommission $record): bool => $record->statut === 'declaree'
-                        && ($utilisateur = Auth::user()) instanceof User && BudgetComiteService::peutValider($utilisateur, $record))
-                    ->schema([TextInput::make('motif')->label('Motif')->required()->maxLength(255)])
-                    ->action(function (DepenseCommission $record, array $data): void {
-                        self::traiter(fn (User $utilisateur) => app(BudgetComiteService::class)->refuser($record, (string) $data['motif'], $utilisateur), 'Dépense refusée : le chef de commission est prévenu.');
-                    }),
+                SelectFilter::make('statut')->label('État')->options(DepenseCommission::STATUTS),
             ])
             ->defaultSort('date_depense', 'desc');
-    }
-
-    private static function traiter(\Closure $operation, string $succes): void
-    {
-        $utilisateur = Auth::user();
-        abort_unless($utilisateur instanceof User, 403);
-
-        try {
-            $operation($utilisateur);
-        } catch (DomainException $e) {
-            Notification::make()->title($e->getMessage())->danger()->send();
-
-            return;
-        }
-
-        Notification::make()->title($succes)->success()->send();
     }
 
     /** @return array<string, PageRegistration> */

@@ -52,7 +52,11 @@ class CommissionsRelationManager extends OngletComite
                 TextColumn::make('chef.nom')->label('Chef')->formatStateUsing(fn (CommissionComite $record): string => $record->chef !== null ? $record->chef->prenom.' '.$record->chef->nom : '—'),
                 TextColumn::make('besoins')->label('Besoins retenus')->state(fn (CommissionComite $record): string => $fcfa($record->besoinsRetenus())),
                 TextColumn::make('budget')->label('Budget arbitré')->state(fn (CommissionComite $record): string => $fcfa($record->budget_arrete))->weight('bold'),
-                TextColumn::make('depense')->label('Dépensé')->state(fn (CommissionComite $record): string => $fcfa($record->depense())),
+                TextColumn::make('decaisse')->label('Décaissé')->state(fn (CommissionComite $record): string => $fcfa($record->depense())),
+                TextColumn::make('justifie')->label('Justifié')->state(fn (CommissionComite $record): string => $fcfa($record->justifie())),
+                TextColumn::make('a_justifier')->label('Reste à justifier')->badge()
+                    ->state(fn (CommissionComite $record): string => $fcfa($record->resteAJustifier()))
+                    ->color(fn (CommissionComite $record): string => $record->resteAJustifier() > 0 ? 'warning' : 'gray'),
                 TextColumn::make('reste')->label('Reste')->badge()
                     ->state(fn (CommissionComite $record): string => $fcfa($record->budget() - $record->depense()))
                     ->color(fn (CommissionComite $record): string => $record->depense() > $record->budget() ? 'danger' : 'success'),

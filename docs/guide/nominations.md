@@ -144,7 +144,8 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Recevoir la caisse d'un représentant <br>`caisses.recevoir` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
 | Tenir sa caisse de représentant <br>`caisse.tenir` |  |  |  |  |  |  |  |  |  | ✔ |  |  |
 | Demander un ordre de dépense pour toute la Daara (les chefs de commission, responsables de projet et Jewrine le font pour leur périmètre) <br>`depenses.demander` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
-| Signer ou refuser un ordre de dépense (hors Magal) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Signer ou refuser un ordre de dépense (sauf ceux d'un comité qui a son Jewrine du suivi des dépenses) <br>`depenses.signer` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
+| Signer ou refuser les ordres de dépense de son comité d'organisation (Jewrine du suivi des dépenses) <br>`depenses.signer_comite` | ✔ |  |  |  |  |  |  |  | ✔ |  |  |  |
 | Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve <br>`depenses.executer` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
 | Créer et archiver les libellés de dépenses <br>`depenses.libelles` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
 | Décider une réaffectation de fonds (le solde d'un programme vers un projet…) <br>`reaffectations.decider` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |
@@ -188,7 +189,7 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Convoquer le Comité directeur et préparer ses réunions <br>`comite_directeur.convoquer` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |  |
 | Consulter les comités, réunions, décisions et actions <br>`comites.consulter` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  | ✔ |  |
 | Voir les besoins et les dépenses des commissions <br>`comites.budget_voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  | ✔ |  |
-| Valider les dépenses des commissions <br>`comites.depenses_valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
+| Consulter les anciennes dépenses déclarées des commissions (avant les avances et remboursements) <br>`comites.depenses_valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |
 | Tenir la liste du Comité directeur <br>`comite_directeur.composer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |
 
 ### Projets et Suivi-Évaluation

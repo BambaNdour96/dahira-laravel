@@ -4,17 +4,14 @@ namespace App\Services;
 
 use App\Models\BesoinCommission;
 use App\Models\CommissionComite;
-use App\Models\DepenseCommission;
 use App\Models\Instance;
 use App\Models\User;
-use App\Notifications\NotificationMembre;
 use DomainException;
-use Filament\Notifications\Notification;
-use Illuminate\Http\UploadedFile;
 
 /**
  * Le budget des commissions d'un comité : les besoins exprimés par les chefs, retenus par l'arbitre (voir SuiviDepensesService) ;
- * les dépenses déclarées par les chefs, validées par le Jewrine finance ; le solde du Magal.
+ * le récapitulatif des budgets et des dépenses ; le solde de l'événement. Les dépenses passent par les ordres de dépense
+ * (paiement, avance, remboursement) ; les anciennes dépenses déclarées restent en consultation.
  */
 final class BudgetComiteService
 {
@@ -29,11 +26,6 @@ final class BudgetComiteService
     public static function peutRetenir(User $utilisateur, CommissionComite $commission): bool
     {
         return app(SuiviDepensesService::class)->peutArbitrer($utilisateur, $commission->instance);
-    }
-
-    public static function peutValider(User $utilisateur, DepenseCommission $depense): bool
-    {
-        return $utilisateur->can('comites.depenses_valider') && $depense->declaree_par !== $utilisateur->id;
     }
 
     /** @param  array{designation: string, quantite: int, prix_unitaire: int}  $donnees */
@@ -63,75 +55,6 @@ final class BudgetComiteService
         }
 
         $besoin->update(['statut' => $statut, 'motif' => $motif, 'traite_par' => $auteur->id]);
-    }
-
-    /** @param  array{objet: string, montant: int, date_depense: string, fournisseur?: string|null}  $donnees */
-    public function declarerDepense(CommissionComite $commission, array $donnees, ?UploadedFile $justificatif, User $auteur): DepenseCommission
-    {
-        if (! self::peutSaisir($auteur, $commission)) {
-            throw new DomainException('Seul le chef de la commission déclare ses dépenses.');
-        }
-
-        $depense = DepenseCommission::query()->create([
-            ...$donnees,
-            'commission_id' => $commission->id,
-            'justificatif_path' => $justificatif?->store('justificatifs', 'local'),
-            'declaree_par' => $auteur->id,
-        ]);
-
-        $tresoriers = User::role(['jewrine_finance', 'super_administrateur'])->where('id', '!=', $auteur->id)->get();
-
-        if ($tresoriers->isNotEmpty()) {
-            Notification::make()
-                ->title('Dépense à valider : '.$commission->nom)
-                ->body($depense->objet.' — '.CollecteService::fcfa($depense->montant).' ('.$commission->instance->nom.')')
-                ->info()
-                ->sendToDatabase($tresoriers);
-        }
-
-        return $depense;
-    }
-
-    public function valider(DepenseCommission $depense, User $auteur): void
-    {
-        if (! self::peutValider($auteur, $depense) || $depense->statut !== 'declaree') {
-            throw new DomainException('Le Jewrine finance valide les dépenses déclarées (jamais les siennes).');
-        }
-
-        $depense->update(['statut' => 'validee', 'traitee_par' => $auteur->id, 'traitee_le' => now()]);
-        $commission = $depense->commission;
-        $budget = $commission->budget();
-
-        if ($budget > 0 && $commission->depense() > $budget) {
-            $alertes = User::role(['jewrine_finance', 'super_administrateur'])->get();
-            $president = $commission->instance->president;
-
-            if ($president !== null && $president->user_id !== null && ($compte = User::query()->find($president->user_id)) !== null) {
-                $alertes->push($compte);
-            }
-
-            Notification::make()
-                ->title('Budget dépassé : commission '.$commission->nom)
-                ->body(CollecteService::fcfa($commission->depense()).' dépensés pour un budget de '.CollecteService::fcfa($budget).'.')
-                ->danger()
-                ->sendToDatabase($alertes->unique('id'));
-        }
-    }
-
-    public function refuser(DepenseCommission $depense, string $motif, User $auteur): void
-    {
-        if (! self::peutValider($auteur, $depense) || $depense->statut !== 'declaree') {
-            throw new DomainException('Le Jewrine finance valide les dépenses déclarées (jamais les siennes).');
-        }
-
-        $depense->update(['statut' => 'refusee', 'motif' => $motif, 'traitee_par' => $auteur->id, 'traitee_le' => now()]);
-
-        $depense->declarant?->notify(new NotificationMembre(
-            'Dépense refusée',
-            $depense->objet.' ('.CollecteService::fcfa($depense->montant).') : '.$motif,
-            route('comites.index'),
-            'Voir mes comités',
-        ));
     }
 
     /**

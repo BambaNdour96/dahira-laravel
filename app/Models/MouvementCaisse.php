@@ -42,6 +42,7 @@ class MouvementCaisse extends Model
     public const NATURES = [
         'encaissement' => 'Encaissement', 'remise' => 'Remise d\'un représentant', 'depense' => 'Dépense',
         'correction' => 'Correction', 'reaffectation' => 'Réaffectation', 'ouverture' => 'Solde d\'ouverture',
+        'retour' => 'Reste d\'avance rendu',
     ];
 
     protected $table = 'mouvements_caisse';

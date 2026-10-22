@@ -7,6 +7,7 @@ use App\Models\Cellule;
 use App\Models\Collecte;
 use App\Models\Commission;
 use App\Models\CommissionComite;
+use App\Models\JustificatifDepense;
 use App\Models\LibelleDepense;
 use App\Models\MouvementCaisse;
 use App\Models\Nomination;
@@ -74,6 +75,18 @@ final class OrdreDepenseService
             throw new DomainException('Indiquez le montant de la dépense.');
         }
 
+        if (! array_key_exists($donnees['nature'], OrdreDepense::NATURES)) {
+            throw new DomainException('Choisissez la nature de l\'ordre : paiement direct, avance ou remboursement.');
+        }
+
+        if ($donnees['nature'] !== OrdreDepense::PAIEMENT && trim($donnees['beneficiaire']) === '') {
+            $donnees['beneficiaire'] = $auteur->name;
+        }
+
+        if ($donnees['nature'] === OrdreDepense::REMBOURSEMENT && $devis === null) {
+            throw new DomainException('Pour un remboursement, joignez le reçu de votre achat.');
+        }
+
         if (trim($donnees['objet']) === '' || trim($donnees['beneficiaire']) === '') {
             throw new DomainException('Indiquez l\'objet de la dépense et son bénéficiaire.');
         }
@@ -94,7 +107,7 @@ final class OrdreDepenseService
             'demande_par' => $auteur->id,
         ]));
 
-        foreach ($this->signataires() as $signataire) {
+        foreach ($this->signataires($ordre) as $signataire) {
             if ($signataire->id !== $auteur->id) {
                 $signataire->notify(new NotificationMembre(
                     'Ordre de dépense à signer : '.$ordre->numero,
@@ -112,7 +125,7 @@ final class OrdreDepenseService
      * L'imputation demandée doit être dans le périmètre du demandeur ; les champs inutiles sont vidés.
      *
      * @param  array<string, mixed>  $donnees
-     * @return array{objet: string, libelle_depense_id: int, montant: int, beneficiaire: string, rattachement: string, collecte_id: ?int, commission_comite_id: ?int, projet_id: ?int, cellule_id: ?int, commission_id: ?int}
+     * @return array{objet: string, libelle_depense_id: int, montant: int, beneficiaire: string, rattachement: string, nature: string, collecte_id: ?int, commission_comite_id: ?int, projet_id: ?int, cellule_id: ?int, commission_id: ?int}
      */
     private function verifierImputation(array $donnees, User $auteur): array
     {
@@ -167,7 +180,7 @@ final class OrdreDepenseService
         return [
             'objet' => (string) ($donnees['objet'] ?? ''), 'libelle_depense_id' => (int) ($donnees['libelle_depense_id'] ?? 0),
             'montant' => (int) ($donnees['montant'] ?? 0), 'beneficiaire' => (string) ($donnees['beneficiaire'] ?? ''),
-            'rattachement' => (string) $donnees['rattachement'], ...$imputation,
+            'rattachement' => (string) $donnees['rattachement'], 'nature' => (string) ($donnees['nature'] ?? OrdreDepense::PAIEMENT), ...$imputation,
         ];
     }
 
@@ -181,15 +194,37 @@ final class OrdreDepenseService
         app(CorrectionPaiementService::class)->apresOrdre($ordre);
     }
 
+    /**
+     * Le comité d'organisation de l'ordre, si son comité de suivi des dépenses est actif et a son Jewrine : c'est lui
+     * qui signe. Sans Jewrine nommé (ou sans comité de suivi), le Jewrine national signe.
+     */
+    public function jewrineSignataire(OrdreDepense $ordre): ?User
+    {
+        $comite = $ordre->commissionComite->instance ?? $ordre->collecte?->comite;
+
+        return $comite !== null && $comite->estComiteOrganisation() && $comite->suivi_depenses ? $comite->jewrineSuiviDepenses() : null;
+    }
+
+    /** Signer : le Jewrine du suivi des dépenses pour son comité, sinon le Jewrine national ; jamais son propre ordre. */
     public function peutSigner(User $utilisateur, OrdreDepense $ordre): bool
     {
-        return $ordre->statut === OrdreDepense::DEMANDE && $utilisateur->can('depenses.signer') && $ordre->demande_par !== $utilisateur->id;
+        if ($ordre->statut !== OrdreDepense::DEMANDE || $ordre->demande_par === $utilisateur->id) {
+            return false;
+        }
+
+        $jewrine = $this->jewrineSignataire($ordre);
+
+        return $jewrine !== null
+            ? $jewrine->id === $utilisateur->id && $utilisateur->can('depenses.signer_comite')
+            : $utilisateur->can('depenses.signer');
     }
 
     public function signer(OrdreDepense $ordre, User $auteur): void
     {
         if (! $this->peutSigner($auteur, $ordre)) {
-            throw new DomainException('Le Jewrine national signe l\'ordre (jamais le sien).');
+            throw new DomainException($this->jewrineSignataire($ordre) !== null
+                ? 'Le Jewrine du comité de suivi des dépenses signe l\'ordre (jamais le sien).'
+                : 'Le Jewrine national signe l\'ordre (jamais le sien).');
         }
 
         $ordre->update(['statut' => OrdreDepense::SIGNE, 'signe_le' => now(), 'signe_par' => $auteur->id]);
@@ -206,7 +241,7 @@ final class OrdreDepenseService
     public function refuser(OrdreDepense $ordre, string $motif, User $auteur): void
     {
         if (! $this->peutSigner($auteur, $ordre)) {
-            throw new DomainException('Le Jewrine national refuse l\'ordre (jamais le sien).');
+            throw new DomainException('Celui qui signe les ordres de ce périmètre refuse l\'ordre (jamais le sien).');
         }
 
         if (trim($motif) === '') {
@@ -261,17 +296,129 @@ final class OrdreDepenseService
         });
 
         app(CorrectionPaiementService::class)->apresOrdre($ordre->fresh() ?? $ordre);
+        $this->alerterSiDepassement($ordre->fresh() ?? $ordre);
         $ordre->demandeur->notify(new NotificationMembre('Ordre exécuté : '.$ordre->numero, CollecteService::fcfa($ordre->montant).' versés pour « '.$ordre->objet.' » ('.$ordre->beneficiaire.').', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
     }
 
     /**
-     * Les signataires : les Jewrine nationaux nommés.
+     * Les signataires d'un ordre : le Jewrine du suivi des dépenses de son comité, sinon les Jewrine nationaux nommés.
      *
      * @return Collection<int, User>
      */
-    private function signataires(): Collection
+    private function signataires(OrdreDepense $ordre): Collection
     {
-        return User::query()->whereIn('id', Nomination::query()->whereHas('poste', fn ($query) => $query->where('code', Poste::JEWRINE_NATIONAL))->select('user_id'))->get();
+        $jewrine = $this->jewrineSignataire($ordre);
+
+        return $jewrine !== null
+            ? new Collection([$jewrine])
+            : User::query()->whereIn('id', Nomination::query()->whereHas('poste', fn ($query) => $query->where('code', Poste::JEWRINE_NATIONAL))->select('user_id'))->get();
+    }
+
+    /** Une commission qui dépasse son budget : le président du comité et celui qui arbitre sont prévenus. */
+    private function alerterSiDepassement(OrdreDepense $ordre): void
+    {
+        $commission = $ordre->commissionComite;
+
+        if ($commission === null || $commission->budget() <= 0 || $commission->depense() <= $commission->budget()) {
+            return;
+        }
+
+        $comite = $commission->instance;
+        $destinataires = collect([$comite->president?->user, $this->jewrineSignataire($ordre)])->filter()->unique('id');
+
+        foreach ($destinataires as $destinataire) {
+            $destinataire->notify(new NotificationMembre(
+                'Budget dépassé : commission '.$commission->nom,
+                'Dépensé '.CollecteService::fcfa($commission->depense()).' pour un budget de '.CollecteService::fcfa($commission->budget()).' ('.$comite->nom.').',
+                route('filament.admin.resources.instances.view', $comite),
+                'Ouvrir l\'espace',
+            ));
+        }
+    }
+
+    /** Justifier une avance : celui qui l'a demandée, ou le chef de sa commission, tant qu'elle n'est pas soldée. */
+    public function peutJustifier(User $utilisateur, OrdreDepense $ordre): bool
+    {
+        return $ordre->estAvance() && $ordre->statut === OrdreDepense::EXECUTE && $ordre->soldee_le === null
+            && ($ordre->demande_par === $utilisateur->id || ($ordre->commissionComite !== null && ComiteService::dirige($utilisateur, $ordre->commissionComite)));
+    }
+
+    /** Le chef ajoute une pièce (achat, montant, photo du reçu) qui justifie son avance. */
+    public function justifier(OrdreDepense $ordre, string $objet, int $montant, UploadedFile $piece, User $auteur): JustificatifDepense
+    {
+        if (! $this->peutJustifier($auteur, $ordre)) {
+            throw new DomainException('Celui qui a reçu l\'avance la justifie, tant qu\'elle n\'est pas soldée.');
+        }
+
+        if (trim($objet) === '' || $montant < 1) {
+            throw new DomainException('Indiquez l\'achat et son montant.');
+        }
+
+        if ($montant > $ordre->resteAJustifier()) {
+            throw new DomainException('Il reste '.CollecteService::fcfa($ordre->resteAJustifier()).' à justifier sur cette avance.');
+        }
+
+        $chemin = $piece->store('depenses', 'local');
+
+        if ($chemin === false) {
+            throw new RuntimeException('Impossible d\'enregistrer la pièce.');
+        }
+
+        $justificatif = JustificatifDepense::query()->create([
+            'ordre_depense_id' => $ordre->id, 'objet' => mb_substr(trim($objet), 0, 255), 'montant' => $montant, 'piece_path' => $chemin, 'ajoute_par' => $auteur->id,
+        ]);
+        $this->solderSiComplete($ordre->fresh() ?? $ordre);
+
+        return $justificatif;
+    }
+
+    /** Enregistrer le reste rendu : la Finance, qui reçoit l'argent dans une caisse. */
+    public function peutEnregistrerRetour(User $utilisateur, OrdreDepense $ordre): bool
+    {
+        return $ordre->estAvance() && $ordre->statut === OrdreDepense::EXECUTE && $ordre->soldee_le === null && $ordre->resteAJustifier() > 0
+            && $utilisateur->can('depenses.executer');
+    }
+
+    /** Le chef rend ce qu'il n'a pas dépensé : l'argent rentre dans une caisse, et la dépense diminue d'autant. */
+    public function enregistrerRetour(OrdreDepense $ordre, int $montant, Caisse $caisse, User $auteur): void
+    {
+        if (! $this->peutEnregistrerRetour($auteur, $ordre)) {
+            throw new DomainException('La Finance enregistre le reste rendu d\'une avance non soldée.');
+        }
+
+        if ($montant < 1 || $montant > $ordre->resteAJustifier()) {
+            throw new DomainException('Le reste rendu va de 1 à '.CollecteService::fcfa($ordre->resteAJustifier()).'.');
+        }
+
+        if ($caisse->estArchive()) {
+            throw new DomainException('Cette caisse est archivée.');
+        }
+
+        DB::transaction(function () use ($ordre, $montant, $caisse, $auteur): void {
+            MouvementCaisse::query()->create([
+                'caisse_id' => $caisse->id, 'sens' => MouvementCaisse::ENTREE, 'montant' => $montant, 'nature' => 'retour',
+                'libelle' => $ordre->numero.' · reste de l\'avance rendu', 'ordre_depense_id' => $ordre->id, 'auteur_id' => $auteur->id, 'date_operation' => now(),
+            ]);
+            $ordre->increment('montant_rendu', $montant);
+        });
+
+        $this->solderSiComplete($ordre->fresh() ?? $ordre);
+    }
+
+    /** L'avance est soldée quand tout ce qui a été décaissé est justifié. */
+    private function solderSiComplete(OrdreDepense $ordre): void
+    {
+        if ($ordre->soldee_le !== null || $ordre->resteAJustifier() > 0) {
+            return;
+        }
+
+        $ordre->update(['soldee_le' => now()]);
+        $ordre->demandeur->notify(new NotificationMembre(
+            'Avance soldée : '.$ordre->numero,
+            '« '.$ordre->objet.' » : justifiée '.CollecteService::fcfa($ordre->justifie()).($ordre->montant_rendu > 0 ? ', rendue '.CollecteService::fcfa($ordre->montant_rendu) : '').'.',
+            route('comites.index'),
+            'Mes comités',
+        ));
     }
 
     /**

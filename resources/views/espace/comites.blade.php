@@ -246,9 +246,9 @@
                 @endif
             </details>
 
-            <details class="mt-4 text-sm">
-                <summary class="cursor-pointer font-semibold text-emerald-900">Demander un ordre de dépense (avant d'acheter)</summary>
-                <p class="mt-1 text-xs text-stone-500">Aucun argent ne sort sans ordre : il est signé, puis la Finance paie le bénéficiaire.</p>
+            <details class="mt-4 text-sm" data-test="ordres-depense" {{ ($ordres[$commission->id] ?? collect())->contains(fn ($ordre) => $ordre->estAvance() && $ordre->statut === 'execute' && $ordre->soldee_le === null) ? 'open' : '' }}>
+                <summary class="cursor-pointer font-semibold text-emerald-900">Demander un ordre de dépense : paiement, avance ou remboursement</summary>
+                <p class="mt-1 text-xs text-stone-500">Aucun argent ne sort sans ordre : il est signé ({{ $commission->instance->suivi_depenses ? 'par le Jewrine du suivi des dépenses' : 'par le Jewrine national' }}), puis la Finance paie. Une avance se justifie ensuite avec les reçus, et le reste se rend à la Finance.</p>
                 <form method="POST" action="{{ route('comites.ordres.store', $commission) }}" enctype="multipart/form-data" class="mt-2 space-y-2">
                     @csrf
                     <input type="text" name="objet" required maxlength="255" placeholder="Objet : achat de 40 bols" aria-label="Objet" class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
@@ -258,21 +258,46 @@
                             <option value="{{ $id }}">{{ $nom }}</option>
                         @endforeach
                     </select>
+                    <select name="nature" required aria-label="Nature" class="block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-base">
+                        <option value="paiement">Paiement direct : la Finance paie le fournisseur</option>
+                        <option value="avance">Avance : je reçois l'argent avant d'acheter</option>
+                        <option value="remboursement">Remboursement : j'ai payé de ma poche (reçu obligatoire)</option>
+                    </select>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="number" name="montant" required min="1" inputmode="numeric" placeholder="Montant FCFA" aria-label="Montant" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                        <input type="text" name="beneficiaire" required maxlength="150" placeholder="Bénéficiaire" aria-label="Bénéficiaire" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
+                        <input type="text" name="beneficiaire" maxlength="150" placeholder="Bénéficiaire (vous, par défaut)" aria-label="Bénéficiaire" class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                     </div>
-                    <label class="block text-xs text-stone-600">Devis (facultatif)
+                    <label class="block text-xs text-stone-600">Devis, ou reçu pour un remboursement
                         <input type="file" name="devis" accept="image/*,application/pdf" class="mt-1 block w-full text-sm">
                     </label>
                     <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Envoyer pour signature</button>
                 </form>
                 @if (($ordres[$commission->id] ?? collect())->isNotEmpty())
-                    <ul class="mt-3 divide-y divide-stone-100">
+                    <ul class="mt-3 divide-y divide-stone-100" data-test="ordres-commission">
                         @foreach ($ordres[$commission->id] as $ordre)
-                            <li class="flex justify-between gap-2 py-2">
-                                <span>{{ $ordre->numero }} · {{ $ordre->objet }}</span>
-                                <span class="shrink-0 text-xs font-semibold">{{ number_format($ordre->montant, 0, ',', ' ') }} F · {{ \App\Models\OrdreDepense::LIBELLES[$ordre->statut] }}</span>
+                            <li class="py-2">
+                                <div class="flex justify-between gap-2">
+                                    <span>{{ $ordre->numero }} · {{ $ordre->objet }}{{ $ordre->estAvance() ? ' · avance' : ($ordre->nature === 'remboursement' ? ' · remboursement' : '') }}</span>
+                                    <span class="shrink-0 text-xs font-semibold">{{ number_format($ordre->montant, 0, ',', ' ') }} F · {{ $ordre->soldee_le ? 'Soldée' : \App\Models\OrdreDepense::LIBELLES[$ordre->statut] }}</span>
+                                </div>
+                                @if ($ordre->estAvance() && $ordre->statut === 'execute')
+                                    <p class="mt-1 text-xs text-stone-600">
+                                        Justifié {{ number_format($ordre->justifie(), 0, ',', ' ') }} F{{ $ordre->montant_rendu > 0 ? ' · rendu '.number_format($ordre->montant_rendu, 0, ',', ' ').' F' : '' }}
+                                        · reste à justifier ou à rendre : <span class="font-semibold">{{ number_format($ordre->resteAJustifier(), 0, ',', ' ') }} F</span>
+                                    </p>
+                                    @if ($ordre->soldee_le === null)
+                                        <form method="POST" action="{{ route('comites.ordres.justifier', $ordre) }}" enctype="multipart/form-data" class="mt-2 space-y-2 rounded-lg bg-stone-50 p-2">
+                                            @csrf
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <input type="text" name="objet" required maxlength="255" placeholder="Achat" aria-label="Achat" class="rounded-lg border border-stone-300 px-3 py-2 text-base">
+                                                <input type="number" name="montant" required min="1" max="{{ $ordre->resteAJustifier() }}" inputmode="numeric" placeholder="Montant" aria-label="Montant justifié" class="rounded-lg border border-stone-300 px-3 py-2 text-base">
+                                            </div>
+                                            <input type="file" name="piece" required accept="image/*,application/pdf" capture="environment" aria-label="Photo du reçu" class="block w-full text-sm">
+                                            <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Justifier</button>
+                                        </form>
+                                        <p class="mt-1 text-xs text-stone-500">Ce que vous n'avez pas dépensé se rend à la Finance, qui l'enregistre.</p>
+                                    @endif
+                                @endif
                             </li>
                         @endforeach
                     </ul>
@@ -351,43 +376,24 @@
                         <input type="number" name="prix_unitaire" required min="1" placeholder="Prix unitaire (FCFA)"
                                class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
                     </div>
-                    <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Envoyer au président</button>
+                    <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Envoyer pour arbitrage</button>
                 </form>
             </details>
 
-            <h3 class="mt-4 font-semibold text-emerald-900">Nos dépenses</h3>
+            @if ($commission->depenses->isNotEmpty())
+            <h3 class="mt-4 font-semibold text-emerald-900">Anciennes dépenses déclarées</h3>
+            <p class="text-xs text-stone-500">Consultation seulement : les dépenses passent désormais par les ordres de dépense.</p>
             <ul class="mt-2 space-y-1 text-sm">
-                @forelse ($commission->depenses as $depense)
+                @foreach ($commission->depenses as $depense)
                     <li class="flex justify-between gap-2">
                         <span>{{ $depense->date_depense->format('d/m') }} · {{ $depense->objet }}</span>
                         <span class="whitespace-nowrap {{ $depense->statut === 'validee' ? 'text-emerald-800' : ($depense->statut === 'refusee' ? 'text-red-700' : 'text-amber-700') }}">
                             {{ number_format($depense->montant, 0, ',', ' ') }} · {{ \App\Models\DepenseCommission::STATUTS[$depense->statut] }}
                         </span>
                     </li>
-                @empty
-                    <li class="text-stone-500">Aucune dépense déclarée.</li>
-                @endforelse
+                @endforeach
             </ul>
-            <details class="mt-2">
-                <summary class="cursor-pointer text-sm font-semibold text-emerald-800">+ Déclarer une dépense</summary>
-                <form method="POST" action="{{ route('comites.depenses.store', $commission) }}" enctype="multipart/form-data" class="mt-2 space-y-2 text-sm">
-                    @csrf
-                    <input type="text" name="objet" required maxlength="150" placeholder="Objet : 10 sacs de riz"
-                           class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" name="montant" required min="1" placeholder="Montant (FCFA)"
-                               class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                        <input type="date" name="date_depense" required value="{{ now()->format('Y-m-d') }}" max="{{ now()->format('Y-m-d') }}"
-                               class="rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                    </div>
-                    <input type="text" name="fournisseur" maxlength="100" placeholder="Fournisseur (facultatif)"
-                           class="block w-full rounded-lg border border-stone-300 px-3 py-2.5 text-base">
-                    <label class="block text-xs text-stone-600">Photo de la facture ou du reçu (facultatif)
-                        <input type="file" name="justificatif" accept="image/*,application/pdf" capture="environment" class="mt-1 block w-full text-sm">
-                    </label>
-                    <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">Déclarer au Jewrine finance</button>
-                </form>
-            </details>
+            @endif
         </section>
     @endforeach
 

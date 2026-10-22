@@ -231,7 +231,7 @@ final class SuiviDepensesService
     {
         $collecte = $comite->collecte;
         $encaisse = $collecte?->totalVerse() ?? 0;
-        $decaisse = $collecte !== null ? (int) OrdreDepense::query()->where('collecte_id', $collecte->id)->where('statut', OrdreDepense::EXECUTE)->sum('montant') : 0;
+        $decaisse = $collecte !== null ? OrdreDepense::decaisseNet(OrdreDepense::query()->where('collecte_id', $collecte->id)) : 0;
         $reparti = (int) $comite->commissions()->get()->sum(fn (CommissionComite $commission): int => $commission->budget_arrete ?? 0);
         $avancement = app(ComiteService::class)->avancement($comite);
 

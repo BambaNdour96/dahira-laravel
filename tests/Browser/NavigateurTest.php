@@ -9,7 +9,9 @@ use App\Models\Commission;
 use App\Models\CommissionComite;
 use App\Models\Exercice;
 use App\Models\Instance;
+use App\Models\LibelleDepense;
 use App\Models\Membre;
+use App\Models\OrdreDepense;
 use App\Models\Paiement;
 use App\Models\Parametre;
 use App\Models\Reunion;
@@ -460,5 +462,26 @@ it('ouvre l\'espace d\'un comité d\'organisation et ses onglets, puis le budget
     visit('/mes-comites')->on()->mobile()
         ->assertSee('Budget arbitré : 400 000 FCFA')
         ->assertSee('Repas des trois jours')
+        ->assertNoJavascriptErrors();
+});
+
+it('montre à la cheffe son avance à justifier, avec le formulaire du reçu, sur le téléphone', function () {
+    $magal = app(ProgrammeService::class)->enregistrer([
+        'titre' => 'Grand Magal 2026', 'type_programme_id' => typeProgramme('magal'), 'debut' => now()->addMonths(2)->format('Y-m-d 08:00'), 'lieu' => 'Touba',
+        'mode' => ModeCollecte::Jayante->value, 'organisation' => Collecte::COMITE, 'ouverture' => now()->subDay()->toDateString(), 'statut' => 'ouverte', 'rappels_actifs' => false,
+    ], null, $this->super);
+    $cuisine = CommissionComite::query()->create(['instance_id' => $magal->comite?->id, 'nom' => 'Cuisine', 'chef_id' => $this->membre->id]);
+    $avance = OrdreDepense::query()->create([
+        'numero' => 'OD-2026-0001', 'objet' => 'Riz et huile', 'libelle_depense_id' => LibelleDepense::query()->value('id'), 'montant' => 50000, 'beneficiaire' => 'Moi',
+        'rattachement' => 'programme', 'nature' => OrdreDepense::AVANCE, 'collecte_id' => $magal->id, 'commission_comite_id' => $cuisine->id,
+        'demande_par' => $this->compte->id, 'statut' => OrdreDepense::EXECUTE, 'execute_le' => now(),
+    ]);
+
+    $this->actingAs($this->compte);
+    visit('/mes-comites')->on()->mobile()
+        ->assertSee($avance->numero.' · Riz et huile · avance')
+        ->assertSee('reste à justifier ou à rendre')
+        ->assertSee('50 000 F')
+        ->assertSee('Justifier')
         ->assertNoJavascriptErrors();
 });
