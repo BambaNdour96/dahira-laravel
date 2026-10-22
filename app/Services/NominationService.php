@@ -137,6 +137,19 @@ final class NominationService
         }
     }
 
+    /**
+     * Fin d'une suppléance du suivi des dépenses, décidée par le Jewrine du suivi des dépenses : le droit est vérifié par
+     * SuiviDepensesService ; ici, seulement ce poste-là, avec un motif.
+     */
+    public function mettreFinSuppleance(Nomination $nomination, string $motif, User $auteur): void
+    {
+        if ($nomination->poste->code !== Poste::SUPPLEANT_SUIVI_DEPENSES || $nomination->estTerminee() || trim($motif) === '') {
+            throw new DomainException('Indiquez le motif de la fin de la suppléance.');
+        }
+
+        $this->clore($nomination, $motif, $auteur);
+    }
+
     private function clore(Nomination $nomination, string $motif, ?User $auteur): void
     {
         $nomination->forceFill([

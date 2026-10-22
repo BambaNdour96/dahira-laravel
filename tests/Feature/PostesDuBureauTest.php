@@ -52,6 +52,7 @@ it('propose les vrais postes de la Daara, chacun avec sa casquette', function ()
         'Jewrine de commission' => 'jewrine_commission',
         'Convocateur du Comité directeur' => 'convocateur_comite_directeur',
         'Jewrine du comité de suivi des dépenses' => 'jewrine_suivi_depenses',
+        'Suppléant du Jewrine du suivi des dépenses' => 'suppleant_suivi_depenses',
     ]);
 });
 

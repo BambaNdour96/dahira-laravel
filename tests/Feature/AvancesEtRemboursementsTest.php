@@ -5,6 +5,7 @@ use App\Enums\StatutCollecte;
 use App\Enums\TypeCaisse;
 use App\Filament\Resources\Instances\Pages\ViewInstance;
 use App\Filament\Resources\Instances\RelationManagers\CommissionsRelationManager;
+use App\Filament\Resources\Instances\Widgets\SuiviDepensesComite;
 use App\Filament\Resources\OrdresDepense\OrdreDepenseResource;
 use App\Filament\Resources\OrdresDepense\Pages\ListOrdresDepense;
 use App\Models\Cellule;
@@ -13,6 +14,7 @@ use App\Models\CommissionComite;
 use App\Models\LibelleDepense;
 use App\Models\Membre;
 use App\Models\MouvementCaisse;
+use App\Models\Nomination;
 use App\Models\OrdreDepense;
 use App\Models\User;
 use App\Notifications\NotificationMembre;
@@ -200,4 +202,60 @@ it('rembourse la cheffe sur reçu, et prévient quand une commission dépasse so
     // Un ordre de cotisation remboursée (R3c) reste un paiement direct.
     app(CotisationService::class)->enregistrerEspeces($this->chef, 1, $this->tresorier);
     expect(OrdreDepense::query()->where('nature', OrdreDepense::PAIEMENT)->count())->toBe(0);
+});
+
+it('laisse le Jewrine du suivi désigner un suppléant du comité, validé par le Jewrine national, qui signe quand il est indisponible', function () {
+    Notification::fake();
+    $cdgmt = $this->magal->comite ?? throw new RuntimeException('Pas de comité.');
+    $suivi = app(SuiviDepensesService::class);
+    $suivi->designer($cdgmt, $this->suivi, $this->super);
+    $jewrine = $this->suivi->user->fresh();
+    $etranger = membreAvance($this->kaolack, 'Ibou');
+    $cdgmt->membres()->syncWithoutDetaching([$this->chef->id]);
+
+    expect(fn () => $suivi->proposerSuppleant($cdgmt, $this->chef, $this->national))->toThrow(DomainException::class, 'Jewrine du suivi des dépenses désigne')
+        ->and(fn () => $suivi->proposerSuppleant($cdgmt, $etranger, $jewrine))->toThrow(DomainException::class, 'membre du comité')
+        ->and(fn () => $suivi->proposerSuppleant($cdgmt, $this->suivi, $jewrine))->toThrow(DomainException::class, 'autre personne');
+
+    // Le Jewrine désigne la cheffe depuis l'espace ; le Jewrine national valide.
+    $this->actingAs($jewrine);
+    Livewire::test(ViewInstance::class, ['record' => $cdgmt->getRouteKey()])
+        ->callAction(TestAction::make('proposerSuppleant'), data: ['membre_id' => $this->chef->id])
+        ->assertHasNoActionErrors();
+    Notification::assertSentTo($this->national, NotificationMembre::class, fn (NotificationMembre $avis): bool => $avis->toArray($this->national)['titre'] === 'Suivi des dépenses : suppléant à valider');
+    $this->actingAs($this->national);
+    Livewire::test(ViewInstance::class, ['record' => $cdgmt->getRouteKey()])->callAction(TestAction::make('validerSuivi'))->assertHasNoActionErrors();
+
+    $suppleant = $this->chef->user->fresh();
+    expect($cdgmt->suppleantSuiviDepenses()?->id)->toBe($suppleant->id)
+        ->and($cdgmt->jewrineSuiviDepenses()?->id)->toBe($jewrine->id)
+        ->and($suppleant->hasRole('suppleant_suivi_depenses'))->toBeTrue();
+    Livewire::test(SuiviDepensesComite::class, ['record' => $cdgmt])->assertSee('Son suppléant')->assertSee($suppleant->name);
+
+    // Le suppléant signe (jamais son propre ordre) ; la signature le dit.
+    $ordre = ordreDeCommission($this->cuisine, $this->tresorier, OrdreDepense::PAIEMENT, 2000);
+    $sien = ordreDeCommission($this->cuisine, $suppleant, OrdreDepense::PAIEMENT, 1000);
+    Notification::assertSentTo($suppleant, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_contains($avis->toArray($suppleant)['titre'], $ordre->numero));
+    expect($this->ordres->peutSigner($suppleant, $ordre))->toBeTrue()
+        ->and($this->ordres->peutSigner($suppleant, $sien))->toBeFalse()
+        ->and($this->ordres->peutSigner($jewrine, $sien))->toBeTrue();
+    $this->ordres->signer($ordre, $suppleant);
+    expect($ordre->fresh()->signe_par_suppleant)->toBeTrue();
+    Notification::assertSentTo($this->tresorier, NotificationMembre::class, fn (NotificationMembre $avis): bool => str_contains($avis->toArray($this->tresorier)['message'], 'signé par le suppléant'));
+    $this->ordres->signer($sien, $jewrine);
+    expect($sien->fresh()->signe_par_suppleant)->toBeFalse();
+
+    $this->actingAs($this->national);
+    Livewire::test(ListOrdresDepense::class)->assertSee('(signée par le suppléant)');
+
+    // Une seule suppléance active : une nouvelle désignation remplace la précédente ; la fin reste tracée.
+    $cdgmt->membres()->syncWithoutDetaching([$this->president->id]);
+    $proposition = $suivi->proposerSuppleant($cdgmt, $this->president, $jewrine);
+    $suivi->valider($proposition, $this->national);
+    expect($cdgmt->suppleantSuiviDepenses()?->id)->toBe($this->president->user_id)
+        ->and(Nomination::query()->withoutGlobalScopes()->where('instance_id', $cdgmt->id)->whereNotNull('fin_le')->count())->toBe(1)
+        ->and(fn () => $suivi->mettreFinSuppleance($cdgmt, 'x', $this->chef->user))->toThrow(DomainException::class);
+    $suivi->mettreFinSuppleance($cdgmt, 'Retour du Jewrine', $jewrine);
+    expect($cdgmt->suppleantSuiviDepenses())->toBeNull()
+        ->and($this->ordres->peutSigner($this->president->user->fresh(), ordreDeCommission($this->cuisine, $this->tresorier, OrdreDepense::PAIEMENT, 500)))->toBeFalse();
 });

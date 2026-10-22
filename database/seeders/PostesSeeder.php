@@ -18,6 +18,7 @@ class PostesSeeder extends Seeder
         ['Jewrine de cellule', 'jewrine_cellule', 'cellule', true],
         ['Membre de Suivi et Évaluation', 'suivi_evaluation', 'national', false],
         ['Jewrine du comité de suivi des dépenses', 'jewrine_suivi_depenses', 'comite', true],
+        ['Suppléant du Jewrine du suivi des dépenses', 'suppleant_suivi_depenses', 'comite', true],
     ];
 
     public function run(): void

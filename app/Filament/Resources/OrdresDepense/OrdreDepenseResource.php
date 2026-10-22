@@ -104,7 +104,7 @@ class OrdreDepenseResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         /** @var Builder<OrdreDepense> $query */
-        $query = parent::getEloquentQuery()->with(['libelle', 'demandeur', 'collecte', 'commissionComite', 'projet', 'cellule', 'commission', 'caisse']);
+        $query = parent::getEloquentQuery()->with(['libelle', 'demandeur', 'signataire', 'collecte', 'commissionComite', 'projet', 'cellule', 'commission', 'caisse']);
         $utilisateur = self::utilisateur();
 
         if ($utilisateur !== null && ! self::voitTout($utilisateur)) {
@@ -185,6 +185,8 @@ class OrdreDepenseResource extends Resource
                         ? ($record->soldee_le !== null ? 'Soldée' : 'Reste '.number_format($record->resteAJustifier(), 0, ',', ' ').' FCFA')
                         : null),
                 TextColumn::make('demandeur.name')->label('Demandé par'),
+                TextColumn::make('signataire.name')->label('Signé par')->placeholder('—')
+                    ->formatStateUsing(fn (OrdreDepense $record, ?string $state): string => ($state ?? '—').($record->signe_par_suppleant ? ' (signée par le suppléant)' : '')),
                 TextColumn::make('statut')->label('État')->badge()
                     ->formatStateUsing(fn (string $state): string => OrdreDepense::LIBELLES[$state] ?? $state)
                     ->color(fn (string $state): string => match ($state) {

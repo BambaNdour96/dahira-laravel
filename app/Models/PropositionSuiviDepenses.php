@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $instance_id
  * @property int $membre_id
+ * @property string $poste
  * @property int $propose_par
  * @property string $statut
  * @property int|null $decide_par
@@ -38,9 +39,14 @@ class PropositionSuiviDepenses extends Model
 
     protected $table = 'propositions_suivi_depenses';
 
-    protected $attributes = ['statut' => self::PROPOSEE];
+    protected $attributes = ['statut' => self::PROPOSEE, 'poste' => Poste::JEWRINE_SUIVI_DEPENSES];
 
-    protected $fillable = ['instance_id', 'membre_id', 'propose_par', 'statut', 'decide_par', 'decide_le', 'motif'];
+    public function pourSuppleant(): bool
+    {
+        return $this->poste === Poste::SUPPLEANT_SUIVI_DEPENSES;
+    }
+
+    protected $fillable = ['instance_id', 'membre_id', 'poste', 'propose_par', 'statut', 'decide_par', 'decide_le', 'motif'];
 
     /** @return array<string, string> */
     protected function casts(): array

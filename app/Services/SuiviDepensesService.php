@@ -53,7 +53,7 @@ final class SuiviDepensesService
             throw new DomainException('Proposez un membre validé qui a son compte : il signera depuis le panneau.');
         }
 
-        if ($comite->propositionsSuivi()->where('statut', PropositionSuiviDepenses::PROPOSEE)->exists()) {
+        if ($comite->propositionsSuivi()->where('poste', Poste::JEWRINE_SUIVI_DEPENSES)->where('statut', PropositionSuiviDepenses::PROPOSEE)->exists()) {
             throw new DomainException('Une proposition attend déjà la décision du Jewrine national.');
         }
 
@@ -88,8 +88,72 @@ final class SuiviDepensesService
         return DB::transaction(function () use ($proposition, $auteur): Nomination {
             $proposition->update(['statut' => PropositionSuiviDepenses::VALIDEE, 'decide_par' => $auteur->id, 'decide_le' => now()]);
 
-            return $this->nommer($proposition->instance, $proposition->membre, $auteur);
+            return $this->nommer($proposition->instance, $proposition->membre, $auteur, $proposition->poste);
         });
+    }
+
+    /** Le Jewrine du suivi des dépenses désigne son suppléant, parmi les membres de son comité. */
+    public function peutProposerSuppleant(User $utilisateur, Instance $comite): bool
+    {
+        return $comite->estComiteOrganisation() && $comite->suivi_depenses && $comite->jewrineSuiviDepenses()?->id === $utilisateur->id;
+    }
+
+    public function proposerSuppleant(Instance $comite, Membre $membre, User $auteur): PropositionSuiviDepenses
+    {
+        if (! $this->peutProposerSuppleant($auteur, $comite)) {
+            throw new DomainException('Le Jewrine du suivi des dépenses désigne son suppléant.');
+        }
+
+        if ($membre->user_id === $auteur->id) {
+            throw new DomainException('Le suppléant est une autre personne que le Jewrine.');
+        }
+
+        if ($membre->user === null || ! $membre->user->actif || ! $comite->membres()->whereKey($membre->id)->exists()) {
+            throw new DomainException('Le suppléant est un membre du comité, qui a son compte.');
+        }
+
+        if ($comite->propositionsSuivi()->where('poste', Poste::SUPPLEANT_SUIVI_DEPENSES)->where('statut', PropositionSuiviDepenses::PROPOSEE)->exists()) {
+            throw new DomainException('Une désignation de suppléant attend déjà le Jewrine national.');
+        }
+
+        $proposition = PropositionSuiviDepenses::query()->create([
+            'instance_id' => $comite->id, 'membre_id' => $membre->id, 'poste' => Poste::SUPPLEANT_SUIVI_DEPENSES, 'propose_par' => $auteur->id,
+        ]);
+
+        foreach ($this->nationaux() as $national) {
+            if ($national->id !== $auteur->id) {
+                $national->notify(new NotificationMembre(
+                    'Suivi des dépenses : suppléant à valider',
+                    $auteur->name.' désigne '.$membre->nom_complet.' comme suppléant pour signer les ordres de « '.$comite->nom.' ».',
+                    route('filament.admin.resources.instances.view', $comite),
+                    'Valider ou refuser',
+                ));
+            }
+        }
+
+        return $proposition;
+    }
+
+    /** Fin de la suppléance : le Jewrine du suivi des dépenses ou le Jewrine national, avec un motif ; l'historique reste. */
+    public function peutMettreFinSuppleance(User $utilisateur, Instance $comite): bool
+    {
+        return $comite->suppleantSuiviDepenses() !== null && ($this->peutProposerSuppleant($utilisateur, $comite) || $utilisateur->can('nominations.gerer'));
+    }
+
+    public function mettreFinSuppleance(Instance $comite, string $motif, User $auteur): void
+    {
+        if (! $this->peutMettreFinSuppleance($auteur, $comite)) {
+            throw new DomainException('Le Jewrine du suivi des dépenses ou le Jewrine national met fin à la suppléance.');
+        }
+
+        $nomination = Nomination::query()->where('instance_id', $comite->id)
+            ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::SUPPLEANT_SUIVI_DEPENSES))->firstOrFail();
+        $suppleant = $nomination->user;
+        $this->nominations->mettreFinSuppleance($nomination, $motif, $auteur);
+
+        if ($suppleant->id !== $auteur->id) {
+            $suppleant->notify(new NotificationMembre('Fin de votre suppléance', 'Vous ne signez plus les ordres de « '.$comite->nom.' » : '.trim($motif).'.', route('comites.index'), 'Mes comités'));
+        }
     }
 
     public function refuser(PropositionSuiviDepenses $proposition, string $motif, User $auteur): void
@@ -125,15 +189,18 @@ final class SuiviDepensesService
         return $this->nommer($comite, $membre, $auteur);
     }
 
-    private function nommer(Instance $comite, Membre $membre, User $auteur): Nomination
+    private function nommer(Instance $comite, Membre $membre, User $auteur, string $code = Poste::JEWRINE_SUIVI_DEPENSES): Nomination
     {
-        $poste = Poste::query()->where('code', Poste::JEWRINE_SUIVI_DEPENSES)->firstOrFail();
+        $poste = Poste::query()->where('code', $code)->firstOrFail();
         $compte = $membre->user ?? throw new DomainException('Ce membre n\'a pas de compte.');
         $nomination = $this->nominations->nommer($compte, $poste, null, $auteur, comite: $comite);
+        $suppleant = $code === Poste::SUPPLEANT_SUIVI_DEPENSES;
 
         $compte->notify(new NotificationMembre(
-            'Jewrine du suivi des dépenses : '.$comite->nom,
-            'Vous arbitrez le budget des commissions et signez les ordres de dépense de « '.$comite->nom.' ».',
+            ($suppleant ? 'Suppléant du suivi des dépenses : ' : 'Jewrine du suivi des dépenses : ').$comite->nom,
+            $suppleant
+                ? 'Vous signez les ordres de dépense de « '.$comite->nom.' » quand le Jewrine du suivi des dépenses est indisponible.'
+                : 'Vous arbitrez le budget des commissions et signez les ordres de dépense de « '.$comite->nom.' ».',
             route('filament.admin.resources.instances.view', $comite),
             'Ouvrir l\'espace',
         ));

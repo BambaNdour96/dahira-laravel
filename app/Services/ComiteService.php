@@ -111,7 +111,7 @@ final class ComiteService
         $membre = $utilisateur->membre;
 
         return ($membre !== null && $instance->membres()->whereKey($membre->id)->exists())
-            || ($instance->estComiteOrganisation() && $instance->jewrineSuiviDepenses()?->id === $utilisateur->id);
+            || ($instance->estComiteOrganisation() && in_array($utilisateur->id, [$instance->jewrineSuiviDepenses()?->id, $instance->suppleantSuiviDepenses()?->id], true));
     }
 
     /**

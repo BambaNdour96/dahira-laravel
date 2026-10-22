@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string $statut
  * @property Carbon|null $signe_le
  * @property int|null $signe_par
+ * @property bool $signe_par_suppleant
  * @property string|null $motif_refus
  * @property Carbon|null $execute_le
  * @property int|null $execute_par
@@ -96,14 +97,14 @@ class OrdreDepense extends Model
 
     protected $fillable = [
         'numero', 'objet', 'libelle_depense_id', 'montant', 'beneficiaire', 'rattachement', 'nature', 'collecte_id', 'commission_comite_id',
-        'projet_id', 'cellule_id', 'commission_id', 'devis_path', 'demande_par', 'statut', 'signe_le', 'signe_par', 'motif_refus',
+        'projet_id', 'cellule_id', 'commission_id', 'devis_path', 'demande_par', 'statut', 'signe_le', 'signe_par', 'signe_par_suppleant', 'motif_refus',
         'execute_le', 'execute_par', 'caisse_id', 'preuve_path', 'soldee_le',
     ];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['signe_le' => 'datetime', 'execute_le' => 'datetime', 'soldee_le' => 'datetime', 'montant' => 'integer', 'montant_rendu' => 'integer'];
+        return ['signe_le' => 'datetime', 'execute_le' => 'datetime', 'soldee_le' => 'datetime', 'signe_par_suppleant' => 'boolean', 'montant' => 'integer', 'montant_rendu' => 'integer'];
     }
 
     /**

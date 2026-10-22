@@ -73,14 +73,14 @@ class InstanceResource extends Resource
     }
 
     /**
-     * Les comités dont cette personne est le Jewrine du suivi des dépenses.
+     * Les comités dont cette personne est le Jewrine du suivi des dépenses, ou son suppléant.
      *
      * @return list<int>
      */
     public static function comitesSuivis(User $utilisateur): array
     {
         return array_values(array_map('intval', Nomination::query()->where('user_id', $utilisateur->id)->whereNotNull('instance_id')
-            ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::JEWRINE_SUIVI_DEPENSES))->pluck('instance_id')->all()));
+            ->whereHas('poste', fn ($poste) => $poste->whereIn('code', [Poste::JEWRINE_SUIVI_DEPENSES, Poste::SUPPLEANT_SUIVI_DEPENSES]))->pluck('instance_id')->all()));
     }
 
     /** @return Builder<Instance> */

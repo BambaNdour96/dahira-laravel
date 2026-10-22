@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Instances\Widgets;
 
 use App\Models\Instance;
+use App\Models\Poste;
 use App\Models\PropositionSuiviDepenses;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -32,13 +33,18 @@ class SuiviDepensesComite extends StatsOverviewWidget
         }
 
         $jewrine = $this->record->jewrineSuiviDepenses();
-        $proposition = $this->record->propositionsSuivi()->with('membre')->where('statut', PropositionSuiviDepenses::PROPOSEE)->latest()->first();
+        $proposition = $this->record->propositionsSuivi()->with('membre')->where('poste', Poste::JEWRINE_SUIVI_DEPENSES)->where('statut', PropositionSuiviDepenses::PROPOSEE)->latest()->first();
+        $suppleant = $this->record->suppleantSuiviDepenses();
+        $propositionSuppleant = $this->record->propositionsSuivi()->with('membre')->where('poste', Poste::SUPPLEANT_SUIVI_DEPENSES)->where('statut', PropositionSuiviDepenses::PROPOSEE)->latest()->first();
 
         return [
             Stat::make('Comité de suivi des dépenses', 'Actif')->description('Il arbitre le budget des commissions et signe les ordres de dépense.')->color('success'),
             Stat::make('Son Jewrine', $jewrine->name ?? 'À nommer')
                 ->description($proposition !== null ? 'Proposé : '.$proposition->membre->nom_complet.', à valider par le Jewrine national' : 'Proposé par le président, validé par le Jewrine national')
                 ->color($jewrine !== null ? 'success' : 'warning'),
+            Stat::make('Son suppléant', $suppleant->name ?? 'Aucun')
+                ->description($propositionSuppleant !== null ? 'Désigné : '.$propositionSuppleant->membre->nom_complet.', à valider par le Jewrine national' : 'Signe quand le Jewrine est indisponible')
+                ->color($suppleant !== null ? 'success' : 'gray'),
         ];
     }
 }

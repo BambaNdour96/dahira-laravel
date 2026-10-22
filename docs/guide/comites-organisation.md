@@ -53,6 +53,15 @@ Il est nommé ainsi (bouton **Suivi des dépenses**, en haut de l'espace) :
    « Refuser la proposition » avec un motif (le président est prévenu et propose quelqu'un d'autre).
 3. Ou bien le **super administrateur** : « Désigner le Jewrine du suivi des dépenses », directement.
 
+### Le suppléant
+
+Le Jewrine du suivi des dépenses peut désigner un **suppléant** parmi les membres de son comité (« Suivi des
+dépenses » → « Désigner mon suppléant ») ; le **Jewrine national** valide ou refuse, comme une proposition du
+président. Le suppléant signe les ordres de l'événement quand le Jewrine est indisponible ; chaque ordre qu'il signe
+porte « **signée par le suppléant** » (liste des ordres de dépense, et message au demandeur). Une seule suppléance est
+active à la fois : une nouvelle désignation remplace la précédente. Le Jewrine du suivi ou le Jewrine national y met fin
+(« Mettre fin à la suppléance », avec un motif) ; tout reste dans l'historique des nominations.
+
 Une nouvelle nomination remplace la précédente, qui reste dans l'historique. Ce poste ne se donne pas depuis l'écran
 général des nominations. Le Jewrine du suivi des dépenses retrouve son comité dans le panneau, même s'il n'en est pas
 membre.

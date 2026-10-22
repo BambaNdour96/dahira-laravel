@@ -215,8 +215,16 @@ final class OrdreDepenseService
         $jewrine = $this->jewrineSignataire($ordre);
 
         return $jewrine !== null
-            ? $jewrine->id === $utilisateur->id && $utilisateur->can('depenses.signer_comite')
+            ? ($jewrine->id === $utilisateur->id || $this->suppleantSignataire($ordre)?->id === $utilisateur->id) && $utilisateur->can('depenses.signer_comite')
             : $utilisateur->can('depenses.signer');
+    }
+
+    /** Le suppléant du Jewrine du suivi des dépenses de l'ordre, s'il y en a un. */
+    public function suppleantSignataire(OrdreDepense $ordre): ?User
+    {
+        $comite = $ordre->commissionComite->instance ?? $ordre->collecte?->comite;
+
+        return $this->jewrineSignataire($ordre) !== null ? $comite?->suppleantSuiviDepenses() : null;
     }
 
     public function signer(OrdreDepense $ordre, User $auteur): void
@@ -227,9 +235,10 @@ final class OrdreDepenseService
                 : 'Le Jewrine national signe l\'ordre (jamais le sien).');
         }
 
-        $ordre->update(['statut' => OrdreDepense::SIGNE, 'signe_le' => now(), 'signe_par' => $auteur->id]);
+        $parSuppleant = $this->suppleantSignataire($ordre)?->id === $auteur->id;
+        $ordre->update(['statut' => OrdreDepense::SIGNE, 'signe_le' => now(), 'signe_par' => $auteur->id, 'signe_par_suppleant' => $parSuppleant]);
 
-        $ordre->demandeur->notify(new NotificationMembre('Ordre signé : '.$ordre->numero, '« '.$ordre->objet.' » est signé ; la Finance va l\'exécuter.', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
+        $ordre->demandeur->notify(new NotificationMembre('Ordre signé : '.$ordre->numero, '« '.$ordre->objet.' » est signé'.($parSuppleant ? ' par le suppléant' : '').' ; la Finance va l\'exécuter.', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
 
         foreach (User::permission('depenses.executer')->get() as $tresorier) {
             if ($tresorier->id !== $ordre->demande_par && $tresorier->id !== $auteur->id && ! $tresorier->hasRole('super_administrateur')) {
@@ -248,7 +257,8 @@ final class OrdreDepenseService
             throw new DomainException('Indiquez le motif du refus.');
         }
 
-        $ordre->update(['statut' => OrdreDepense::REFUSE, 'signe_le' => now(), 'signe_par' => $auteur->id, 'motif_refus' => mb_substr(trim($motif), 0, 255)]);
+        $ordre->update(['statut' => OrdreDepense::REFUSE, 'signe_le' => now(), 'signe_par' => $auteur->id, 'signe_par_suppleant' => $this->suppleantSignataire($ordre)?->id === $auteur->id,
+            'motif_refus' => mb_substr(trim($motif), 0, 255)]);
         app(CorrectionPaiementService::class)->apresOrdre($ordre);
         $ordre->demandeur->notify(new NotificationMembre('Ordre refusé : '.$ordre->numero, '« '.$ordre->objet.' » n\'est pas signé : '.trim($motif).'.', route('filament.admin.resources.ordres-depense.index'), 'Voir'));
     }
@@ -310,7 +320,7 @@ final class OrdreDepenseService
         $jewrine = $this->jewrineSignataire($ordre);
 
         return $jewrine !== null
-            ? new Collection([$jewrine])
+            ? new Collection(array_filter([$jewrine, $this->suppleantSignataire($ordre)]))
             : User::query()->whereIn('id', Nomination::query()->whereHas('poste', fn ($query) => $query->where('code', Poste::JEWRINE_NATIONAL))->select('user_id'))->get();
     }
 

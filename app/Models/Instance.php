@@ -83,6 +83,13 @@ class Instance extends Model
             ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::JEWRINE_SUIVI_DEPENSES))->select('user_id'))->first();
     }
 
+    /** Le suppléant du Jewrine du suivi des dépenses (nomination en cours), s'il y en a un. */
+    public function suppleantSuiviDepenses(): ?User
+    {
+        return User::query()->whereIn('id', Nomination::query()->where('instance_id', $this->id)
+            ->whereHas('poste', fn ($poste) => $poste->where('code', Poste::SUPPLEANT_SUIVI_DEPENSES))->select('user_id'))->first();
+    }
+
     /**
      * Les propositions du président pour le Jewrine du suivi des dépenses.
      *

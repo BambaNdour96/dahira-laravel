@@ -29,7 +29,7 @@ Pour une avance ou un remboursement, le bénéficiaire est le demandeur lui-mêm
 
 | Ordre | Qui signe ou refuse (avec un motif) |
 | --- | --- |
-| D'un événement dont le comité d'organisation a un **comité de suivi des dépenses** actif, avec son Jewrine nommé (le Magal) | Le **Jewrine du comité de suivi des dépenses**, seul |
+| D'un événement dont le comité d'organisation a un **comité de suivi des dépenses** actif, avec son Jewrine nommé (le Magal) | Le **Jewrine du comité de suivi des dépenses**, seul ; ou son **suppléant** quand il est indisponible (l'ordre porte « signée par le suppléant ») |
 | Tous les autres (Grand Ziar sans comité de suivi, projets, fonctionnement…) | Le **Jewrine national** |
 
 Tant que le Jewrine du suivi des dépenses n'est pas nommé, le Jewrine national signe. Personne ne signe son propre

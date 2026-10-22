@@ -20,6 +20,7 @@ use App\Filament\Resources\Instances\Widgets\TableauDeBordComite;
 use App\Filament\Resources\Reunions\ReunionResource;
 use App\Models\Instance;
 use App\Models\Membre;
+use App\Models\Poste;
 use App\Models\PropositionSuiviDepenses;
 use App\Models\User;
 use App\Services\CasquettesService;
@@ -83,9 +84,11 @@ class ViewInstance extends ViewRecord
         }
     }
 
-    private static function enAttente(Instance $comite): ?PropositionSuiviDepenses
+    /** La proposition qui attend le Jewrine national (Jewrine du suivi, ou suppléant), la plus ancienne d'abord. */
+    private static function enAttente(Instance $comite, ?string $poste = null): ?PropositionSuiviDepenses
     {
-        return $comite->propositionsSuivi()->with('membre')->where('statut', PropositionSuiviDepenses::PROPOSEE)->latest()->first();
+        return $comite->propositionsSuivi()->with('membre')->where('statut', PropositionSuiviDepenses::PROPOSEE)
+            ->when($poste !== null, fn ($query) => $query->where('poste', $poste))->oldest('id')->first();
     }
 
     /**
@@ -113,7 +116,8 @@ class ViewInstance extends ViewRecord
                     : 'Son Jewrine arbitrera le budget des commissions et signera les ordres de dépense de l\'événement.')
                 ->action(fn (Instance $record) => self::executer(fn (SuiviDepensesService $suivi, User $auteur) => $suivi->activer($record, ! $record->suivi_depenses, $auteur), 'C\'est enregistré.')),
             Action::make('proposerSuivi')->label('Proposer le Jewrine du suivi des dépenses')->icon('heroicon-o-user-plus')
-                ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && $service->peutProposer($utilisateur, $record) && self::enAttente($record) === null)
+                ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && $service->peutProposer($utilisateur, $record)
+                    && self::enAttente($record, Poste::JEWRINE_SUIVI_DEPENSES) === null)
                 ->modalDescription('Le Jewrine national valide votre proposition ; la nomination suit.')
                 ->schema([$membre()])
                 ->action(fn (Instance $record, array $data) => self::executer(
@@ -125,7 +129,8 @@ class ViewInstance extends ViewRecord
             Action::make('validerSuivi')->label('Valider la proposition')->icon('heroicon-o-check')->color('success')
                 ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && ($proposition = self::enAttente($record)) !== null && $service->peutDecider($utilisateur, $proposition))
                 ->requiresConfirmation()
-                ->modalDescription(fn (Instance $record): string => (self::enAttente($record)?->membre->nom_complet ?? '').' devient Jewrine du suivi des dépenses de ce comité.')
+                ->modalDescription(fn (Instance $record): string => (self::enAttente($record)?->membre->nom_complet ?? '')
+                    .(self::enAttente($record)?->pourSuppleant() === true ? ' devient suppléant du Jewrine du suivi des dépenses : il signera les ordres quand le Jewrine est indisponible.' : ' devient Jewrine du suivi des dépenses de ce comité.'))
                 ->action(fn (Instance $record) => self::executer(function (SuiviDepensesService $suivi, User $auteur) use ($record): void {
                     $proposition = self::enAttente($record) ?? throw new DomainException('Aucune proposition en attente.');
                     $suivi->valider($proposition, $auteur);
@@ -137,6 +142,30 @@ class ViewInstance extends ViewRecord
                     $proposition = self::enAttente($record) ?? throw new DomainException('Aucune proposition en attente.');
                     $suivi->refuser($proposition, (string) $data['motif'], $auteur);
                 }, 'Proposition refusée ; le président est prévenu.')),
+            Action::make('proposerSuppleant')->label('Désigner mon suppléant')->icon('heroicon-o-user-group')
+                ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && $service->peutProposerSuppleant($utilisateur, $record)
+                    && self::enAttente($record, Poste::SUPPLEANT_SUIVI_DEPENSES) === null)
+                ->modalDescription('Un membre du comité, qui signera les ordres quand vous êtes indisponible. Le Jewrine national valide ; la suppléance précédente prend fin.')
+                ->schema(fn (Instance $record): array => [
+                    Select::make('membre_id')->label('Membre du comité')->required()->searchable()
+                        ->options($record->membres()->whereNotNull('membres.user_id')->where('membres.user_id', '!=', self::utilisateur()?->id)->get()
+                            ->mapWithKeys(fn (Membre $trouve): array => [$trouve->id => $trouve->nom_complet])->all()),
+                ])
+                ->action(fn (Instance $record, array $data) => self::executer(
+                    function (SuiviDepensesService $suivi, User $auteur) use ($record, $data): void {
+                        $suivi->proposerSuppleant($record, Membre::query()->whereKey((int) $data['membre_id'])->firstOrFail(), $auteur);
+                    },
+                    'Suppléant désigné : le Jewrine national valide.',
+                )),
+            Action::make('finSuppleance')->label('Mettre fin à la suppléance')->icon('heroicon-o-user-minus')->color('danger')
+                ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && $service->peutMettreFinSuppleance($utilisateur, $record))
+                ->schema([Textarea::make('motif')->label('Motif')->required()->maxLength(200)])
+                ->action(fn (Instance $record, array $data) => self::executer(
+                    function (SuiviDepensesService $suivi, User $auteur) use ($record, $data): void {
+                        $suivi->mettreFinSuppleance($record, (string) $data['motif'], $auteur);
+                    },
+                    'La suppléance a pris fin ; elle reste dans l\'historique.',
+                )),
             Action::make('designerSuivi')->label('Désigner le Jewrine du suivi des dépenses')->icon('heroicon-o-identification')->color('gray')
                 ->visible(fn (Instance $record): bool => $record->estComiteOrganisation() && $record->suivi_depenses && ($utilisateur = self::utilisateur()) !== null && CasquettesService::estSuperAdministrateur($utilisateur))
                 ->modalDescription('Désignation directe par le super administrateur ; elle remplace le Jewrine en place.')

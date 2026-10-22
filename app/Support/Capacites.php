@@ -31,6 +31,7 @@ final class Capacites
         'suivi_evaluation' => 'Membre de la commission Suivi et Évaluation',
         'convocateur_comite_directeur' => 'Convocateur du Comité directeur',
         'jewrine_suivi_depenses' => 'Jewrine du comité de suivi des dépenses',
+        'suppleant_suivi_depenses' => 'Suppléant du Jewrine du suivi des dépenses',
         'representant_finance' => 'Représentant finance',
         'comite_directeur' => 'Membre du Comité directeur',
         'membre' => 'Membre',
@@ -40,7 +41,7 @@ final class Capacites
     public const PERSONNELLES = ['caisse.tenir'];
 
     /** Les casquettes qui viennent d'un poste (nomination). */
-    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'jewrine_commission', 'convocateur_comite_directeur', 'jewrine_suivi_depenses'];
+    public const POSTES = ['jewrine_national', 'secretaire_general', 'jewrine_finance', 'jewrine_cellule', 'jewrine_commission', 'convocateur_comite_directeur', 'jewrine_suivi_depenses', 'suppleant_suivi_depenses'];
 
     /**
      * Les capacités, par domaine : code => libellé.
@@ -92,7 +93,7 @@ final class Capacites
             'caisse.tenir' => 'Tenir sa caisse de représentant',
             'depenses.demander' => 'Demander un ordre de dépense pour toute la Daara (les chefs de commission, responsables de projet et Jewrine le font pour leur périmètre)',
             'depenses.signer' => 'Signer ou refuser un ordre de dépense (sauf ceux d\'un comité qui a son Jewrine du suivi des dépenses)',
-            'depenses.signer_comite' => 'Signer ou refuser les ordres de dépense de son comité d\'organisation (Jewrine du suivi des dépenses)',
+            'depenses.signer_comite' => 'Signer ou refuser les ordres de dépense de son comité d\'organisation (Jewrine du suivi des dépenses, ou son suppléant)',
             'depenses.executer' => 'Exécuter un ordre de dépense signé, depuis une caisse, avec sa preuve',
             'depenses.libelles' => 'Créer et archiver les libellés de dépenses',
             'reaffectations.decider' => 'Décider une réaffectation de fonds (le solde d\'un programme vers un projet…)',
@@ -197,6 +198,7 @@ final class Capacites
         ],
         'convocateur_comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comite_directeur.convoquer'],
         'jewrine_suivi_depenses' => ['panneau.acceder', 'espace.responsable', 'comites.budget_voir', 'comites.arbitrer', 'depenses.signer_comite'],
+        'suppleant_suivi_depenses' => ['panneau.acceder', 'espace.responsable', 'comites.budget_voir', 'depenses.signer_comite'],
         'representant_finance' => ['espace.responsable', 'caisse.tenir'],
         'comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comites.budget_voir'],
         'membre' => [],
@@ -257,7 +259,7 @@ final class Capacites
     public const ABREVIATIONS = [
         'super_administrateur' => 'SA', 'jewrine_national' => 'JN', 'secretaire_general' => 'SG', 'jewrine_finance' => 'JF',
         'jewrine_cellule' => 'JC', 'jewrine_commission' => 'JCo', 'suivi_evaluation' => 'SE',
-        'convocateur_comite_directeur' => 'CCD', 'jewrine_suivi_depenses' => 'JSD', 'representant_finance' => 'RF', 'comite_directeur' => 'CD', 'membre' => 'M',
+        'convocateur_comite_directeur' => 'CCD', 'jewrine_suivi_depenses' => 'JSD', 'suppleant_suivi_depenses' => 'SSD', 'representant_finance' => 'RF', 'comite_directeur' => 'CD', 'membre' => 'M',
     ];
 
     /** Le tableau de la matrice, tel qu'il figure dans docs/guide/nominations.md (un test vérifie qu'ils concordent). */

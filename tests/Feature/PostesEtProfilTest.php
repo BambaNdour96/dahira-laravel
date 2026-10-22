@@ -17,7 +17,7 @@ beforeEach(function () {
 
 it('crée la liste officielle des postes, dans l\'ordre, chacun avec sa casquette', function () {
     expect(Poste::query()->orderBy('ordre')->pluck('nom')->first())->toBe('Jewrine national')
-        ->and(Poste::query()->where('actif', true)->count())->toBe(7)
+        ->and(Poste::query()->where('actif', true)->count())->toBe(8)
         ->and(Poste::query()->whereNull('code')->exists())->toBeFalse()
         ->and(Poste::query()->where('code', 'suivi_evaluation')->value('actif'))->toBeFalse();
 });

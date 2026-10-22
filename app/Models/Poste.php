@@ -33,6 +33,9 @@ class Poste extends Model
     /** Le Jewrine du comité de suivi des dépenses d'un comité d'organisation (nommé depuis l'espace du comité). */
     public const JEWRINE_SUIVI_DEPENSES = 'jewrine_suivi_depenses';
 
+    /** Son suppléant, qui signe quand le Jewrine est indisponible (une seule suppléance active par comité). */
+    public const SUPPLEANT_SUIVI_DEPENSES = 'suppleant_suivi_depenses';
+
     /** Les postes que seul le super administrateur attribue. */
     public const RESERVES_AU_SUPER_ADMINISTRATEUR = [self::JEWRINE_NATIONAL, self::JEWRINE_COMMISSION, self::CONVOCATEUR_COMITE_DIRECTEUR];
 
