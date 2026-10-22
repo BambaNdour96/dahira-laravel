@@ -26,6 +26,10 @@ use Illuminate\Support\Carbon;
  * @property-read Membre|null $president
  * @property-read Collecte|null $collecte
  * @property bool $suivi_depenses
+ * @property int|null $reunion_bilan_id
+ * @property Carbon|null $cloture_le
+ * @property int|null $cloture_par
+ * @property-read Reunion|null $reunionBilan
  * @property-read Commission|null $commission
  */
 class Instance extends Model
@@ -47,12 +51,34 @@ class Instance extends Model
 
     protected $attributes = ['statut' => 'active'];
 
-    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'commission_id', 'president_id', 'mise_en_place', 'statut', 'suivi_depenses', 'cree_par'];
+    protected $fillable = ['type', 'nom', 'code', 'annee', 'collecte_id', 'commission_id', 'president_id', 'mise_en_place', 'statut', 'suivi_depenses', 'reunion_bilan_id', 'cloture_le', 'cloture_par', 'cree_par'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['mise_en_place' => 'date', 'annee' => 'integer', 'suivi_depenses' => 'boolean'];
+        return ['mise_en_place' => 'date', 'annee' => 'integer', 'suivi_depenses' => 'boolean', 'cloture_le' => 'datetime'];
+    }
+
+    /** Clos : le comité est en archive, en lecture seule. */
+    public function estClos(): bool
+    {
+        return $this->statut === 'close';
+    }
+
+    /**
+     * Les bilans du comité (commissions, général, évaluation).
+     *
+     * @return HasMany<BilanComite, $this>
+     */
+    public function bilans(): HasMany
+    {
+        return $this->hasMany(BilanComite::class);
+    }
+
+    /** @return BelongsTo<Reunion, $this> */
+    public function reunionBilan(): BelongsTo
+    {
+        return $this->belongsTo(Reunion::class, 'reunion_bilan_id');
     }
 
     public static function comiteDirecteur(): self

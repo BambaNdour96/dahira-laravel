@@ -124,6 +124,7 @@ final class Capacites
         ],
         'Comités' => [
             'comites.diriger' => 'Créer un comité d\'organisation, en désigner le président, le gérer ; activer son comité de suivi des dépenses',
+            'comites.evaluer' => 'Rendre l\'évaluation d\'un comité d\'organisation à sa clôture (Suivi et Évaluation)',
             'comites.arbitrer' => 'Arbitrer le budget des commissions d\'un comité d\'organisation (le Jewrine du suivi des dépenses pour son comité ; sinon le Jewrine national)',
             'comite_directeur.convoquer' => 'Convoquer le Comité directeur et préparer ses réunions',
             'comites.consulter' => 'Consulter les comités, réunions, décisions et actions',
@@ -194,7 +195,7 @@ final class Capacites
             'cotisations.suivre', 'finances.voir',
             'programmes.voir', 'programmes.exporter',
             'evenements.voir', 'dahiras.voir', 'sympathisants.voir', 'statistiques.voir',
-            'projets.voir', 'projets.gerer', 'rapports.rediger', 'rapports.tout_lire',
+            'projets.voir', 'projets.gerer', 'rapports.rediger', 'rapports.tout_lire', 'comites.evaluer', 'comites.consulter',
         ],
         'convocateur_comite_directeur' => ['panneau.acceder', 'espace.responsable', 'comites.consulter', 'comite_directeur.convoquer'],
         'jewrine_suivi_depenses' => ['panneau.acceder', 'espace.responsable', 'comites.budget_voir', 'comites.arbitrer', 'depenses.signer_comite'],

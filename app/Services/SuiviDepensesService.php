@@ -30,7 +30,7 @@ final class SuiviDepensesService
     /** Le Jewrine national active ou désactive le comité de suivi des dépenses d'un comité d'organisation. */
     public function activer(Instance $comite, bool $actif, User $auteur): void
     {
-        if (! $comite->estComiteOrganisation() || ! $auteur->can('comites.diriger')) {
+        if (! $comite->estComiteOrganisation() || $comite->estClos() || ! $auteur->can('comites.diriger')) {
             throw new DomainException('Le Jewrine national active le comité de suivi des dépenses d\'un comité d\'organisation.');
         }
 
@@ -40,7 +40,7 @@ final class SuiviDepensesService
     /** Le président (ou ceux qui gèrent le comité) propose le Jewrine du suivi des dépenses. */
     public function peutProposer(User $utilisateur, Instance $comite): bool
     {
-        return $comite->estComiteOrganisation() && $comite->suivi_depenses && ComiteService::peutGerer($utilisateur, $comite);
+        return $comite->estComiteOrganisation() && ! $comite->estClos() && $comite->suivi_depenses && ComiteService::peutGerer($utilisateur, $comite);
     }
 
     public function proposer(Instance $comite, Membre $membre, User $auteur): PropositionSuiviDepenses
@@ -95,7 +95,7 @@ final class SuiviDepensesService
     /** Le Jewrine du suivi des dépenses désigne son suppléant, parmi les membres de son comité. */
     public function peutProposerSuppleant(User $utilisateur, Instance $comite): bool
     {
-        return $comite->estComiteOrganisation() && $comite->suivi_depenses && $comite->jewrineSuiviDepenses()?->id === $utilisateur->id;
+        return $comite->estComiteOrganisation() && ! $comite->estClos() && $comite->suivi_depenses && $comite->jewrineSuiviDepenses()?->id === $utilisateur->id;
     }
 
     public function proposerSuppleant(Instance $comite, Membre $membre, User $auteur): PropositionSuiviDepenses
@@ -211,7 +211,7 @@ final class SuiviDepensesService
     /** Qui arbitre le budget : le Jewrine du suivi des dépenses de ce comité s'il est actif ; sinon le Jewrine national. */
     public function peutArbitrer(User $utilisateur, Instance $comite): bool
     {
-        if (! $comite->estComiteOrganisation() || ! $utilisateur->can('comites.arbitrer')) {
+        if (! $comite->estComiteOrganisation() || $comite->estClos() || ! $utilisateur->can('comites.arbitrer')) {
             return false;
         }
 

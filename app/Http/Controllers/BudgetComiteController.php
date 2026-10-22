@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CommissionComite;
 use App\Models\DepenseCommission;
 use App\Models\Instance;
+use App\Models\OrdreDepense;
 use App\Models\User;
+use App\Services\BilanComiteService;
 use App\Services\BudgetComiteService;
 use App\Services\ComiteService;
 use DomainException;
@@ -41,6 +43,25 @@ class BudgetComiteController extends Controller
         return back()->with('comite_succes', 'Besoin envoyé pour arbitrage.');
     }
 
+    /** Le chef rend (ou complète) le bilan de sa commission, depuis son téléphone. */
+    public function bilanCommission(Request $request, CommissionComite $commission, BilanComiteService $bilans): RedirectResponse
+    {
+        $donnees = $request->validate([
+            'appreciation' => ['required', 'string'],
+            'forces' => ['nullable', 'string', 'max:5000'],
+            'faiblesses' => ['nullable', 'string', 'max:5000'],
+            'ameliorations' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        try {
+            $bilans->rendreBilanCommission($commission, $donnees, $this->utilisateur($request));
+        } catch (DomainException $e) {
+            return back()->withInput()->with('comite_erreur', $e->getMessage());
+        }
+
+        return back()->with('comite_succes', 'Bilan de la commission '.$commission->nom.' enregistré : le président est prévenu.');
+    }
+
     public function justificatif(Request $request, DepenseCommission $depense): StreamedResponse
     {
         $utilisateur = $this->utilisateur($request);
@@ -55,7 +76,7 @@ class BudgetComiteController extends Controller
         $utilisateur = $this->utilisateur($request);
         abort_unless(ComiteService::peutLire($utilisateur, $instance), 403);
 
-        $instance->load(['president', 'collecte.evenement', 'commissions.chef']);
+        $instance->load(['president', 'collecte.evenement', 'commissions.chef', 'reunionBilan']);
         $evenement = $instance->collecte?->evenement;
         $logo = public_path('images/logo-ndk.png');
 
@@ -67,6 +88,11 @@ class BudgetComiteController extends Controller
             'depenses' => DepenseCommission::query()->with('commission')
                 ->whereIn('commission_id', $instance->commissions()->select('id'))
                 ->where('statut', 'validee')->orderBy('date_depense')->get(),
+            'ordres' => OrdreDepense::query()->with(['commissionComite', 'commission'])->where('statut', OrdreDepense::EXECUTE)
+                ->where(fn ($query) => $query->whereIn('commission_comite_id', $instance->commissions()->select('id'))
+                    ->when($instance->collecte_id !== null, fn ($evenement) => $evenement->orWhere('collecte_id', $instance->collecte_id)))
+                ->orderBy('execute_le')->get(),
+            'bilans' => $instance->bilans()->with(['commission', 'auteur'])->orderByRaw("case type when 'commission' then 1 when 'general' then 2 else 3 end")->orderBy('id')->get(),
             'decisions' => $instance->decisions()->orderBy('numero')->get(),
             'presents' => $evenement?->presents()->count(),
             'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,

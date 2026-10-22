@@ -186,9 +186,10 @@ le PV ; le chef d'une commission d'un comité dirige sa commission.
 | Capacité | SA | JN | SG | JF | JC | JCo | SE | CCD | JSD | SSD | RF | CD | M |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | Créer un comité d'organisation, en désigner le président, le gérer ; activer son comité de suivi des dépenses <br>`comites.diriger` | ✔ | ✔ |  |  |  |  |  |  |  |  |  |  |  |
+| Rendre l'évaluation d'un comité d'organisation à sa clôture (Suivi et Évaluation) <br>`comites.evaluer` | ✔ |  |  |  |  |  | ✔ |  |  |  |  |  |  |
 | Arbitrer le budget des commissions d'un comité d'organisation (le Jewrine du suivi des dépenses pour son comité ; sinon le Jewrine national) <br>`comites.arbitrer` | ✔ | ✔ |  |  |  |  |  |  | ✔ |  |  |  |  |
 | Convoquer le Comité directeur et préparer ses réunions <br>`comite_directeur.convoquer` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  |  |  |  |
-| Consulter les comités, réunions, décisions et actions <br>`comites.consulter` | ✔ | ✔ | ✔ |  |  |  |  | ✔ |  |  |  | ✔ |  |
+| Consulter les comités, réunions, décisions et actions <br>`comites.consulter` | ✔ | ✔ | ✔ |  |  |  | ✔ | ✔ |  |  |  | ✔ |  |
 | Voir les besoins et les dépenses des commissions <br>`comites.budget_voir` | ✔ | ✔ | ✔ | ✔ |  |  |  |  | ✔ | ✔ |  | ✔ |  |
 | Consulter les anciennes dépenses déclarées des commissions (avant les avances et remboursements) <br>`comites.depenses_valider` | ✔ |  |  | ✔ |  |  |  |  |  |  |  |  |  |
 | Tenir la liste du Comité directeur <br>`comite_directeur.composer` | ✔ |  |  |  |  |  |  |  |  |  |  |  |  |

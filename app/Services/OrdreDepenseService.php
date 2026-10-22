@@ -137,6 +137,10 @@ final class OrdreDepenseService
         switch ($donnees['rattachement'] ?? null) {
             case 'programme':
                 $commissionComite = $id('commission_comite_id') !== null ? CommissionComite::query()->with('instance')->whereKey($id('commission_comite_id'))->first() : null;
+
+                if ($commissionComite !== null && $commissionComite->instance->estClos()) {
+                    throw new DomainException('Ce comité est clos : plus aucune dépense ne s\'y rattache.');
+                }
                 $imputation['commission_comite_id'] = $commissionComite?->id;
                 $imputation['collecte_id'] = $id('collecte_id') ?? $commissionComite?->instance->collecte_id;
                 $permis = $permis || ($commissionComite !== null && in_array($commissionComite->id, $perimetre['commissions_comite'], true));

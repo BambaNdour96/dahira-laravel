@@ -41,7 +41,7 @@
     <table class="chiffres">
         <tr>
             <td><div class="v">{{ $fcfa($budget['recettes']) }}</div><div class="petit">Recettes (collecte)</div></td>
-            <td><div class="v">{{ $fcfa($budget['depenses']) }}</div><div class="petit">Dépenses validées</div></td>
+            <td><div class="v">{{ $fcfa($budget['depenses']) }}</div><div class="petit">Dépenses (décaissé)</div></td>
             <td><div class="v {{ $budget['solde'] < 0 ? 'rouge' : '' }}">{{ $fcfa($budget['solde']) }}</div><div class="petit">Solde</div></td>
             <td><div class="v">{{ $avancement['faites'] }} / {{ $avancement['actions'] }}</div><div class="petit">Actions faites</div></td>
             <td><div class="v">{{ $presents ?? '—' }}</div><div class="petit">Présents au jour J</div></td>
@@ -50,7 +50,7 @@
 
     <h2>Budget par commission</h2>
     <table>
-        <tr><th>Commission</th><th>Chef</th><th class="n">Budget retenu</th><th class="n">Dépensé</th><th class="n">Reste</th><th class="n">Consommé</th></tr>
+        <tr><th>Commission</th><th>Chef</th><th class="n">Budget</th><th class="n">Décaissé</th><th class="n">Reste</th><th class="n">Consommé</th></tr>
         @foreach ($instance->commissions as $index => $commission)
             @php
                 $ligne = $budget['commissions'][$index] ?? ['budget' => 0, 'depense' => 0, 'reste' => 0, 'taux' => 0];
@@ -67,10 +67,29 @@
         <tr><td colspan="2"><b>Total</b></td><td class="n"><b>{{ $fcfa($budget['budget']) }}</b></td><td class="n"><b>{{ $fcfa($budget['depenses']) }}</b></td><td class="n"><b>{{ $fcfa($budget['budget'] - $budget['depenses']) }}</b></td><td></td></tr>
     </table>
 
-    <h2>Détail des dépenses</h2>
+    <h2>Ordres de dépense payés</h2>
+    <table>
+        <tr><th>Ordre</th><th>Commission</th><th>Objet</th><th>Nature</th><th class="n">Payé</th><th class="n">Rendu</th><th class="n">Décaissé</th></tr>
+        @forelse ($ordres as $ordre)
+            <tr>
+                <td>{{ $ordre->numero }}</td>
+                <td>{{ $ordre->commissionComite->nom ?? $ordre->commission->nom ?? '—' }}</td>
+                <td>{{ $ordre->objet }}</td>
+                <td>{{ ['avance' => 'Avance', 'remboursement' => 'Remboursement'][$ordre->nature] ?? 'Paiement' }}{{ $ordre->estAvance() ? ($ordre->soldee_le ? ' (soldée)' : ' (à justifier)') : '' }}</td>
+                <td class="n">{{ $fcfa($ordre->montant) }}</td>
+                <td class="n">{{ $ordre->montant_rendu > 0 ? $fcfa($ordre->montant_rendu) : '—' }}</td>
+                <td class="n">{{ $fcfa($ordre->decaisse()) }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="7" class="petit">Aucun ordre de dépense payé.</td></tr>
+        @endforelse
+    </table>
+
+    @if ($depenses->isNotEmpty())
+    <h2>Anciennes dépenses déclarées</h2>
     <table>
         <tr><th>Date</th><th>Commission</th><th>Objet</th><th>Fournisseur</th><th>Justificatif</th><th class="n">Montant</th></tr>
-        @forelse ($depenses as $depense)
+        @foreach ($depenses as $depense)
             <tr>
                 <td>{{ $depense->date_depense->format('d/m/Y') }}</td>
                 <td>{{ $depense->commission->nom }}</td>
@@ -79,10 +98,23 @@
                 <td>{{ $depense->justificatif_path ? 'Oui' : 'Non' }}</td>
                 <td class="n">{{ $fcfa($depense->montant) }}</td>
             </tr>
-        @empty
-            <tr><td colspan="6" class="petit">Aucune dépense validée.</td></tr>
-        @endforelse
+        @endforeach
     </table>
+    @endif
+
+    <h2>Les bilans</h2>
+    @forelse ($bilans as $bilan)
+        <table>
+            <tr><th colspan="2">{{ $bilan->titre() }} · {{ \App\Models\BilanComite::APPRECIATIONS[$bilan->appreciation] ?? '—' }} · {{ $bilan->auteur->name }}, le {{ $bilan->updated_at->format('d/m/Y') }}</th></tr>
+            @foreach (['forces' => 'Forces', 'faiblesses' => 'Faiblesses', 'ameliorations' => 'Améliorations'] as $champ => $titre)
+                @if ($bilan->{$champ})
+                    <tr><td style="width: 30mm"><b>{{ $titre }}</b></td><td>{!! nl2br(e($bilan->{$champ})) !!}</td></tr>
+                @endif
+            @endforeach
+        </table>
+    @empty
+        <p class="petit">Aucun bilan rendu pour le moment.</p>
+    @endforelse
 
     <h2>Décisions</h2>
     <table>
@@ -93,7 +125,8 @@
         @endforelse
     </table>
 
-    <h2>Leçons retenues pour le prochain comité</h2>
-    <div class="lecons"></div>
+    @if ($instance->estClos())
+        <p class="petit">Comité clos le {{ $instance->cloture_le?->format('d/m/Y') }}{{ $instance->reunionBilan ? ' · réunion de bilan : '.$instance->reunionBilan->titre.' ('.$instance->reunionBilan->debut->format('d/m/Y').')' : '' }}.</p>
+    @endif
 </body>
 </html>

@@ -116,7 +116,7 @@ class InstanceResource extends Resource
         $utilisateur = self::utilisateur();
 
         return $utilisateur !== null && $record instanceof Instance && ! $record->estComiteDirecteur() && ! $record->estCommission()
-            && ComiteService::peutGerer($utilisateur, $record);
+            && ! $record->estClos() && ComiteService::peutGerer($utilisateur, $record);
     }
 
     /** Rien ne se supprime : un comité se clôture (État « Clôturé »). */

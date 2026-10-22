@@ -4,12 +4,14 @@ namespace App\Filament\Resources\Instances\Pages;
 
 use App\Enums\StatutMembre;
 use App\Filament\Resources\Instances\InstanceResource;
+use App\Filament\Resources\Instances\RelationManagers\BilansRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\CommissionsRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\EngagementsRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\OrdresDepenseRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\ReunionsRelationManager;
 use App\Filament\Resources\Instances\RelationManagers\TachesRelationManager;
+use App\Filament\Resources\Instances\Widgets\AmeliorationsPrecedentes;
 use App\Filament\Resources\Instances\Widgets\AvancementCommissions;
 use App\Filament\Resources\Instances\Widgets\BudgetCommissions;
 use App\Filament\Resources\Instances\Widgets\IndicateursComite;
@@ -56,7 +58,7 @@ class ViewInstance extends ViewRecord
     {
         return $this->estComiteOrganisation() ? [
             CommissionsRelationManager::class, ReunionsRelationManager::class, EngagementsRelationManager::class,
-            OrdresDepenseRelationManager::class, TachesRelationManager::class, DocumentsRelationManager::class,
+            OrdresDepenseRelationManager::class, TachesRelationManager::class, DocumentsRelationManager::class, BilansRelationManager::class,
         ] : [];
     }
 
@@ -109,7 +111,7 @@ class ViewInstance extends ViewRecord
             Action::make('activerSuivi')
                 ->label(fn (Instance $record): string => $record->suivi_depenses ? 'Désactiver le comité de suivi' : 'Activer le comité de suivi des dépenses')
                 ->icon('heroicon-o-scale')->color('gray')
-                ->visible(fn (Instance $record): bool => $record->estComiteOrganisation() && self::utilisateur()?->can('comites.diriger') === true)
+                ->visible(fn (Instance $record): bool => $record->estComiteOrganisation() && ! $record->estClos() && self::utilisateur()?->can('comites.diriger') === true)
                 ->requiresConfirmation()
                 ->modalDescription(fn (Instance $record): string => $record->suivi_depenses
                     ? 'Le Jewrine national arbitrera le budget et signera les ordres de dépense.'
@@ -167,7 +169,7 @@ class ViewInstance extends ViewRecord
                     'La suppléance a pris fin ; elle reste dans l\'historique.',
                 )),
             Action::make('designerSuivi')->label('Désigner le Jewrine du suivi des dépenses')->icon('heroicon-o-identification')->color('gray')
-                ->visible(fn (Instance $record): bool => $record->estComiteOrganisation() && $record->suivi_depenses && ($utilisateur = self::utilisateur()) !== null && CasquettesService::estSuperAdministrateur($utilisateur))
+                ->visible(fn (Instance $record): bool => $record->estComiteOrganisation() && ! $record->estClos() && $record->suivi_depenses && ($utilisateur = self::utilisateur()) !== null && CasquettesService::estSuperAdministrateur($utilisateur))
                 ->modalDescription('Désignation directe par le super administrateur ; elle remplace le Jewrine en place.')
                 ->schema([$membre()])
                 ->action(fn (Instance $record, array $data) => self::executer(
@@ -193,13 +195,13 @@ class ViewInstance extends ViewRecord
             Action::make('reunion')
                 ->label('Nouvelle réunion')
                 ->icon('heroicon-o-calendar-days')
-                ->visible(fn (Instance $record): bool => ($utilisateur = self::utilisateur()) !== null && ComiteService::peutOrganiser($utilisateur, $record))
+                ->visible(fn (Instance $record): bool => ! $record->estClos() && ($utilisateur = self::utilisateur()) !== null && ComiteService::peutOrganiser($utilisateur, $record))
                 ->url(fn (Instance $record): string => ReunionResource::getUrl('create', ['instance' => $record->id])),
             Action::make('reprendre')
                 ->label('Reprendre les commissions précédentes')
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
-                ->visible(fn (Instance $record): bool => ! $record->estComiteDirecteur() && $record->commissions()->doesntExist()
+                ->visible(fn (Instance $record): bool => ! $record->estComiteDirecteur() && ! $record->estClos() && $record->commissions()->doesntExist()
                     && ($utilisateur = self::utilisateur()) !== null && ComiteService::peutGerer($utilisateur, $record))
                 ->requiresConfirmation()
                 ->modalDescription('Les commissions du comité précédent du même type sont recopiées, sans leurs chefs : vous les désignerez ensuite.')
@@ -230,7 +232,7 @@ class ViewInstance extends ViewRecord
     protected function getHeaderWidgets(): array
     {
         return $this->estComiteOrganisation()
-            ? [TableauDeBordComite::class, IndicateursComite::class, SuiviDepensesComite::class]
+            ? [AmeliorationsPrecedentes::class, TableauDeBordComite::class, IndicateursComite::class, SuiviDepensesComite::class]
             : [TableauDeBordComite::class];
     }
 

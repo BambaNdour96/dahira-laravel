@@ -16,9 +16,10 @@ Panneau → **Comités** → le comité → l'espace s'ouvre, en onglets.
 | **Argent** | Les ordres de dépense de l'événement, avec leur commission et leur état |
 | **Tâches** | Les actions du comité et les tâches des commissions, avec leur échéance et leur état |
 | **Documents** | Les devis et les preuves des dépenses (les PV sont dans « Réunions et PV ») |
+| **Bilan** | Ce qui manque pour clôturer, les bilans rendus (à lire), et la clôture |
 
-Le bilan, l'itinéraire et le transport rejoindront l'espace avec la clôture et les bilans, puis l'itinéraire et le
-transport.
+L'itinéraire et le transport rejoindront l'espace avec le lot suivant. À la **mise en place** d'un comité, le tableau
+de bord montre les **améliorations notées la dernière fois** (au dernier comité clos du même type d'événement).
 
 ## Le circuit de l'argent
 
@@ -80,6 +81,28 @@ membre.
    prévenu**. Sur son téléphone, il voit « Budget arbitré : … · dépensé … » et la dernière révision.
 
 Tant qu'une commission n'a pas de budget arbitré, son budget est la somme de ses besoins retenus.
+
+## La clôture et les bilans
+
+| Bilan | Qui le rend | Où |
+| --- | --- | --- |
+| **Bilan de chaque commission** | Son chef | Sur son téléphone : Mes comités → la commission → « Bilan de la commission » (ou dans l'onglet Bilan) |
+| **Bilan général** | Le président | Onglet **Bilan** → « Rendre le bilan général » |
+| **Évaluation** | La commission Suivi et Évaluation | Onglet **Bilan** → « Rendre l'évaluation » |
+
+Chaque bilan dit si les **objectifs** sont atteints, en partie ou non, et donne les **forces**, les **faiblesses** et
+les **améliorations** pour la prochaine fois ; les **chiffres** (budget, décaissé, justifié, tâches…) sont repris
+automatiquement et figés au moment où le bilan est rendu. On peut le compléter jusqu'à la clôture. Le président choisit
+aussi, parmi les réunions du comité, la **réunion de bilan** (« Réunion de bilan »).
+
+**Clôturer** (le président, ou le Jewrine national) : onglet **Bilan** → « Clôturer le comité ». C'est possible quand
+**tous les bilans sont rendus** (chaque commission, le bilan général, l'évaluation) et **toutes les avances
+justifiées** ; sinon, le message dit ce qui manque. L'onglet montre la liste (✔ fait, ✘ à faire). Une fois clos, le
+comité reste en **archive, en lecture seule** : plus de budget, de besoins, d'ordres de dépense ni de bilans ; tout reste
+consultable, et le bilan PDF reprend les bilans et les ordres payés. Les membres du comité sont prévenus.
+
+La clôture du comité ne clôture pas l'événement : son solde rejoint la caisse générale à la clôture de l'événement (voir
+[Les événements et leurs programmes](programmes.md)).
 
 ## Exemple : le Grand Magal
 

@@ -456,6 +456,9 @@ it('ouvre l\'espace d\'un comité d\'organisation et ses onglets, puis le budget
         ->click('Commissions et budget')
         ->assertSee('Cuisine')
         ->assertSee('400 000 FCFA')
+        ->click('Bilan')
+        ->assertSee('Pour clôturer')
+        ->assertSee('Bilan de la commission Cuisine')
         ->assertNoJavascriptErrors();
 
     $this->actingAs($this->compte);
@@ -483,5 +486,8 @@ it('montre à la cheffe son avance à justifier, avec le formulaire du reçu, su
         ->assertSee('reste à justifier ou à rendre')
         ->assertSee('50 000 F')
         ->assertSee('Justifier')
+        ->click('[data-test="bilan-commission"] summary')
+        ->assertSee('Objectifs atteints en partie')
+        ->assertSee('Rendre le bilan')
         ->assertNoJavascriptErrors();
 });

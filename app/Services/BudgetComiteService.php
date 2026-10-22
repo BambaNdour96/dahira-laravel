@@ -35,6 +35,10 @@ final class BudgetComiteService
             throw new DomainException('Seul le chef de la commission exprime ses besoins.');
         }
 
+        if ($commission->instance->estClos()) {
+            throw new DomainException('Ce comité est clos : il reste en archive, en lecture seule.');
+        }
+
         return BesoinCommission::query()->create([...$donnees, 'commission_id' => $commission->id, 'propose_par' => $auteur->id]);
     }
 

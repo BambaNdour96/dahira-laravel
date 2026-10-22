@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Une commission d'un comité (Cuisine, Hygiène et environnement, Finance…), avec son chef.
@@ -115,6 +116,16 @@ class CommissionComite extends Model
     public function resteAJustifier(): int
     {
         return (int) $this->ordresPayes()->sum(fn (OrdreDepense $ordre): int => $ordre->resteAJustifier());
+    }
+
+    /**
+     * Le bilan de la commission, rendu par son chef à la clôture du comité.
+     *
+     * @return HasOne<BilanComite, $this>
+     */
+    public function bilan(): HasOne
+    {
+        return $this->hasOne(BilanComite::class, 'commission_comite_id')->where('type', BilanComite::COMMISSION);
     }
 
     /**

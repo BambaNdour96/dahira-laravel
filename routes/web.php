@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relances/engagements/{engagement}/whatsapp', [RelanceController::class, 'collecte'])->name('relances.collecte');
     Route::get('/projets/{projet}/rapport', RapportProjetController::class)->name('projets.rapport');
     Route::get('/rapports/{rapport}/pdf', RapportSuiviPdfController::class)->name('rapports.pdf');
+    Route::post('/comites/commissions/{commission}/bilan', [BudgetComiteController::class, 'bilanCommission'])->name('comites.bilans.store');
     Route::post('/comites/commissions/{commission}/besoins', [BudgetComiteController::class, 'besoin'])->name('comites.besoins.store');
     Route::post('/comites/commissions/{commission}/membres', [ComitesController::class, 'ajouterMembre'])->name('comites.membres.ajouter');
     Route::post('/comites/commissions/{commission}/membres/{membre}/retirer', [ComitesController::class, 'retirerMembre'])->name('comites.membres.retirer');

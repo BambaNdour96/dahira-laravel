@@ -380,6 +380,34 @@
                 </form>
             </details>
 
+            @if ($commission->instance->estComiteOrganisation())
+                <details class="mt-4 text-sm" data-test="bilan-commission">
+                    <summary class="cursor-pointer font-semibold text-emerald-900">
+                        Bilan de la commission{{ $commission->bilan ? ' · rendu le '.$commission->bilan->updated_at->format('d/m/Y') : ' · à rendre à la fin de l\'événement' }}
+                    </summary>
+                    <p class="mt-1 text-xs text-stone-500">
+                        Les chiffres sont repris automatiquement : budget {{ number_format($commission->budget(), 0, ',', ' ') }} F,
+                        décaissé {{ number_format($commission->depense(), 0, ',', ' ') }} F, justifié {{ number_format($commission->justifie(), 0, ',', ' ') }} F.
+                    </p>
+                    <form method="POST" action="{{ route('comites.bilans.store', $commission) }}" class="mt-2 space-y-2">
+                        @csrf
+                        <fieldset class="space-y-1">
+                            <legend class="text-xs font-semibold text-stone-700">Les objectifs</legend>
+                            @foreach (\App\Models\BilanComite::APPRECIATIONS as $valeur => $libelle)
+                                <label class="flex items-center gap-2">
+                                    <input type="radio" name="appreciation" value="{{ $valeur }}" required @checked(old('appreciation', $commission->bilan?->appreciation) === $valeur)>
+                                    <span>{{ $libelle }}</span>
+                                </label>
+                            @endforeach
+                        </fieldset>
+                        <textarea name="forces" rows="2" maxlength="5000" placeholder="Forces : ce qui a bien marché" aria-label="Forces" class="block w-full rounded-lg border border-stone-300 px-3 py-2 text-base">{{ old('forces', $commission->bilan?->forces) }}</textarea>
+                        <textarea name="faiblesses" rows="2" maxlength="5000" placeholder="Faiblesses : ce qui a manqué" aria-label="Faiblesses" class="block w-full rounded-lg border border-stone-300 px-3 py-2 text-base">{{ old('faiblesses', $commission->bilan?->faiblesses) }}</textarea>
+                        <textarea name="ameliorations" rows="2" maxlength="5000" placeholder="Améliorations pour la prochaine fois" aria-label="Améliorations" class="block w-full rounded-lg border border-stone-300 px-3 py-2 text-base">{{ old('ameliorations', $commission->bilan?->ameliorations) }}</textarea>
+                        <button type="submit" class="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white">{{ $commission->bilan ? 'Mettre à jour le bilan' : 'Rendre le bilan' }}</button>
+                    </form>
+                </details>
+            @endif
+
             @if ($commission->depenses->isNotEmpty())
             <h3 class="mt-4 font-semibold text-emerald-900">Anciennes dépenses déclarées</h3>
             <p class="text-xs text-stone-500">Consultation seulement : les dépenses passent désormais par les ordres de dépense.</p>
